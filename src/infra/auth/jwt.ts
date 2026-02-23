@@ -10,8 +10,8 @@ export interface TokenPayload {
 }
 
 export const generateAccessToken = (payload: TokenPayload): string => {
-    return jwt.sign(payload, env.auth.jwtSecret, {
-        expiresIn: env.auth.jwtExpiresIn || '12h',
+    return jwt.sign({ ...payload }, env.auth.jwtSecret, {
+        expiresIn: (env.auth.jwtExpiresIn as jwt.SignOptions['expiresIn']) || '12h',
     })
 }
 

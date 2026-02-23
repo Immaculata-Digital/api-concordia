@@ -1,0 +1,50 @@
+services:
+  api-concordia-homolog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: homolog-api-concordia:latest
+    container_name: api-concordia-homolog
+    restart: unless-stopped
+    ports:
+      - "5337:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=${DB_HOST_HOMOLOG}
+      - DB_PORT=${DB_PORT_HOMOLOG}
+      - DB_USER=${DB_USER_HOMOLOG}
+      - DB_PASSWORD=${DB_PASSWORD_HOMOLOG}
+      - DB_NAME=${DB_NAME_HOMOLOG}
+      - JWT_SECRET=${JWT_SECRET_HOMOLOG}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-12h}
+      - BCRYPT_SALT_ROUNDS=${BCRYPT_SALT_ROUNDS:-12}
+    networks:
+      - marshall-network
+
+  api-concordia-main:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: api-concordia:latest
+    container_name: api-concordia-main
+    restart: unless-stopped
+    ports:
+      - "3337:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=${DB_HOST_MAIN}
+      - DB_PORT=${DB_PORT_MAIN}
+      - DB_USER=${DB_USER_MAIN}
+      - DB_PASSWORD=${DB_PASSWORD_MAIN}
+      - DB_NAME=${DB_NAME_MAIN}
+      - JWT_SECRET=${JWT_SECRET_MAIN}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-12h}
+      - BCRYPT_SALT_ROUNDS=${BCRYPT_SALT_ROUNDS:-12}
+    networks:
+      - marshall-network
+
+networks:
+  marshall-network:
+    driver: bridge

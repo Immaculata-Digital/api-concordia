@@ -1,0 +1,356 @@
+[
+    {
+        "key": "erp:dashboard",
+        "name": "Acesso ao Dashboard",
+        "description": "Permite visualizar o painel principal"
+    },
+    {
+        "key": "erp:usuarios:listar",
+        "name": "Listar Usuários",
+        "description": "Permite visualizar a listagem completa de usuários"
+    },
+    {
+        "key": "erp:usuarios:visualizar",
+        "name": "Ver Detalhes do Usuário",
+        "description": "Permite visualizar os detalhes de um usuário específico"
+    },
+    {
+        "key": "erp:usuarios:criar",
+        "name": "Criar Usuários",
+        "description": "Permite cadastrar novos usuários no sistema"
+    },
+    {
+        "key": "erp:usuarios:editar",
+        "name": "Editar Usuários",
+        "description": "Permite alterar dados de usuários existentes"
+    },
+    {
+        "key": "erp:usuarios:excluir",
+        "name": "Excluir Usuários",
+        "description": "Permite remover usuários do sistema"
+    },
+    {
+        "key": "erp:usuarios:atribuir-grupos",
+        "name": "Gerenciar Grupos de Usuários",
+        "description": "Permite atribuir ou remover grupos de acesso de um usuário"
+    },
+    {
+        "key": "erp:usuarios:resetar-senha",
+        "name": "Enviar Alteração de Senha",
+        "description": "Permite enviar email de redefinição de senha para o usuário"
+    },
+    {
+        "key": "erp:grupos-acesso:listar",
+        "name": "Listar Grupos de Acesso",
+        "description": "Permite visualizar a listagem de grupos de permissões"
+    },
+    {
+        "key": "erp:grupos-acesso:visualizar",
+        "name": "Ver Detalhes do Grupo",
+        "description": "Permite visualizar as funcionalidades vinculadas a um grupo"
+    },
+    {
+        "key": "erp:grupos-acesso:criar",
+        "name": "Criar Grupos de Acesso",
+        "description": "Permite criar novos perfis de permissão"
+    },
+    {
+        "key": "erp:grupos-acesso:editar",
+        "name": "Editar Grupos de Acesso",
+        "description": "Permite alterar dados e permissões de um grupo"
+    },
+    {
+        "key": "erp:grupos-acesso:excluir",
+        "name": "Excluir Grupos de Acesso",
+        "description": "Permite remover grupos de acesso"
+    },
+    {
+        "key": "erp:autenticacao:listar-funcionalidades",
+        "name": "Listar Funcionalidades",
+        "description": "Permite listar todas as funcionalidades disponíveis no sistema"
+    },
+    {
+        "key": "erp:autenticacao:check-permission",
+        "name": "Verificar Permissão de URL",
+        "description": "Permite verificar se o usuário tem permissão para acessar uma URL"
+    },
+    {
+        "key": "erp:menus:listar",
+        "name": "Listar Menus",
+        "description": "Permite visualizar a estrutura de menus do sistema"
+    },
+    {
+        "key": "erp:pessoas:listar",
+        "name": "Listar Pessoas",
+        "description": "Visualize a listagem de pessoas cadastradas"
+    },
+    {
+        "key": "erp:pessoas:visualizar",
+        "name": "Ver Detalhes de Pessoa",
+        "description": "Visualize ficha completa de uma pessoa"
+    },
+    {
+        "key": "erp:pessoas:criar",
+        "name": "Criar Pessoa",
+        "description": "Cadastrar novas pessoas"
+    },
+    {
+        "key": "erp:pessoas:editar",
+        "name": "Editar Pessoa",
+        "description": "Alterar dados cadastrais de pessoas"
+    },
+    {
+        "key": "erp:pessoas:excluir",
+        "name": "Excluir Pessoa",
+        "description": "Remover pessoas do sistema"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:listar",
+        "name": "Listar Tipos de Relacionamento",
+        "description": "Permite visualizar a listagem de tipos de relacionamento"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:visualizar",
+        "name": "Ver Detalhes do Tipo de Relacionamento",
+        "description": "Permite visualizar os detalhes de um tipo de relacionamento"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:criar",
+        "name": "Criar Tipo de Relacionamento",
+        "description": "Permite criar novos tipos de relacionamento"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:editar",
+        "name": "Editar Tipo de Relacionamento",
+        "description": "Permite alterar tipos de relacionamento existentes"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:excluir",
+        "name": "Excluir Tipo de Relacionamento",
+        "description": "Permite remover tipos de relacionamento do sistema"
+    },
+    {
+        "key": "erp:tenants:listar",
+        "name": "Listar Tenants",
+        "description": "Visualize a listagem de tenants cadastrados"
+    },
+    {
+        "key": "erp:tenants:visualizar",
+        "name": "Ver Detalhes de Tenant",
+        "description": "Visualize ficha completa de um tenant"
+    },
+    {
+        "key": "erp:tenants:criar",
+        "name": "Criar Tenant",
+        "description": "Cadastrar novos tenants"
+    },
+    {
+        "key": "erp:tenants:editar",
+        "name": "Editar Tenant",
+        "description": "Alterar dados cadastrais de tenants"
+    },
+    {
+        "key": "erp:tenants:excluir",
+        "name": "Remover tenants do sistema"
+    },
+    {
+        "key": "erp:pluvyt-clients:listar",
+        "name": "Listar Clientes Pluvyt",
+        "description": "Visualize a listagem de clientes do programa Pluvyt"
+    },
+    {
+        "key": "erp:pluvyt-clients:visualizar",
+        "name": "Ver Detalhes do Cliente Pluvyt",
+        "description": "Veja o saldo e histórico do cliente"
+    },
+    {
+        "key": "erp:pluvyt-clients:criar",
+        "name": "Categorizar Cliente Pluvyt",
+        "description": "Transforme uma pessoa em cliente Pluvyt"
+    },
+    {
+        "key": "erp:pluvyt-clients:editar",
+        "name": "Editar Cliente Pluvyt",
+        "description": "Altere saldo e dados do cliente"
+    },
+    {
+        "key": "erp:pluvyt-clients:excluir",
+        "name": "Excluir Cliente Pluvyt",
+        "description": "Remover vínculo Pluvyt da pessoa"
+    },
+    {
+        "key": "erp:produtos:listar",
+        "name": "Listar Produtos",
+        "description": "Visualize a listagem de produtos cadastrados"
+    },
+    {
+        "key": "erp:produtos:visualizar",
+        "name": "Ver Detalhes do Produto",
+        "description": "Visualize ficha completa e dashboard de um produto"
+    },
+    {
+        "key": "erp:produtos:criar",
+        "name": "Criar Produto",
+        "description": "Cadastrar novos produtos"
+    },
+    {
+        "key": "erp:produtos:editar",
+        "name": "Editar Produto",
+        "description": "Alterar dados cadastrais e complementares de produtos"
+    },
+    {
+        "key": "erp:produtos:excluir",
+        "name": "Excluir Produto",
+        "description": "Remover produtos do sistema"
+    },
+    {
+        "key": "erp:recompensas:listar",
+        "name": "Listar Itens de Recompensa",
+        "description": "Visualize a listagem de itens de recompensa"
+    },
+    {
+        "key": "erp:recompensas:visualizar",
+        "name": "Ver Detalhes da Recompensa",
+        "description": "Visualize detalhes de um item de recompensa"
+    },
+    {
+        "key": "erp:recompensas:criar",
+        "name": "Criar Item de Recompensa",
+        "description": "Cadastrar novos itens de recompensa"
+    },
+    {
+        "key": "erp:recompensas:editar",
+        "name": "Editar Item de Recompensa",
+        "description": "Alterar dados das recompensas"
+    },
+    {
+        "key": "erp:recompensas:excluir",
+        "name": "Excluir Item de Recompensa",
+        "description": "Remover itens de recompensa do sistema"
+    },
+    {
+        "key": "erp:transacoes-pontos:listar",
+        "name": "Listar Transações de Pontos",
+        "description": "Visualize o histórico de transações de pontos"
+    },
+    {
+        "key": "erp:transacoes-pontos:visualizar",
+        "name": "Ver Detalhes da Transação",
+        "description": "Visualize detalhes de uma movimentação de pontos"
+    },
+    {
+        "key": "erp:transacoes-pontos:criar",
+        "name": "Criar Lançamento de Pontos",
+        "description": "Realizar lançamentos manuais de débito ou crédito"
+    },
+    {
+        "key": "erp:transacoes-pontos:editar",
+        "name": "Editar Transação de Pontos",
+        "description": "Alterar dados de uma transação existente"
+    },
+    {
+        "key": "erp:transacoes-pontos:excluir",
+        "name": "Excluir Transação de Pontos",
+        "description": "Remover registro de transação do sistema"
+    },
+    {
+        "key": "erp:cardapio:itens:listar",
+        "name": "Listar Itens",
+        "description": "Ver itens do cardápio"
+    },
+    {
+        "key": "erp:cardapio:itens:visualizar",
+        "name": "Ver Item",
+        "description": "Detalhes do item do cardápio"
+    },
+    {
+        "key": "erp:cardapio:itens:criar",
+        "name": "Criar Item",
+        "description": "Criar itens do cardápio"
+    },
+    {
+        "key": "erp:cardapio:itens:editar",
+        "name": "Editar Item",
+        "description": "Editar itens do cardápio"
+    },
+    {
+        "key": "erp:cardapio:itens:excluir",
+        "name": "Excluir Item",
+        "description": "Excluir itens do cardápio"
+    },
+    {
+        "key": "erp:produtos:categorias:listar",
+        "name": "Listar Categorias de Produtos",
+        "description": "Visualize as categorias globais e locais de produtos"
+    },
+    {
+        "key": "erp:produtos:categorias:visualizar",
+        "name": "Ver Detalhes da Categoria",
+        "description": "Ver ficha completa da categoria"
+    },
+    {
+        "key": "erp:produtos:categorias:criar",
+        "name": "Criar Categoria",
+        "description": "Cadastrar novas categorias de produtos"
+    },
+    {
+        "key": "erp:produtos:categorias:editar",
+        "name": "Editar Categoria",
+        "description": "Alterar dados das categorias"
+    },
+    {
+        "key": "erp:produtos:categorias:excluir",
+        "name": "Excluir Categoria",
+        "description": "Remover categorias locais"
+    },
+    {
+        "key": "erp:mesas:listar",
+        "name": "Listar Mesas",
+        "description": "Visualize a listagem de mesas"
+    },
+    {
+        "key": "erp:mesas:visualizar",
+        "name": "Ver Detalhes da Mesa",
+        "description": "Ver ficha completa da mesa"
+    },
+    {
+        "key": "erp:mesas:criar",
+        "name": "Criar Mesa",
+        "description": "Cadastrar novas mesas"
+    },
+    {
+        "key": "erp:mesas:editar",
+        "name": "Editar Mesa",
+        "description": "Alterar dados das mesas"
+    },
+    {
+        "key": "erp:mesas:excluir",
+        "name": "Excluir Mesa",
+        "description": "Remover mesas"
+    },
+    {
+        "key": "erp:comandas:listar",
+        "name": "Listar Comandas",
+        "description": "Visualize a listagem de comandas abertas e fechadas"
+    },
+    {
+        "key": "erp:comandas:visualizar",
+        "name": "Ver Detalhes da Comanda",
+        "description": "Ver ficha completa e itens da comanda"
+    },
+    {
+        "key": "erp:comandas:criar",
+        "name": "Abrir Comanda",
+        "description": "Abrir nova comanda para uma mesa"
+    },
+    {
+        "key": "erp:comandas:editar",
+        "name": "Gerenciar Comanda",
+        "description": "Acrescentar itens ou alterar dados da comanda"
+    },
+    {
+        "key": "erp:comandas:excluir",
+        "name": "Cancelar Comanda",
+        "description": "Remover ou cancelar uma comanda"
+    }
+]

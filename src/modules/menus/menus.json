@@ -1,0 +1,93 @@
+[
+    {
+        "key": "erp:pessoas:listar",
+        "name": "Pessoas",
+        "icon": "Person",
+        "url": "/peoples",
+        "category": "Cadastros"
+    },
+    {
+        "key": "erp:produtos:categorias:listar",
+        "name": "Categ. Produtos",
+        "icon": "Category",
+        "url": "/produtos/categorias",
+        "category": "Cadastros"
+    },
+    {
+        "key": "erp:pessoas:tipos-relacionamento:listar",
+        "name": "Tipos Relacionamento",
+        "icon": "Share",
+        "url": "/relationship-types",
+        "category": "Cadastros"
+    },
+    {
+        "key": "erp:produtos:listar",
+        "name": "Produtos",
+        "icon": "LocalOffer",
+        "url": "/produtos",
+        "category": "Cadastros"
+    },
+    {
+        "key": "erp:tenants:listar",
+        "name": "Tenants",
+        "icon": "Storage",
+        "url": "/tenants",
+        "category": "Cadastros"
+    },
+    {
+        "key": "erp:usuarios:listar",
+        "name": "Usuários",
+        "icon": "People",
+        "url": "/users",
+        "category": "Configurações"
+    },
+    {
+        "key": "erp:grupos-acesso:listar",
+        "name": "Grupos de Acesso",
+        "icon": "Groups",
+        "url": "/access/access-groups",
+        "category": "Configurações"
+    },
+    {
+        "key": "erp:pluvyt-clients:listar",
+        "name": "Clientes",
+        "icon": "AssignmentInd",
+        "url": "/pluvyt/clientes",
+        "category": "PLUVYT"
+    },
+    {
+        "key": "erp:recompensas:listar",
+        "name": "Itens de Recompensa",
+        "icon": "Redeem",
+        "url": "/pluvyt/recompensas",
+        "category": "PLUVYT"
+    },
+    {
+        "key": "erp:transacoes-pontos:listar",
+        "name": "Transações",
+        "icon": "CurrencyExchange",
+        "url": "/pluvyt/transacoes",
+        "category": "PLUVYT"
+    },
+    {
+        "key": "erp:cardapio:itens:listar",
+        "name": "Cardápio",
+        "icon": "Fastfood",
+        "url": "/cardapio",
+        "category": "Pedidos"
+    },
+    {
+        "key": "erp:mesas:listar",
+        "name": "Mesas",
+        "icon": "TableRestaurant",
+        "url": "/pedidos/mesas",
+        "category": "Pedidos"
+    },
+    {
+        "key": "erp:comandas:listar",
+        "name": "Comandas / Vendas",
+        "icon": "ReceiptLong",
+        "url": "/pedidos/comandas",
+        "category": "Pedidos"
+    }
+]

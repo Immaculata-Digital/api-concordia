@@ -74,19 +74,37 @@ export class PostgresComandaRepository {
 
     async create(comanda: Comanda): Promise<ComandaProps> {
         const props = comanda.toJSON()
-        const query = `
-            INSERT INTO app.comandas (
-                uuid, tenant_id, mesa_id, cliente_nome, status, total, aberta_em, created_by, updated_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            RETURNING *
-        `
-        const values = [
-            props.uuid, props.tenantId, props.mesaId,
-            props.clienteNome, props.status, props.total,
-            props.abertaEm, props.createdBy, props.updatedBy
-        ]
-        const { rows } = await pool.query(query, values)
-        return this.findById(props.tenantId, rows[0].uuid) as Promise<ComandaProps>
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            const query = `
+                INSERT INTO app.comandas (
+                    uuid, tenant_id, mesa_id, cliente_nome, status, total, aberta_em, created_by, updated_by
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `
+            const values = [
+                props.uuid, props.tenantId, props.mesaId,
+                props.clienteNome, props.status, props.total,
+                props.abertaEm, props.createdBy, props.updatedBy
+            ]
+            const { rows } = await client.query(query, values)
+
+            // Atualiza status da mesa
+            await client.query(
+                'UPDATE app.mesas SET status = \'OCUPADA\', updated_at = NOW() WHERE uuid = $1',
+                [props.mesaId]
+            )
+
+            await client.query('COMMIT')
+            return this.findById(props.tenantId, rows[0].uuid) as Promise<ComandaProps>
+        } catch (e) {
+            await client.query('ROLLBACK')
+            throw e
+        } finally {
+            client.release()
+        }
     }
 
     async addItem(tenantId: string, item: Partial<ComandaItemProps> & { createdBy: string }): Promise<void> {
@@ -107,12 +125,19 @@ export class PostgresComandaRepository {
                 item.observacao, item.createdBy
             ])
 
-            // 2. Update comanda total
+            // 2. Update comanda total and mesa status
             await client.query(`
                 UPDATE app.comandas 
                 SET total = (SELECT SUM(total) FROM app.comanda_itens WHERE comanda_id = $1 AND deleted_at IS NULL),
                     updated_at = NOW()
                 WHERE uuid = $1
+                RETURNING mesa_id
+            `, [item.comandaId])
+
+            // Aproveita para garantir que a mesa está OCUPADA
+            await client.query(`
+                UPDATE app.mesas SET status = 'OCUPADA', updated_at = NOW()
+                WHERE uuid = (SELECT mesa_id FROM app.comandas WHERE uuid = $1)
             `, [item.comandaId])
 
             await client.query('COMMIT')
@@ -125,16 +150,45 @@ export class PostgresComandaRepository {
     }
 
     async updateStatus(tenantId: string, uuid: string, status: string, updatedBy: string): Promise<void> {
-        const fechadaEm = (status === 'PAGA' || status === 'CANCELADA') ? 'NOW()' : 'NULL'
-        const query = `
-            UPDATE app.comandas SET 
-                status = $3,
-                fechada_em = ${fechadaEm},
-                updated_by = $4,
-                updated_at = NOW()
-            WHERE tenant_id = $1 AND uuid = $2
-        `
-        await pool.query(query, [tenantId, uuid, status, updatedBy])
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            const fechadaEm = (status === 'PAGA' || status === 'CANCELADA') ? 'NOW()' : 'NULL'
+            const updateQuery = `
+                UPDATE app.comandas SET 
+                    status = $3,
+                    fechada_em = ${fechadaEm},
+                    updated_by = $4,
+                    updated_at = NOW()
+                WHERE tenant_id = $1 AND uuid = $2
+                RETURNING mesa_id
+            `
+            const { rows } = await client.query(updateQuery, [tenantId, uuid, status, updatedBy])
+
+            if (rows.length > 0 && (status === 'PAGA' || status === 'CANCELADA')) {
+                const mesaId = rows[0].mesa_id
+                // Verifica se ainda existem comandas abertas para esta mesa
+                const checkQuery = `
+                    SELECT COUNT(*) FROM app.comandas 
+                    WHERE tenant_id = $1 AND mesa_id = $2 AND status IN ('ABERTA', 'FECHADA') AND deleted_at IS NULL
+                `
+                const { rows: countRows } = await client.query(checkQuery, [tenantId, mesaId])
+                if (parseInt(countRows[0].count) === 0) {
+                    await client.query(
+                        'UPDATE app.mesas SET status = \'LIVRE\', updated_at = NOW() WHERE tenant_id = $1 AND uuid = $2',
+                        [tenantId, mesaId]
+                    )
+                }
+            }
+
+            await client.query('COMMIT')
+        } catch (e) {
+            await client.query('ROLLBACK')
+            throw e
+        } finally {
+            client.release()
+        }
     }
 
     private mapToProps(row: any): ComandaProps {

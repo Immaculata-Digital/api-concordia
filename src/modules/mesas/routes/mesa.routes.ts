@@ -57,3 +57,9 @@ mesaRoutes.delete('/:id', authenticate, async (req, res) => {
     await repository.delete(tenantId, req.params.id as string)
     return res.status(204).send()
 })
+
+mesaRoutes.post('/:id/fechar', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    await repository.closeTable(tenantId, req.params.id as string, req.user!.uuid)
+    return res.json({ message: 'Mesa fechada com sucesso' })
+})

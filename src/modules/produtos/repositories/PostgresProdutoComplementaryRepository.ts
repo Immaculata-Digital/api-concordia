@@ -126,7 +126,7 @@ export class PostgresProdutoComplementaryRepository {
     async addMedia(produtoId: string, tenantId: string, data: any, userId: string): Promise<void> {
         await pool.query(
             'INSERT INTO app.produtos_media (tenant_id, produto_id, url, arquivo, tipo_code, ordem, created_by, updated_by, file_name, file_size) VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9)',
-            [tenantId, produtoId, data.url, data.arquivo, data.tipo_code, data.ordem || 0, userId, data.file_name || null, data.file_size || null]
+            [tenantId, produtoId, data.url || null, data.arquivo || null, data.tipo_code, data.ordem || 0, userId, data.file_name || null, data.file_size || null]
         )
     }
 

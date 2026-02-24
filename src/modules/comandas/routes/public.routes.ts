@@ -1,9 +1,12 @@
 import { Router } from 'express'
 import { PostgresComandaRepository } from '../repositories/PostgresComandaRepository'
+import { PostgresNotificationRepository } from '../../notifications/repositories/PostgresNotificationRepository'
+import { socketManager } from '../../../infra/websocket/SocketManager'
 import { Comanda } from '../entities/Comanda'
 
 export const publicComandaRoutes = Router()
 const repository = new PostgresComandaRepository()
+const notificationRepository = new PostgresNotificationRepository()
 
 // Criar nova comanda (Pedido da Mesa) - Público
 publicComandaRoutes.post('/', async (req, res) => {
@@ -18,8 +21,8 @@ publicComandaRoutes.post('/', async (req, res) => {
         tenantId,
         mesaId,
         status: 'aberta',
-        createdBy: 'customer', // Identificador para pedidos via QR Code
-        updatedBy: 'customer',
+        createdBy: null, // Identificador para pedidos via QR Code
+        updatedBy: null,
         ...req.body
     })
 
@@ -30,13 +33,31 @@ publicComandaRoutes.post('/', async (req, res) => {
         for (const item of itens) {
             await repository.addItem(tenantId, {
                 ...item,
-                comandaId: created.uuid || created.id,
+                comandaId: created.uuid,
                 tenantId,
-                createdBy: 'customer'
+                createdBy: null
             })
         }
     }
 
-    const finalComanda = await repository.findById(tenantId, created.uuid || created.id)
+    const finalComanda = await repository.findById(tenantId, created.uuid)
+
+    // Criar Notificação para o ERP
+    try {
+        const notification = await notificationRepository.create({
+            tenantId,
+            titulo: 'Novo Pedido Recebido',
+            mensagem: `Novo pedido de ${req.body.clienteNome || 'Cliente'} para a mesa ${finalComanda?.mesaNumero || ''}`,
+            tipo: 'novo_pedido',
+            dataId: created.uuid,
+            link: `/pedidos/comandas?id=${created.uuid}`
+        })
+
+        // Emitir via WebSocket para todos os usuários logados do tenant
+        socketManager.emitToTenant(tenantId, 'nova_notificacao', notification)
+    } catch (err) {
+        console.error('[Notification] Erro ao disparar notificação:', err)
+    }
+
     return res.status(201).json(finalComanda)
 })

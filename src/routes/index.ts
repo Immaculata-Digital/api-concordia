@@ -15,6 +15,7 @@ import { cardapioItemRoutes } from '../modules/cardapio/routes/cardapioItem.rout
 import { produtoCategoriaRoutes } from '../modules/produtos/routes/produtoCategoria.routes'
 import { mesaRoutes } from '../modules/mesas/routes/mesa.routes'
 import { comandaRoutes } from '../modules/comandas/routes/comanda.routes'
+import { notificationRoutes } from '../modules/notifications/routes/notifications.routes'
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
@@ -28,6 +29,16 @@ publicRoutes.use('/auth', authRoutes)
 // Rotas Públicas (Sem autenticação)
 publicRoutes.use('/public/cardapio', publicCardapioRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
+
+// Alias para categorias (para bater com o service do app-cardapio)
+publicRoutes.get('/public/categorias', async (req, res) => {
+    const { tenantId } = req.query
+    if (!tenantId) return res.status(400).json({ message: 'tenantId é obrigatório' })
+    const { PostgresProdutoCategoriaRepository } = await import('../modules/produtos/repositories/PostgresProdutoCategoriaRepository')
+    const categoriaRepository = new PostgresProdutoCategoriaRepository()
+    const categories = await categoriaRepository.findAll(tenantId as string)
+    return res.json(categories)
+})
 
 // Rotas protegidas
 routes.use(authenticate)
@@ -45,3 +56,4 @@ routes.use('/produtos-categorias', produtoCategoriaRoutes)
 routes.use('/cardapio-itens', cardapioItemRoutes)
 routes.use('/mesas', mesaRoutes)
 routes.use('/comandas', comandaRoutes)
+routes.use('/notifications', notificationRoutes)

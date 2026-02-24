@@ -8,11 +8,15 @@ export class PostgresCardapioItemRepository {
                    p.nome as produto_nome, 
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
-                   pr.preco as produto_preco
+                   pr.preco as produto_preco,
+                   (SELECT COALESCE(m.arquivo, m.url) 
+                    FROM app.produtos_media m 
+                    WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                    ORDER BY m.ordem ASC LIMIT 1) as produto_imagem
             FROM app.cardapio_itens i
             JOIN app.produtos p ON p.uuid = i.produto_id
-            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
-            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
             WHERE i.tenant_id = $1 AND i.deleted_at IS NULL
         `
         const values: any[] = [tenantId]
@@ -37,8 +41,8 @@ export class PostgresCardapioItemRepository {
                    pr.preco as produto_preco
             FROM app.cardapio_itens i
             JOIN app.produtos p ON p.uuid = i.produto_id
-            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
-            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
             WHERE i.tenant_id = $1 AND i.uuid = $2 AND i.deleted_at IS NULL
         `
         const { rows } = await pool.query(query, [tenantId, uuid])
@@ -105,6 +109,7 @@ export class PostgresCardapioItemRepository {
             deletedAt: row.deleted_at,
             produtoNome: row.produto_nome,
             produtoPreco: row.produto_preco,
+            produtoImagem: row.produto_imagem,
             categoriaCode: row.categoria_code,
             categoriaNome: row.categoria_nome
         }

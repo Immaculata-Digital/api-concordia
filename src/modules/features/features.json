@@ -352,5 +352,30 @@
         "key": "erp:comandas:excluir",
         "name": "Cancelar Comanda",
         "description": "Remover ou cancelar uma comanda"
+    },
+    {
+        "key": "erp:notificacoes:receber-alertas",
+        "name": "Receber Alertas em Tempo Real",
+        "description": "Permite que o usuário receba notificações via WebSocket de novos pedidos e eventos"
+    },
+    {
+        "key": "erp:notificacoes:listar",
+        "name": "Listar Notificações",
+        "description": "Permite visualizar a central de notificações"
+    },
+    {
+        "key": "erp:notificacoes:marcar-lida",
+        "name": "Marcar como Lida",
+        "description": "Permite marcar uma notificação individual como lida"
+    },
+    {
+        "key": "erp:notificacoes:marcar-nao-lida",
+        "name": "Marcar como Não Lida",
+        "description": "Permite marcar uma notificação individual como não lida"
+    },
+    {
+        "key": "erp:notificacoes:marcar-todas-lidas",
+        "name": "Marcar Todas como Lidas",
+        "description": "Permite marcar todas as notificações do tenant como lidas de uma vez"
     }
 ]

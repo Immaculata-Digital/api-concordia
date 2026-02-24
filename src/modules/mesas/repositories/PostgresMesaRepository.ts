@@ -67,6 +67,50 @@ export class PostgresMesaRepository {
         await pool.query(query, [tenantId, uuid])
     }
 
+    async updateStatus(tenantId: string, uuid: string, status: string): Promise<void> {
+        const query = `
+            UPDATE app.mesas SET 
+                status = $3,
+                updated_at = NOW()
+            WHERE tenant_id = $1 AND uuid = $2
+        `
+        const values = [tenantId, uuid, status]
+        await pool.query(query, values)
+    }
+
+    async closeTable(tenantId: string, mesaId: string, userId: string): Promise<void> {
+        const client = await pool.connect()
+        try {
+            await client.query('BEGIN')
+
+            // 1. Atualizar todas as comandas não pagas/canceladas desta mesa para PAGA
+            await client.query(`
+                UPDATE app.comandas 
+                SET status = 'PAGA',
+                    fechada_em = NOW(),
+                    updated_by = $3,
+                    updated_at = NOW()
+                WHERE tenant_id = $1 AND mesa_id = $2 AND status IN ('ABERTA', 'FECHADA')
+            `, [tenantId, mesaId, userId])
+
+            // 2. Atualizar o status da mesa para LIVRE
+            await client.query(`
+                UPDATE app.mesas 
+                SET status = 'LIVRE',
+                    updated_at = NOW(),
+                    updated_by = $3
+                WHERE tenant_id = $1 AND uuid = $2
+            `, [tenantId, mesaId, userId])
+
+            await client.query('COMMIT')
+        } catch (e) {
+            await client.query('ROLLBACK')
+            throw e
+        } finally {
+            client.release()
+        }
+    }
+
     private mapToProps(row: any): MesaProps {
         return {
             uuid: row.uuid,

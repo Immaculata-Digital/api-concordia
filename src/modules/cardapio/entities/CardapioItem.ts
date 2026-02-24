@@ -16,6 +16,7 @@ export interface CardapioItemProps {
     // Virtual fields joined from product/categories
     produtoNome?: string
     produtoPreco?: number
+    produtoImagem?: string
     categoriaCode?: string
     categoriaNome?: string
 }

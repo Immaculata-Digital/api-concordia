@@ -122,7 +122,12 @@ produtosRoutes.post('/:id/precos', async (req, res) => {
     try {
         await complementaryRepository.upsertPrecos(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Preços atualizados' })
-    } catch (error) {
+    } catch (error: any) {
+        console.error('Error saving prices:', error)
+        try {
+            const fs = await import('fs')
+            fs.appendFileSync('/Users/macbook/immaculata-workspace/api-concordia/error.log', `[${new Date().toISOString()}] Error saving prices: ${error.stack || error.message || error}\n`)
+        } catch (e) { }
         return res.status(500).json({ message: 'Erro ao salvar preços' })
     }
 })
@@ -161,7 +166,8 @@ produtosRoutes.post('/:id/media', async (req, res) => {
         await complementaryRepository.addMedia(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
         return res.status(201).json({ message: 'Mídia adicionada' })
     } catch (error) {
-        return res.status(500).json({ message: 'Erro ao adicionar mídia' })
+        console.error('Error adding media:', error)
+        return res.status(500).json({ message: 'Erro ao adicionar mídia', error: error instanceof Error ? error.message : String(error) })
     }
 })
 

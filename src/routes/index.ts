@@ -16,11 +16,18 @@ import { produtoCategoriaRoutes } from '../modules/produtos/routes/produtoCatego
 import { mesaRoutes } from '../modules/mesas/routes/mesa.routes'
 import { comandaRoutes } from '../modules/comandas/routes/comanda.routes'
 
+import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
+import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
+
 export const publicRoutes = Router()
 export const routes = Router()
 
 // Rotas exclusivas de Login/Auth
 publicRoutes.use('/auth', authRoutes)
+
+// Rotas Públicas (Sem autenticação)
+publicRoutes.use('/public/cardapio', publicCardapioRoutes)
+publicRoutes.use('/public/pedidos', publicComandaRoutes)
 
 // Rotas protegidas
 routes.use(authenticate)

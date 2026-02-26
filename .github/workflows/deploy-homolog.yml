@@ -69,11 +69,12 @@ jobs:
             --name ${IMAGE_NAME}-homolog \
             --restart unless-stopped \
             -p 5337:3001 \
+            -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_HOST='${{ secrets.DB_HOST_HOMOLOG }}' \
             -e DB_PORT='${{ secrets.DB_PORT_HOMOLOG }}' \
             -e DB_NAME='${{ secrets.DB_NAME_HOMOLOG }}' \
             -e DB_USER='${{ secrets.DB_USER_HOMOLOG }}' \
-            -e DB_PASSWORD='${{ secrets.DB_PASSWORD_HOMOLOG }}' \
+            -e DB_PASSWORD='${{ secrets.DB_PASS_HOMOLOG }}' \
             -e JWT_SECRET='${{ secrets.JWT_SECRET_HOMOLOG }}' \
             -e JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}' \
             -e PORT='3001' \

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import bcrypt from 'bcrypt'
 import { PostgresUserRepository } from '../repositories/PostgresUserRepository'
 import { User } from '../entities/User'
 
@@ -26,12 +27,14 @@ userRoutes.post('/', async (req, res) => {
     const tenantId = req.user!.tenantId
     const { fullName, login, email, password, groupIds, allowFeatures, deniedFeatures } = req.body
 
+    const hashedPassword = await bcrypt.hash(password, 10)
+
     const user = User.create({
         tenantId,
         fullName,
         login,
         email,
-        password, // Em produção, usar hash!
+        password: hashedPassword,
         groupIds,
         allowFeatures,
         deniedFeatures,

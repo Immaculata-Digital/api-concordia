@@ -9,13 +9,12 @@ import { peopleRoutes } from '../modules/people/routes/people.routes'
 import { tenantRoutes } from '../modules/tenants/routes/tenant.routes'
 import { pluvytClientRoutes } from '../modules/pluvyt-clients/routes/pluvytClient.routes'
 import { produtosRoutes } from '../modules/produtos/routes/produtos.routes'
-import { recompensasRoutes } from '../modules/recompensas/routes/recompensas.routes'
+import { publicRecompensasRoutes, protectedRecompensasRoutes } from '../modules/recompensas/routes/recompensas.routes'
 import { pointTransactionRoutes } from '../modules/pointTransactions/routes/pointTransaction.routes'
 import { cardapioItemRoutes } from '../modules/cardapio/routes/cardapioItem.routes'
 import { produtoCategoriaRoutes } from '../modules/produtos/routes/produtoCategoria.routes'
 import { mesaRoutes } from '../modules/mesas/routes/mesa.routes'
 import { comandaRoutes } from '../modules/comandas/routes/comanda.routes'
-import { notificationRoutes } from '../modules/notifications/routes/notifications.routes'
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
@@ -30,15 +29,8 @@ publicRoutes.use('/auth', authRoutes)
 publicRoutes.use('/public/cardapio', publicCardapioRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
 
-// Alias para categorias (para bater com o service do app-cardapio)
-publicRoutes.get('/public/categorias', async (req, res) => {
-    const { tenantId } = req.query
-    if (!tenantId) return res.status(400).json({ message: 'tenantId é obrigatório' })
-    const { PostgresProdutoCategoriaRepository } = await import('../modules/produtos/repositories/PostgresProdutoCategoriaRepository')
-    const categoriaRepository = new PostgresProdutoCategoriaRepository()
-    const categories = await categoriaRepository.findAll(tenantId as string)
-    return res.json(categories)
-})
+// Rotas públicas de leitura de recompensas (homepage carousel, etc.)
+publicRoutes.use('/recompensas', publicRecompensasRoutes)
 
 // Rotas protegidas
 routes.use(authenticate)
@@ -50,10 +42,9 @@ routes.use('/peoples', peopleRoutes)
 routes.use('/tenants', tenantRoutes)
 routes.use('/pluvyt-clients', pluvytClientRoutes)
 routes.use('/produtos', produtosRoutes)
-routes.use('/recompensas', recompensasRoutes)
+routes.use('/recompensas', protectedRecompensasRoutes)
 routes.use('/point-transactions', pointTransactionRoutes)
 routes.use('/produtos-categorias', produtoCategoriaRoutes)
 routes.use('/cardapio-itens', cardapioItemRoutes)
 routes.use('/mesas', mesaRoutes)
 routes.use('/comandas', comandaRoutes)
-routes.use('/notifications', notificationRoutes)

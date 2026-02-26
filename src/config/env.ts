@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
 import { z } from 'zod'
 
 dotenv.config()
@@ -17,6 +17,16 @@ const envSchema = z.object({
         jwtExpiresIn: z.string().default('12h'),
         bcryptSaltRounds: z.coerce.number().default(12),
     }),
+    smtp: z.object({
+        host: z.string().optional(),
+        port: z.coerce.number().optional().default(587),
+        secure: z.coerce.boolean().optional().default(false),
+        user: z.string().optional(),
+        password: z.string().optional(),
+        fromName: z.string().optional().default('Clube Pluvyt'),
+        fromEmail: z.string().optional(),
+    }).optional(),
+    pluvytWebUrl: z.string().optional().default('https://clube.pluvyt.com.br'),
 })
 
 export const env = envSchema.parse({
@@ -25,7 +35,7 @@ export const env = envSchema.parse({
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
+        password: process.env.DB_PASS || process.env.DB_PASSWORD,
         name: process.env.DB_NAME,
     },
     auth: {
@@ -33,4 +43,14 @@ export const env = envSchema.parse({
         jwtExpiresIn: process.env.JWT_EXPIRES_IN,
         bcryptSaltRounds: process.env.BCRYPT_SALT_ROUNDS,
     },
+    smtp: {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_SECURE === 'true',
+        user: process.env.SMTP_USER,
+        password: process.env.SMTP_PASS,
+        fromName: process.env.SMTP_FROM_NAME,
+        fromEmail: process.env.SMTP_FROM_EMAIL,
+    },
+    pluvytWebUrl: process.env.PLUVYT_WEB_URL,
 })

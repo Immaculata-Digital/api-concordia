@@ -64,7 +64,7 @@ export class PostgresUserRepository implements IUserRepository {
         return result.rows[0] ? this.mapRowToProps(result.rows[0]) : null
     }
 
-    async findByLoginOrEmail(loginOrEmail: string): Promise<(UserProps & { passwordHash: string }) | null> {
+    async findByLoginOrEmail(loginOrEmail: string): Promise<(UserProps & { passwordHash: string, emailVerifiedAt?: Date | null }) | null> {
         const result = await pool.query(
             'SELECT * FROM app.users WHERE login = $1 OR email = $1',
             [loginOrEmail]
@@ -72,7 +72,7 @@ export class PostgresUserRepository implements IUserRepository {
         const row = result.rows[0]
         if (!row) return null
         const props = await this.mapRowToProps(row)
-        return { ...props, passwordHash: row.password }
+        return { ...props, passwordHash: row.password_hash || row.password, emailVerifiedAt: row.email_verified_at }
     }
 
     async create(user: User): Promise<UserProps> {

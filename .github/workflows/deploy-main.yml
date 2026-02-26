@@ -69,11 +69,12 @@ jobs:
             --name ${IMAGE_NAME}-main \
             --restart unless-stopped \
             -p 3337:3001 \
+            -e CRYPTO_SECRET='{{ secrets.CRYPTO_SECRET }}' \
             -e DB_HOST='${{ secrets.DB_HOST_MAIN }}' \
             -e DB_PORT='${{ secrets.DB_PORT_MAIN }}' \
             -e DB_NAME='${{ secrets.DB_NAME_MAIN }}' \
             -e DB_USER='${{ secrets.DB_USER_MAIN }}' \
-            -e DB_PASSWORD='${{ secrets.DB_PASSWORD_MAIN }}' \
+            -e DB_PASSWORD='${{ secrets.DB_PASS_MAIN }}' \
             -e JWT_SECRET='${{ secrets.JWT_SECRET_MAIN }}' \
             -e JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}' \
             -e PORT='3001' \

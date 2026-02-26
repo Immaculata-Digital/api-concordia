@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { PostgresProdutoRepository } from '../repositories/PostgresProdutoRepository'
 import { Produto } from '../entities/Produto'
 import { PostgresProdutoComplementaryRepository } from '../repositories/PostgresProdutoComplementaryRepository'
+import { convertImageToWebP } from '../../../core/convertImageToWebP'
 
 export const produtosRoutes = Router()
 const repository = new PostgresProdutoRepository()
@@ -163,10 +164,34 @@ produtosRoutes.delete('/ficha-tecnica/:itemId', async (req, res) => {
 // Mídia
 produtosRoutes.post('/:id/media', async (req, res) => {
     try {
-        await complementaryRepository.addMedia(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        // Normalização do tipo_code para evitar violação de FK
+        if (req.body.tipo_code) {
+            const tipoMap: { [key: string]: string } = {
+                'IMG': 'imagem',
+                'IMAGE': 'imagem',
+                'IMG_PRODUTO': 'imagem',
+                'VID': 'video',
+                'VIDEO': 'video',
+            }
+            const normalized = tipoMap[req.body.tipo_code.toUpperCase()]
+            if (normalized) req.body.tipo_code = normalized
+        }
+
+        if (req.body.arquivo) {
+            const converted = await convertImageToWebP(req.body.arquivo)
+            req.body.arquivo = converted.base64
+            req.body.file_size = converted.fileSize
+            if (req.body.file_name) {
+                req.body.file_name = req.body.file_name.replace(/\.(png|jpe?g|avif)$/i, '.webp')
+            }
+        }
+
+        const tenantId = req.body.tenantId || req.user!.tenantId
+        await complementaryRepository.addMedia(req.params.id, tenantId, req.body, req.user!.uuid)
         return res.status(201).json({ message: 'Mídia adicionada' })
     } catch (error) {
-        console.error('Error adding media:', error)
+        console.error('[produtosRoutes.post/:id/media] Error:', error)
+
         return res.status(500).json({ message: 'Erro ao adicionar mídia', error: error instanceof Error ? error.message : String(error) })
     }
 })
@@ -177,6 +202,37 @@ produtosRoutes.delete('/media/:mediaId', async (req, res) => {
         return res.status(204).send()
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao excluir mídia' })
+    }
+})
+
+produtosRoutes.put('/media/:mediaId', async (req, res) => {
+    try {
+        if (req.body.tipo_code) {
+            const tipoMap: { [key: string]: string } = {
+                'IMG': 'imagem',
+                'IMAGE': 'imagem',
+                'IMG_PRODUTO': 'imagem',
+                'VID': 'video',
+                'VIDEO': 'video',
+            }
+            const normalized = tipoMap[req.body.tipo_code.toUpperCase()]
+            if (normalized) req.body.tipo_code = normalized
+        }
+
+        if (req.body.arquivo && req.body.arquivo.startsWith('data:')) {
+            const converted = await convertImageToWebP(req.body.arquivo)
+            req.body.arquivo = converted.base64
+            req.body.file_size = converted.fileSize
+            if (req.body.file_name) {
+                req.body.file_name = req.body.file_name.replace(/\.(png|jpe?g|avif)$/i, '.webp')
+            }
+        }
+
+        await complementaryRepository.updateMedia(req.params.mediaId, req.body, req.user!.uuid)
+        return res.json({ message: 'Mídia atualizada' })
+    } catch (error) {
+        console.error('[produtosRoutes.put/media/:mediaId] Error:', error)
+        return res.status(500).json({ message: 'Erro ao atualizar mídia' })
     }
 })
 

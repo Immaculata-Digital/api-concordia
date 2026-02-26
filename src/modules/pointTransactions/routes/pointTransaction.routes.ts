@@ -4,6 +4,7 @@ import { PointTransaction } from '../entities/PointTransaction'
 
 import { PostgresPluvytClientRepository } from '../../pluvyt-clients/repositories/PostgresPluvytClientRepository'
 import { PluvytClient } from '../../pluvyt-clients/entities/PluvytClient'
+import { pool } from '../../../infra/database/pool'
 
 export const pointTransactionRoutes = Router()
 const repository = new PostgresPointTransactionRepository()
@@ -32,6 +33,22 @@ pointTransactionRoutes.post('/', async (req, res) => {
 
     if (!clientRecord) {
         return res.status(404).json({ message: 'Cliente Pluvyt não encontrado' })
+    }
+
+    // Bloqueia se o e-mail do usuário não estiver verificado
+    const userRes = await pool.query(
+        'SELECT email_verified_at, email_verification_token FROM app.users WHERE person_id = $1 AND tenant_id = $2',
+        [clientRecord.toJSON().personId, tenantId]
+    )
+    if (userRes.rowCount && userRes.rowCount > 0) {
+        const user = userRes.rows[0]
+        // Se tem token (veio pelo fluxo pluvyt) mas não tá verificado
+        if (user.email_verification_token && !user.email_verified_at) {
+            return res.status(403).json({ 
+                message: 'E-mail não verificado. Você precisa confirmar sua conta para utilizar os pontos.',
+                unverifiedEmail: true
+            })
+        }
     }
 
     const clientData = clientRecord.toJSON()

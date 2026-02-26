@@ -5,14 +5,20 @@ import { PostgresProdutoRepository } from '../../produtos/repositories/PostgresP
 import { Recompensa } from '../entities/Recompensa'
 import { Produto } from '../../produtos/entities/Produto'
 
-export const recompensasRoutes = Router()
+export const publicRecompensasRoutes = Router()
+export const protectedRecompensasRoutes = Router()
+
 const repository = new PostgresRecompensaRepository()
 const produtoRepository = new PostgresProdutoRepository()
 
-recompensasRoutes.get('/', async (req, res) => {
+// --- Public Routes ---
+publicRecompensasRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.query.tenantId as string
-        const items = await repository.findAll(tenantId)
+        const view = req.query.view as string
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined
+
+        const items = await repository.findAll(tenantId, view, limit)
         return res.json(items)
     } catch (error) {
         console.error('Error listing rewards:', error)
@@ -20,7 +26,7 @@ recompensasRoutes.get('/', async (req, res) => {
     }
 })
 
-recompensasRoutes.get('/:id', async (req, res) => {
+publicRecompensasRoutes.get('/:id', async (req, res) => {
     try {
         const item = await repository.findById(req.params.id)
         if (!item) return res.status(404).json({ message: 'Recompensa não encontrada' })
@@ -30,21 +36,23 @@ recompensasRoutes.get('/:id', async (req, res) => {
     }
 })
 
-recompensasRoutes.post('/', async (req, res) => {
+// --- Protected Routes ---
+protectedRecompensasRoutes.post('/', async (req, res) => {
     try {
+        if (!req.user) return res.status(401).json({ message: 'Não autorizado' })
+
         const {
             tenantId, produtoId,
             qtd_pontos_resgate, voucher_digital
         } = req.body
 
-        // Create Reward using existing product
         const recompensa = Recompensa.create({
             tenantId,
             produtoId,
             qtd_pontos_resgate,
             voucher_digital,
-            createdBy: req.user!.uuid,
-            updatedBy: req.user!.uuid
+            createdBy: req.user.uuid,
+            updatedBy: req.user.uuid
         })
         const createdReward = await repository.create(recompensa)
 
@@ -55,17 +63,18 @@ recompensasRoutes.post('/', async (req, res) => {
     }
 })
 
-recompensasRoutes.put('/:id', async (req, res) => {
+protectedRecompensasRoutes.put('/:id', async (req, res) => {
     try {
+        if (!req.user) return res.status(401).json({ message: 'Não autorizado' })
+
         const existing = await repository.findById(req.params.id)
         if (!existing) return res.status(404).json({ message: 'Recompensa não encontrada' })
 
-        // Update Reward
         const recompensaEntity = Recompensa.restore(existing)
         recompensaEntity.update({
             qtd_pontos_resgate: req.body.qtd_pontos_resgate,
             voucher_digital: req.body.voucher_digital,
-            updatedBy: req.user!.uuid
+            updatedBy: req.user.uuid
         })
         const updated = await repository.update(recompensaEntity)
 
@@ -76,14 +85,10 @@ recompensasRoutes.put('/:id', async (req, res) => {
     }
 })
 
-recompensasRoutes.delete('/:id', async (req, res) => {
+protectedRecompensasRoutes.delete('/:id', async (req, res) => {
     try {
         const existing = await repository.findById(req.params.id)
         if (existing) {
-            // We soft delete the reward, but maybe keep the product? 
-            // Usually if we delete the reward item, we might want to keep the product in the general list.
-            // But the requirement says "herda de um produto". 
-            // I'll soft delete both for consistency in this module.
             await repository.delete(req.params.id)
             await produtoRepository.delete(existing.produtoId)
         }

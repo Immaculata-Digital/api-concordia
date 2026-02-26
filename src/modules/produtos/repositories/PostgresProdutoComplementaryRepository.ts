@@ -134,6 +134,13 @@ export class PostgresProdutoComplementaryRepository {
         await pool.query('DELETE FROM app.produtos_media WHERE uuid = $1', [uuid])
     }
 
+    async updateMedia(uuid: string, data: any, userId: string): Promise<void> {
+        await pool.query(
+            'UPDATE app.produtos_media SET url = $1, arquivo = $2, tipo_code = $3, ordem = $4, file_name = $5, file_size = $6, updated_by = $7, updated_at = NOW() WHERE uuid = $8',
+            [data.url, data.arquivo, data.tipo_code, data.ordem || 0, data.file_name || null, data.file_size || null, userId, uuid]
+        )
+    }
+
     async getKit(produtoPaiId: string): Promise<any[]> {
         const { rows } = await pool.query(`
             SELECT k.*, p.nome as produto_nome, p.codigo as produto_codigo 

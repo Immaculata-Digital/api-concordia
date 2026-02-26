@@ -19,6 +19,10 @@ export interface RecompensaProps {
         codigo?: string
         unidade: string
         marca?: string
+        categoria_nome?: string
+        descricao_complementar?: string
+        imagem_principal?: string
+        slug?: string
     }
 }
 

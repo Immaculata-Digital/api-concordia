@@ -28,7 +28,7 @@ export class PostgresProdutoRepository {
     }
 
     async create(produto: Produto): Promise<ProdutoProps> {
-        const props = produto.toJSON()
+        const props = this.normalizeEmptyStrings(produto.toJSON())
         const query = `
             INSERT INTO app.produtos (
                 uuid, tenant_id, nome, codigo, unidade, marca, 
@@ -49,7 +49,7 @@ export class PostgresProdutoRepository {
     }
 
     async update(produto: Produto): Promise<ProdutoProps> {
-        const props = produto.toJSON()
+        const props = this.normalizeEmptyStrings(produto.toJSON())
         const query = `
             UPDATE app.produtos SET 
                 nome = $2, codigo = $3, unidade = $4, marca = $5, 
@@ -71,6 +71,17 @@ export class PostgresProdutoRepository {
 
     async delete(uuid: string): Promise<void> {
         await pool.query('UPDATE app.produtos SET deleted_at = NOW() WHERE uuid = $1', [uuid])
+    }
+
+    private normalizeEmptyStrings(props: ProdutoProps): ProdutoProps {
+        const normalized = { ...props }
+        Object.keys(normalized).forEach(key => {
+            const val = (normalized as any)[key]
+            if (typeof val === 'string' && val.trim() === '') {
+                ;(normalized as any)[key] = null
+            }
+        })
+        return normalized
     }
 
     private mapToProps(row: any): ProdutoProps {

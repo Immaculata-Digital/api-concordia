@@ -3,27 +3,59 @@ import { pool } from '../../../infra/database/pool'
 import { Recompensa, RecompensaProps } from '../entities/Recompensa'
 
 export class PostgresRecompensaRepository {
-    async findAll(tenantId?: string): Promise<RecompensaProps[]> {
-        const query = `
-            SELECT r.*, p.nome, p.codigo, p.unidade, p.marca
+    async findAll(tenantId?: string, view?: string, limit?: number): Promise<RecompensaProps[]> {
+        const isCompact = view === 'compact'
+        const selectFields = isCompact 
+            ? 'r.*, p.nome, p.codigo, p.unidade, p.marca, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal'
+            : 'r.*, p.nome, p.codigo, p.unidade, p.marca, p.descricao_complementar, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal'
+
+        let query = `
+            SELECT ${selectFields}
             FROM app.recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
+            LEFT JOIN LATERAL (
+                SELECT arquivo 
+                FROM app.produtos_media 
+                WHERE produto_id = p.uuid AND tipo_code = 'imagem'
+                ORDER BY ordem ASC
+                LIMIT 1
+            ) m ON true
             WHERE r.deleted_at IS NULL
             ${tenantId ? 'AND r.tenant_id = $1' : ''}
         `
-        const values = tenantId ? [tenantId] : []
+        
+        let paramCount = tenantId ? 1 : 0
+        const values: any[] = tenantId ? [tenantId] : []
+
+        if (limit && limit > 0) {
+            paramCount++
+            query += ` LIMIT $${paramCount}`
+            values.push(limit)
+        }
+
         const { rows } = await pool.query(query, values)
         return rows.map((row: any) => this.mapToProps(row))
     }
 
-    async findById(uuid: string): Promise<RecompensaProps | null> {
+    async findById(uuidOrSlug: string): Promise<RecompensaProps | null> {
         const query = `
-            SELECT r.*, p.nome, p.codigo, p.unidade, p.marca
+            SELECT r.*, p.nome, p.codigo, p.unidade, p.marca, p.descricao_complementar, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal
             FROM app.recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
-            WHERE r.uuid = $1 AND r.deleted_at IS NULL
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
+            LEFT JOIN LATERAL (
+                SELECT arquivo 
+                FROM app.produtos_media 
+                WHERE produto_id = p.uuid AND tipo_code = 'imagem'
+                ORDER BY ordem ASC
+                LIMIT 1
+            ) m ON true
+            WHERE (r.uuid::text = $1 OR s.slug = $1) AND r.deleted_at IS NULL
         `
-        const { rows } = await pool.query(query, [uuid])
+        const { rows } = await pool.query(query, [uuidOrSlug])
         if (rows.length === 0) return null
         return this.mapToProps(rows[0])
     }
@@ -84,7 +116,11 @@ export class PostgresRecompensaRepository {
                 nome: row.nome,
                 codigo: row.codigo,
                 unidade: row.unidade,
-                marca: row.marca
+                marca: row.marca,
+                categoria_nome: row.categoria_nome,
+                descricao_complementar: row.descricao_complementar,
+                imagem_principal: row.imagem_principal,
+                slug: row.slug
             }
         }
     }

@@ -23,8 +23,9 @@ WORKDIR /app
 # Copiar arquivos de dependências
 COPY package*.json ./
 
-# Instalar apenas dependências de produção
-RUN npm ci --only=production
+# Instalar apenas dependências de produção e o binário específico do sharp para Alpine/musl
+RUN npm ci --only=production && \
+    npm install --os=linux --libc=musl --cpu=x64 sharp
 
 # Copiar arquivos buildados do stage anterior
 COPY --from=builder /app/dist ./dist

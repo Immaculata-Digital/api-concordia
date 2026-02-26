@@ -10,11 +10,12 @@ services:
       - "5337:3001"
     environment:
       - NODE_ENV=production
+      - CRYPTO_SECRET=${CRYPTO_SECRET}
       - PORT=3001
       - DB_HOST=${DB_HOST_HOMOLOG}
       - DB_PORT=${DB_PORT_HOMOLOG}
       - DB_USER=${DB_USER_HOMOLOG}
-      - DB_PASSWORD=${DB_PASSWORD_HOMOLOG}
+      - DB_PASSWORD=${DB_PASS_HOMOLOG}
       - DB_NAME=${DB_NAME_HOMOLOG}
       - JWT_SECRET=${JWT_SECRET_HOMOLOG}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-12h}
@@ -34,10 +35,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - CRYPTO_SECRET=${CRYPTO_SECRET}
       - DB_HOST=${DB_HOST_MAIN}
       - DB_PORT=${DB_PORT_MAIN}
       - DB_USER=${DB_USER_MAIN}
-      - DB_PASSWORD=${DB_PASSWORD_MAIN}
+      - DB_PASSWORD=${DB_PASS_MAIN}
       - DB_NAME=${DB_NAME_MAIN}
       - JWT_SECRET=${JWT_SECRET_MAIN}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-12h}

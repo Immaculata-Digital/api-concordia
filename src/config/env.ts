@@ -17,6 +17,9 @@ const envSchema = z.object({
         jwtExpiresIn: z.string().default('12h'),
         bcryptSaltRounds: z.coerce.number().default(12),
     }),
+    security: z.object({
+        cryptoSecret: z.string().default('concordia-crypto-secret-key'),
+    }),
     smtp: z.object({
         host: z.string().optional(),
         port: z.coerce.number().optional().default(587),
@@ -42,6 +45,9 @@ export const env = envSchema.parse({
         jwtSecret: process.env.JWT_SECRET,
         jwtExpiresIn: process.env.JWT_EXPIRES_IN,
         bcryptSaltRounds: process.env.BCRYPT_SALT_ROUNDS,
+    },
+    security: {
+        cryptoSecret: process.env.CRYPTO_SECRET,
     },
     smtp: {
         host: process.env.SMTP_HOST,

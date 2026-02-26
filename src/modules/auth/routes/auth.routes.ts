@@ -2,6 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
+import { comparePassword } from '../../../core/utils/passwordCipher'
 import { PostgresUserRepository } from '../../users/repositories/PostgresUserRepository'
 import { PostgresPluvytClientRepository } from '../../pluvyt-clients/repositories/PostgresPluvytClientRepository'
 import { PluvytClient } from '../../pluvyt-clients/entities/PluvytClient'
@@ -54,7 +55,7 @@ authRoutes.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Credenciais inválidas' })
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+        const isPasswordValid = await comparePassword(password, user.passwordHash)
 
         if (!isPasswordValid) {
             console.warn(`[AUTH_LOGIN] Senha incorreta para: ${loginOrEmail}`)

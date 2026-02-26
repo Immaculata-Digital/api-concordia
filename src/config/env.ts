@@ -9,13 +9,16 @@ const envSchema = z.object({
         host: z.string().default('localhost'),
         port: z.coerce.number().default(5432),
         user: z.string().default('postgres'),
-        password: z.string().default('postgres'),
+        password: z.string().min(1, 'Database password cannot be empty').default('postgres'),
         name: z.string().default('concordia'),
     }),
     auth: z.object({
         jwtSecret: z.string().default('concordia-secret-key'),
         jwtExpiresIn: z.string().default('12h'),
         bcryptSaltRounds: z.coerce.number().default(12),
+    }),
+    security: z.object({
+        cryptoSecret: z.string().default('concordia-crypto-secret-key'),
     }),
     smtp: z.object({
         host: z.string().optional(),
@@ -42,6 +45,9 @@ export const env = envSchema.parse({
         jwtSecret: process.env.JWT_SECRET,
         jwtExpiresIn: process.env.JWT_EXPIRES_IN,
         bcryptSaltRounds: process.env.BCRYPT_SALT_ROUNDS,
+    },
+    security: {
+        cryptoSecret: process.env.CRYPTO_SECRET,
     },
     smtp: {
         host: process.env.SMTP_HOST,

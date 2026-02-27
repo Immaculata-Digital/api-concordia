@@ -22,6 +22,7 @@ export interface RecompensaProps {
         categoria_nome?: string
         descricao_complementar?: string
         imagem_principal?: string
+        media?: { arquivo: string; ordem: number }[]
         slug?: string
     }
 }

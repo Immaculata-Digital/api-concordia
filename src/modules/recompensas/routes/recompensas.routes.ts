@@ -17,12 +17,25 @@ publicRecompensasRoutes.get('/', async (req, res) => {
         const tenantId = req.query.tenantId as string
         const view = req.query.view as string
         const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined
+        const category = req.query.category as string
+        const sort = req.query.sort as string
 
-        const items = await repository.findAll(tenantId, view, limit)
+        const items = await repository.findAll(tenantId, view, limit, category, sort)
         return res.json(items)
     } catch (error) {
         console.error('Error listing rewards:', error)
         return res.status(500).json({ message: 'Erro ao listar recompensas' })
+    }
+})
+
+publicRecompensasRoutes.get('/categories', async (req, res) => {
+    try {
+        const tenantId = req.query.tenantId as string
+        const categories = await repository.findAllCategories(tenantId)
+        return res.json(categories)
+    } catch (error) {
+        console.error('Error listing categories:', error)
+        return res.status(500).json({ message: 'Erro ao listar categorias' })
     }
 })
 

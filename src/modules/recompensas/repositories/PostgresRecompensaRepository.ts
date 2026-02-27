@@ -3,7 +3,7 @@ import { pool } from '../../../infra/database/pool'
 import { Recompensa, RecompensaProps } from '../entities/Recompensa'
 
 export class PostgresRecompensaRepository {
-    async findAll(tenantId?: string, view?: string, limit?: number): Promise<RecompensaProps[]> {
+    async findAll(tenantId?: string, view?: string, limit: number = 12, category?: string, sort?: string): Promise<RecompensaProps[]> {
         const isCompact = view === 'compact'
         const selectFields = isCompact 
             ? 'r.*, p.nome, p.codigo, p.unidade, p.marca, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal'
@@ -19,15 +19,29 @@ export class PostgresRecompensaRepository {
                 SELECT arquivo 
                 FROM app.produtos_media 
                 WHERE produto_id = p.uuid AND tipo_code = 'imagem'
-                ORDER BY ordem ASC
+                ORDER BY (ordem = 1) DESC, ordem ASC NULLS LAST, created_at ASC
                 LIMIT 1
             ) m ON true
             WHERE r.deleted_at IS NULL
             ${tenantId ? 'AND r.tenant_id = $1' : ''}
+            ${category && category !== 'Todos' ? `AND cat.name = $${tenantId ? 2 : 1}` : ''}
         `
         
         let paramCount = tenantId ? 1 : 0
         const values: any[] = tenantId ? [tenantId] : []
+
+        if (category && category !== 'Todos') {
+            paramCount++
+            values.push(category)
+        }
+
+        if (sort === 'points_asc') {
+            query += ` ORDER BY r.qtd_pontos_resgate ASC`
+        } else if (sort === 'points_desc') {
+            query += ` ORDER BY r.qtd_pontos_resgate DESC`
+        } else {
+            query += ` ORDER BY r.created_at DESC`
+        }
 
         if (limit && limit > 0) {
             paramCount++
@@ -41,19 +55,22 @@ export class PostgresRecompensaRepository {
 
     async findById(uuidOrSlug: string): Promise<RecompensaProps | null> {
         const query = `
-            SELECT r.*, p.nome, p.codigo, p.unidade, p.marca, p.descricao_complementar, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal
+            SELECT 
+                r.*, p.nome, p.codigo, p.unidade, p.marca, p.descricao_complementar, 
+                cat.name as categoria_nome, s.slug,
+                (
+                    SELECT json_agg(m_list ORDER BY (m_list.ordem = 1) DESC, m_list.ordem ASC NULLS LAST, m_list.created_at ASC)
+                    FROM (
+                        SELECT arquivo, ordem, created_at
+                        FROM app.produtos_media 
+                        WHERE produto_id = p.uuid AND tipo_code = 'imagem'
+                    ) m_list
+                ) as media
             FROM app.recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
-            LEFT JOIN LATERAL (
-                SELECT arquivo 
-                FROM app.produtos_media 
-                WHERE produto_id = p.uuid AND tipo_code = 'imagem'
-                ORDER BY ordem ASC
-                LIMIT 1
-            ) m ON true
-            WHERE (r.uuid::text = $1 OR s.slug = $1) AND r.deleted_at IS NULL
+            WHERE (r.uuid::text = $1 OR s.slug = $1 OR r.produto_id::text = $1) AND r.deleted_at IS NULL
         `
         const { rows } = await pool.query(query, [uuidOrSlug])
         if (rows.length === 0) return null
@@ -99,6 +116,20 @@ export class PostgresRecompensaRepository {
         await pool.query('UPDATE app.recompensas SET deleted_at = NOW() WHERE uuid = $1', [uuid])
     }
 
+    async findAllCategories(tenantId?: string): Promise<string[]> {
+        const query = `
+            SELECT DISTINCT cat.name
+            FROM app.recompensas r
+            JOIN app.produtos p ON p.uuid = r.produto_id
+            JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            WHERE r.deleted_at IS NULL
+            ${tenantId ? 'AND r.tenant_id = $1' : ''}
+            ORDER BY cat.name ASC
+        `
+        const { rows } = await pool.query(query, tenantId ? [tenantId] : [])
+        return rows.map(row => row.name)
+    }
+
     private mapToProps(row: any): RecompensaProps {
         return {
             uuid: row.uuid,
@@ -119,7 +150,8 @@ export class PostgresRecompensaRepository {
                 marca: row.marca,
                 categoria_nome: row.categoria_nome,
                 descricao_complementar: row.descricao_complementar,
-                imagem_principal: row.imagem_principal,
+                imagem_principal: row.imagem_principal || (row.media && row.media[0] ? row.media[0].arquivo : ''),
+                media: row.media || [],
                 slug: row.slug
             }
         }

@@ -85,7 +85,7 @@ export class PostgresUserRepository implements IUserRepository {
       RETURNING *`,
             [
                 data.uuid, data.tenantId, data.fullName, data.login, data.email, data.password,
-                JSON.stringify(data.allowFeatures), JSON.stringify(data.deniedFeatures),
+                data.allowFeatures, data.deniedFeatures,
                 data.createdBy, data.updatedBy
             ]
         )
@@ -106,7 +106,7 @@ export class PostgresUserRepository implements IUserRepository {
       RETURNING *`,
             [
                 data.tenantId, data.uuid, data.fullName, data.login, data.email, data.password,
-                JSON.stringify(data.allowFeatures), JSON.stringify(data.deniedFeatures),
+                data.allowFeatures, data.deniedFeatures,
                 data.updatedBy
             ]
         )

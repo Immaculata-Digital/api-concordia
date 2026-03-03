@@ -13,7 +13,7 @@ const envSchema = z.object({
         name: z.string().default('concordia'),
     }),
     auth: z.object({
-        jwtSecret: z.string().default('concordia-secret-key'),
+        jwtSecret: z.preprocess((val: unknown) => (val === '' ? undefined : val), z.string().default('concordia-secret-key')),
         jwtExpiresIn: z.string().default('12h'),
         bcryptSaltRounds: z.coerce.number().default(12),
     }),

@@ -89,5 +89,12 @@
         "icon": "ReceiptLong",
         "url": "/pedidos/comandas",
         "category": "Pedidos"
+    },
+    {
+        "key": "erp:identidade-visual:gerenciar",
+        "name": "Identidade Visual",
+        "icon": "Computer",
+        "url": "/personalizacao/identidade-visual",
+        "category": "Personalização Site"
     }
 ]

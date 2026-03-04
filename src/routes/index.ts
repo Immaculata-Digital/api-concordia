@@ -15,6 +15,7 @@ import { cardapioItemRoutes } from '../modules/cardapio/routes/cardapioItem.rout
 import { produtoCategoriaRoutes } from '../modules/produtos/routes/produtoCategoria.routes'
 import { mesaRoutes } from '../modules/mesas/routes/mesa.routes'
 import { comandaRoutes } from '../modules/comandas/routes/comanda.routes'
+import { brandRoutes } from '../modules/brand/routes/brand.routes'
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
@@ -48,3 +49,4 @@ routes.use('/produtos-categorias', produtoCategoriaRoutes)
 routes.use('/cardapio-itens', cardapioItemRoutes)
 routes.use('/mesas', mesaRoutes)
 routes.use('/comandas', comandaRoutes)
+routes.use('/identidade-visual', brandRoutes)

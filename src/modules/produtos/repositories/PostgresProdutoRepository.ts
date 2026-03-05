@@ -2,11 +2,19 @@ import { pool } from '../../../infra/database/pool'
 import { Produto, ProdutoProps } from '../entities/Produto'
 
 export class PostgresProdutoRepository {
-    async findAll(tenantId?: string, viewContext?: string): Promise<ProdutoProps[]> {
+    async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string): Promise<ProdutoProps[]> {
         let query = `
-            SELECT p.*, cat.name as categoria_nome
+            SELECT p.*, cat.name as categoria_nome,
+                   m.url as image_url, m.arquivo as image_base64
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN LATERAL (
+                SELECT url, arquivo 
+                FROM app.produtos_media 
+                WHERE produto_id = p.uuid 
+                ORDER BY ordem ASC 
+                LIMIT 1
+            ) m ON true
             WHERE p.deleted_at IS NULL
         `
         const values: any[] = []
@@ -19,10 +27,33 @@ export class PostgresProdutoRepository {
         }
 
         if (viewContext) {
-            query += ` AND $${idx} = ANY(p.views)`
+            if (viewContext === 'list') {
+                query += ` AND ($${idx} = ANY(p.views) OR p.views IS NULL OR p.views = '{}')`
+            } else {
+                query += ` AND $${idx} = ANY(p.views)`
+            }
             values.push(viewContext)
             idx++
         }
+
+        if (categoria_code) {
+            query += ` AND p.categoria_code = $${idx}`
+            values.push(categoria_code)
+            idx++
+        }
+
+        if (limit) {
+            query += ` LIMIT $${idx}`
+            values.push(limit)
+            idx++
+        }
+
+        if (offset) {
+            query += ` OFFSET $${idx}`
+            values.push(offset)
+            idx++
+        }
+
         const { rows } = await pool.query(query, values)
         return rows.map((row: any) => this.mapToProps(row))
     }
@@ -120,7 +151,9 @@ export class PostgresProdutoRepository {
             createdBy: row.created_by,
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
-            deletedAt: row.deleted_at
+            deletedAt: row.deleted_at,
+            image_url: row.image_url,
+            image_base64: row.image_base64
         }
     }
 }

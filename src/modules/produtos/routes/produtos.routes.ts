@@ -9,9 +9,14 @@ const complementaryRepository = new PostgresProdutoComplementaryRepository()
 
 produtosRoutes.get('/', async (req, res) => {
     try {
-        const tenantId = req.query.tenantId as string
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
         const view = req.query.view as string
-        const produtos = await repository.findAll(tenantId, view)
+        const categoria_code = req.query.categoria_code as string
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+        const page = req.query.page ? parseInt(req.query.page as string) : 1
+        const offset = limit ? (page - 1) * limit : undefined
+
+        const produtos = await repository.findAll(tenantId, view, limit, offset, categoria_code)
         return res.json(produtos)
     } catch (error) {
         console.error('Error listing produits:', error)

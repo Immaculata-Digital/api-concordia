@@ -24,6 +24,8 @@ export interface ProdutoProps {
     updatedAt: Date
     updatedBy?: string
     deletedAt?: Date
+    image_url?: string
+    image_base64?: string
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

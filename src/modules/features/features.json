@@ -417,5 +417,30 @@
         "key": "erp:produtos:ecommerceprodutos",
         "name": "Acessar Produtos (E-commerce)",
         "description": "Permite acessar a tela de Produtos na visualização de E-commerce"
+    },
+    {
+        "key": "erp:produtos:lista:listar",
+        "name": "Listar Listas de Produtos",
+        "description": "Visualizar a listagem de listas de produtos cadastradas"
+    },
+    {
+        "key": "erp:produtos:lista:visualizar",
+        "name": "Visualizar Lista de Produto",
+        "description": "Visualizar os detalhes e produtos de uma lista específica"
+    },
+    {
+        "key": "erp:produtos:lista:criar",
+        "name": "Criar Lista de Produto",
+        "description": "Criar novas listas de produtos"
+    },
+    {
+        "key": "erp:produtos:lista:editar",
+        "name": "Editar Lista de Produto",
+        "description": "Alterar dados de listas de produtos"
+    },
+    {
+        "key": "erp:produtos:lista:excluir",
+        "name": "Excluir Lista de Produto",
+        "description": "Remover listas de produtos do sistema"
     }
 ]

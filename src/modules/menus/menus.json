@@ -28,6 +28,13 @@
         "category": "Cadastros"
     },
     {
+        "key": "erp:produtos:lista:listar",
+        "name": "Lista de Produtos",
+        "icon": "ListAlt",
+        "url": "/lista-produtos",
+        "category": "Cadastros"
+    },
+    {
         "key": "erp:tenants:listar",
         "name": "Tenants",
         "icon": "Storage",

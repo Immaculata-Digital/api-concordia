@@ -108,7 +108,7 @@ peopleRoutes.get('/documents-categories', (req, res) => {
 peopleRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId
-        const { search, page = 1, limit = 100 } = req.query
+        const { search, page = 1, limit = 100, view } = req.query
         const offset = (Number(page) - 1) * Number(limit)
 
         let query = `
@@ -121,8 +121,13 @@ peopleRoutes.get('/', async (req, res) => {
         const params: any[] = [tenantId]
 
         if (search) {
-            query += ` AND (p.name ILIKE $2 OR p.cpf_cnpj ILIKE $2)`
             params.push(`%${search}%`)
+            query += ` AND (p.name ILIKE $${params.length} OR p.cpf_cnpj ILIKE $${params.length})`
+        }
+
+        if (view) {
+            params.push(view)
+            query += ` AND $${params.length} = ANY(p.views)`
         }
 
         query += ` ORDER BY p.created_at DESC LIMIT ${limit} OFFSET ${offset}`
@@ -130,8 +135,19 @@ peopleRoutes.get('/', async (req, res) => {
         const result = await pool.query(query, params)
 
         // Also fetch total count
-        const countQuery = `SELECT COUNT(*) FROM app.people WHERE tenant_id = $1 ${search ? 'AND (name ILIKE $2 OR cpf_cnpj ILIKE $2)' : ''}`
-        const countResult = await pool.query(countQuery, params)
+        let countQuery = `SELECT COUNT(*) FROM app.people WHERE tenant_id = $1`
+        const countParams: any[] = [tenantId]
+
+        if (search) {
+            countParams.push(`%${search}%`)
+            countQuery += ` AND (name ILIKE $${countParams.length} OR cpf_cnpj ILIKE $${countParams.length})`
+        }
+
+        if (view) {
+            countParams.push(view)
+            countQuery += ` AND $${countParams.length} = ANY(views)`
+        }
+        const countResult = await pool.query(countQuery, countParams)
 
         const people = result.rows.map(row => ({
             id: row.uuid,
@@ -144,6 +160,7 @@ peopleRoutes.get('/', async (req, res) => {
             usuarioId: row.usuario_id,
             usuarioLogin: row.usuario_login,
             usuarioNome: row.usuario_nome,
+            views: row.views || [],
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             createdBy: row.created_by,
@@ -232,6 +249,7 @@ peopleRoutes.get('/:id', async (req, res) => {
             usuarioId: person.usuario_id,
             usuarioLogin: person.usuario_login,
             usuarioNome: person.usuario_nome,
+            views: person.views || [],
             createdAt: person.created_at,
             updatedAt: person.updated_at,
             createdBy: person.created_by,
@@ -324,7 +342,7 @@ peopleRoutes.get('/:id', async (req, res) => {
 peopleRoutes.post('/', async (req, res) => {
     try {
         const loggedTenantId = req.user!.tenantId
-        const { name, cpfCnpj, birthDate, tenantId, usuarioId } = req.body
+        const { name, cpfCnpj, birthDate, tenantId, usuarioId, views } = req.body
 
         // Use provided tenantId if available, otherwise use logged user's
         const targetTenantId = tenantId || loggedTenantId
@@ -342,11 +360,14 @@ peopleRoutes.post('/', async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO app.people (tenant_id, name, cpf_cnpj, birth_date, usuario_id, created_by, updated_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $6) RETURNING *`,
-            [targetTenantId, name, normalizedCpfCnpj, birthDate || null, usuarioId || null, req.user!.uuid]
+            `INSERT INTO app.people (tenant_id, name, cpf_cnpj, birth_date, usuario_id, created_by, updated_by, views)
+            VALUES ($1, $2, $3, $4, $5, $6, $6, $7) RETURNING *`,
+            [targetTenantId, name, normalizedCpfCnpj, birthDate || null, usuarioId || null, req.user!.uuid, views || []]
         )
-        return res.status(201).json(result.rows[0])
+        // Map to include views explicitly, though returning full record is standard here
+        const row = result.rows[0];
+        row.views = row.views || [];
+        return res.status(201).json(row)
     } catch (error) {
         console.error('Error creating person:', error)
         return res.status(500).json({ message: 'Erro ao criar pessoa' })
@@ -357,7 +378,7 @@ peopleRoutes.put('/:id', async (req, res) => {
     try {
         const loggedTenantId = req.user!.tenantId
         const { id } = req.params
-        const { name, cpfCnpj, birthDate, tenantId, usuarioId } = req.body
+        const { name, cpfCnpj, birthDate, tenantId, usuarioId, views } = req.body
 
         const targetTenantId = tenantId || loggedTenantId
         const normalizedCpfCnpj = cpfCnpj ? cpfCnpj.replace(/\D/g, '') : null
@@ -373,13 +394,20 @@ peopleRoutes.put('/:id', async (req, res) => {
             }
         }
 
+        // Se views não for enviado (undefined), mantemos os views atuais, a menos que seja especificamente enviado
+        // O ideal é sempre atualizar baseado no que veio. Como a tela de Lojas enviará a view, é só tratar lá
+        const viewsValue = views ? views : []
+
         const result = await pool.query(
-            `UPDATE app.people SET name = $3, cpf_cnpj = $4, birth_date = $5, tenant_id = $6, usuario_id = $7, updated_by = $8, updated_at = NOW()
+            `UPDATE app.people SET name = $3, cpf_cnpj = $4, birth_date = $5, tenant_id = $6, usuario_id = $7, views = $8, updated_by = $9, updated_at = NOW()
             WHERE uuid = $2 AND tenant_id = $1 RETURNING *`,
-            [loggedTenantId, id, name, normalizedCpfCnpj, birthDate, targetTenantId, usuarioId || null, req.user!.uuid]
+            [loggedTenantId, id, name, normalizedCpfCnpj, birthDate, targetTenantId, usuarioId || null, viewsValue, req.user!.uuid]
         )
         if (result.rowCount === 0) return res.status(404).json({ message: 'Pessoa não encontrada' })
-        return res.json(result.rows[0])
+
+        const row = result.rows[0];
+        row.views = row.views || [];
+        return res.json(row)
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao atualizar pessoa' })
     }

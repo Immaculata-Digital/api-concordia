@@ -382,5 +382,10 @@
         "key": "erp:identidade-visual:gerenciar",
         "name": "Gerenciar Identidade Visual",
         "description": "Permite configurar o logotipo, tipografia e cores da plataforma"
+    },
+    {
+        "key": "erp:pessoas:ecommercelojas",
+        "name": "Acessar Lojas (E-commerce)",
+        "description": "Permite acessar a tela de Pessoas na visualização de Lojas de E-commerce"
     }
 ]

@@ -96,5 +96,12 @@
         "icon": "Computer",
         "url": "/personalizacao/identidade-visual",
         "category": "Personalização Site"
+    },
+    {
+        "key": "erp:pessoas:ecommercelojas",
+        "name": "Lojas",
+        "icon": "Storefront",
+        "url": "/peoples?view=ecommercelojas",
+        "category": "E-commerce"
     }
 ]

@@ -387,5 +387,10 @@
         "key": "erp:pessoas:ecommercelojas",
         "name": "Acessar Lojas (E-commerce)",
         "description": "Permite acessar a tela de Pessoas na visualização de Lojas de E-commerce"
+    },
+    {
+        "key": "erp:produtos:ecommerceprodutos",
+        "name": "Acessar Produtos (E-commerce)",
+        "description": "Permite acessar a tela de Produtos na visualização de E-commerce"
     }
 ]

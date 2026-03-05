@@ -11,7 +11,8 @@ const complementaryRepository = new PostgresProdutoComplementaryRepository()
 produtosRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.query.tenantId as string
-        const produtos = await repository.findAll(tenantId)
+        const view = req.query.view as string
+        const produtos = await repository.findAll(tenantId, view)
         return res.json(produtos)
     } catch (error) {
         console.error('Error listing produits:', error)
@@ -52,9 +53,9 @@ produtosRoutes.get('/:id', async (req, res) => {
 
 produtosRoutes.post('/', async (req, res) => {
     try {
-        const { tenantId, nome, unidade, ...rest } = req.body
+        const { tenant_id, nome, unidade, ...rest } = req.body
         const produto = Produto.create({
-            tenantId,
+            tenantId: tenant_id,
             nome,
             unidade,
             ...rest,
@@ -66,6 +67,10 @@ produtosRoutes.post('/', async (req, res) => {
         return res.status(201).json(created)
     } catch (error) {
         console.error('Error creating product:', error)
+        try {
+            const fs = require('fs')
+            fs.appendFileSync('error.log', `[${new Date().toISOString()}] Error creating product: ${error instanceof Error ? error.stack : String(error)}\n`)
+        } catch (e) { }
         return res.status(500).json({ message: 'Erro ao criar produto' })
     }
 })

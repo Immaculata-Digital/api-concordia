@@ -18,6 +18,7 @@ export interface ProdutoProps {
     obs?: string
     dias_preparacao?: number
     tags?: string[]
+    views?: string[]
     createdAt: Date
     createdBy?: string
     updatedAt: Date

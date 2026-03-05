@@ -2,15 +2,27 @@ import { pool } from '../../../infra/database/pool'
 import { Produto, ProdutoProps } from '../entities/Produto'
 
 export class PostgresProdutoRepository {
-    async findAll(tenantId?: string): Promise<ProdutoProps[]> {
-        const query = `
+    async findAll(tenantId?: string, viewContext?: string): Promise<ProdutoProps[]> {
+        let query = `
             SELECT p.*, cat.name as categoria_nome
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             WHERE p.deleted_at IS NULL
-            ${tenantId ? 'AND p.tenant_id = $1' : ''}
         `
-        const values = tenantId ? [tenantId] : []
+        const values: any[] = []
+        let idx = 1
+
+        if (tenantId) {
+            query += ` AND p.tenant_id = $${idx}`
+            values.push(tenantId)
+            idx++
+        }
+
+        if (viewContext) {
+            query += ` AND $${idx} = ANY(p.views)`
+            values.push(viewContext)
+            idx++
+        }
         const { rows } = await pool.query(query, values)
         return rows.map((row: any) => this.mapToProps(row))
     }
@@ -33,15 +45,15 @@ export class PostgresProdutoRepository {
             INSERT INTO app.produtos (
                 uuid, tenant_id, nome, codigo, unidade, marca, 
                 tipo_code, situacao_code, classe_produto_code, categoria_code, 
-                garantia, descricao_complementar, obs, dias_preparacao, tags,
+                garantia, descricao_complementar, obs, dias_preparacao, tags, views,
                 created_by, updated_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
             RETURNING *
         `
         const values = [
             props.uuid, props.tenantId, props.nome, props.codigo, props.unidade, props.marca,
             props.tipo_code, props.situacao_code, props.classe_produto_code, props.categoria_code,
-            props.garantia, props.descricao_complementar, props.obs, props.dias_preparacao, props.tags,
+            props.garantia, props.descricao_complementar, props.obs, props.dias_preparacao, props.tags, props.views || [],
             props.createdBy, props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
@@ -54,15 +66,15 @@ export class PostgresProdutoRepository {
             UPDATE app.produtos SET 
                 nome = $2, codigo = $3, unidade = $4, marca = $5, 
                 tipo_code = $6, situacao_code = $7, classe_produto_code = $8, categoria_code = $9, 
-                garantia = $10, descricao_complementar = $11, obs = $12, dias_preparacao = $13, tags = $14,
-                updated_by = $15, updated_at = NOW()
+                garantia = $10, descricao_complementar = $11, obs = $12, dias_preparacao = $13, tags = $14, views = $15,
+                updated_by = $16, updated_at = NOW()
             WHERE uuid = $1
             RETURNING *
         `
         const values = [
             props.uuid, props.nome, props.codigo, props.unidade, props.marca,
             props.tipo_code, props.situacao_code, props.classe_produto_code, props.categoria_code,
-            props.garantia, props.descricao_complementar, props.obs, props.dias_preparacao, props.tags,
+            props.garantia, props.descricao_complementar, props.obs, props.dias_preparacao, props.tags, props.views || [],
             props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
@@ -78,7 +90,7 @@ export class PostgresProdutoRepository {
         Object.keys(normalized).forEach(key => {
             const val = (normalized as any)[key]
             if (typeof val === 'string' && val.trim() === '') {
-                ;(normalized as any)[key] = null
+                ; (normalized as any)[key] = null
             }
         })
         return normalized
@@ -103,6 +115,7 @@ export class PostgresProdutoRepository {
             obs: row.obs,
             dias_preparacao: row.dias_preparacao,
             tags: row.tags,
+            views: row.views,
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,

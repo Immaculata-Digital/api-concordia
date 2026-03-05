@@ -100,8 +100,15 @@
     {
         "key": "erp:pessoas:ecommercelojas",
         "name": "Lojas",
-        "icon": "Storefront",
+        "icon": "Store",
         "url": "/peoples?view=ecommercelojas",
+        "category": "E-commerce"
+    },
+    {
+        "key": "erp:produtos:ecommerceprodutos",
+        "name": "Produtos",
+        "icon": "Category",
+        "url": "/produtos?view=ecommerceprodutos",
         "category": "E-commerce"
     }
 ]

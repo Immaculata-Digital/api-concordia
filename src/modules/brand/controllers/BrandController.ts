@@ -11,11 +11,10 @@ export class BrandController {
 
     getConfig = async (req: Request, res: Response) => {
         try {
-            const tenantId = req.user!.tenantId
+            const tenantId = (req.query.tenantId as string) || req.user!.tenantId
             const config = await this.repository.getConfigByTenantId(tenantId)
             
             if (!config) {
-                // Return an empty template so the frontend doesn't break
                 return res.json({
                     logo: {},
                     palette: {},
@@ -32,7 +31,7 @@ export class BrandController {
 
     updateConfig = async (req: Request, res: Response) => {
         try {
-            const tenantId = req.user!.tenantId
+            const tenantId = (req.body.tenantId as string) || (req.query.tenantId as string) || req.user!.tenantId
             const userId = req.user!.uuid
             const { type } = req.query
 
@@ -40,10 +39,10 @@ export class BrandController {
                 return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|palette|typography' })
             }
 
-            // payload structure should match the type
-            // e.g., if type=logo, req.body is { principal: '...', ... }
+            const { tenantId: _, ...cleanData } = req.body
+
             const contentToMerge: Partial<BrandConfigContent> = {
-                [type as string]: req.body
+                [type as string]: cleanData
             }
 
             const updatedConfig = await this.repository.upsertConfig(tenantId, contentToMerge, userId)

@@ -1,26 +1,29 @@
+export interface LogoVariantConfig {
+    principal?: string;
+    wordmark?: string;
+    icon?: string;
+}
+
 export interface LogoConfig {
-    principal?: string
-    principalLight?: string
-    principalDark?: string
-    letreiro?: string
-    letreiroLight?: string
-    letreiroDark?: string
-    icone?: string
-    iconeLight?: string
-    iconeDark?: string
+    principal?: string;
+    wordmark?: string;
+    icon?: string;
+    favicon?: string;
+    light?: LogoVariantConfig;
+    dark?: LogoVariantConfig;
 }
 
 export interface PaletteConfig {
-    primario?: string
-    secundario?: string
-    destaque?: string
-    fundoClaro?: string
-    fundoEscuro?: string
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    background_light?: string;
+    background_dark?: string;
 }
 
 export interface TypographyConfig {
-    cabecalho?: string
-    corpo?: string
+    headings?: string;
+    body?: string;
 }
 
 export interface BrandConfigContent {

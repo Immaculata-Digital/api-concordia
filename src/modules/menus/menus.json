@@ -93,7 +93,7 @@
     {
         "key": "erp:identidade-visual:gerenciar",
         "name": "Identidade Visual",
-        "icon": "Computer",
+        "icon": "Brush",
         "url": "/personalizacao/identidade-visual",
         "category": "Personalização Site"
     },

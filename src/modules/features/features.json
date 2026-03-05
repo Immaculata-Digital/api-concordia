@@ -379,9 +379,34 @@
         "description": "Permite marcar todas as notificações do tenant como lidas de uma vez"
     },
     {
-        "key": "erp:identidade-visual:gerenciar",
+        "key": "erp:identidade-visual:listar",
         "name": "Gerenciar Identidade Visual",
         "description": "Permite configurar o logotipo, tipografia e cores da plataforma"
+    },
+    {
+        "key": "erp:landing-pages:listar",
+        "name": "Listar Landing Pages",
+        "description": "Visualizar a lista de Landing Pages"
+    },
+    {
+        "key": "erp:landing-pages:visualizar",
+        "name": "Visualizar Landing Page",
+        "description": "Ver detalhes de uma Landing Page específica"
+    },
+    {
+        "key": "erp:landing-pages:criar",
+        "name": "Criar Landing Page",
+        "description": "Criar novas Landing Pages"
+    },
+    {
+        "key": "erp:landing-pages:editar",
+        "name": "Editar Landing Page",
+        "description": "Editar informações e conteúdo de Landing Pages"
+    },
+    {
+        "key": "erp:landing-pages:excluir",
+        "name": "Excluir Landing Page",
+        "description": "Remover Landing Pages do sistema"
     },
     {
         "key": "erp:pessoas:ecommercelojas",

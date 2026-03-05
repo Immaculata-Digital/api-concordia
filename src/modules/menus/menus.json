@@ -91,10 +91,17 @@
         "category": "Pedidos"
     },
     {
-        "key": "erp:identidade-visual:gerenciar",
+        "key": "erp:identidade-visual:listar",
         "name": "Identidade Visual",
         "icon": "Brush",
         "url": "/personalizacao/identidade-visual",
+        "category": "Personalização Site"
+    },
+    {
+        "key": "erp:landing-pages:listar",
+        "name": "Landing Page",
+        "icon": "DashboardCustomize",
+        "url": "/personalizacao/landing-page",
         "category": "Personalização Site"
     },
     {

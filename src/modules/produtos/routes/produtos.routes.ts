@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { PostgresProdutoRepository } from '../repositories/PostgresProdutoRepository'
 import { Produto } from '../entities/Produto'
 import { PostgresProdutoComplementaryRepository } from '../repositories/PostgresProdutoComplementaryRepository'
-import { convertImageToWebP } from '../../../core/convertImageToWebP'
 
 export const produtosRoutes = Router()
 const repository = new PostgresProdutoRepository()
@@ -182,10 +181,11 @@ produtosRoutes.post('/:id/media', async (req, res) => {
             if (normalized) req.body.tipo_code = normalized
         }
 
-        if (req.body.arquivo) {
-            const converted = await convertImageToWebP(req.body.arquivo)
-            req.body.arquivo = converted.base64
-            req.body.file_size = converted.fileSize
+        // O middleware global já converteu req.body.arquivo para WebP.
+        // Apenas atualizamos os metadados derivados.
+        if (req.body.arquivo && req.body.arquivo.startsWith('data:image/webp')) {
+            const rawBase64 = req.body.arquivo.split(',')[1] ?? ''
+            req.body.file_size = Math.ceil((rawBase64.length * 3) / 4)
             if (req.body.file_name) {
                 req.body.file_name = req.body.file_name.replace(/\.(png|jpe?g|avif)$/i, '.webp')
             }
@@ -224,10 +224,10 @@ produtosRoutes.put('/media/:mediaId', async (req, res) => {
             if (normalized) req.body.tipo_code = normalized
         }
 
-        if (req.body.arquivo && req.body.arquivo.startsWith('data:')) {
-            const converted = await convertImageToWebP(req.body.arquivo)
-            req.body.arquivo = converted.base64
-            req.body.file_size = converted.fileSize
+        // O middleware global já converteu req.body.arquivo para WebP.
+        if (req.body.arquivo && req.body.arquivo.startsWith('data:image/webp')) {
+            const rawBase64 = req.body.arquivo.split(',')[1] ?? ''
+            req.body.file_size = Math.ceil((rawBase64.length * 3) / 4)
             if (req.body.file_name) {
                 req.body.file_name = req.body.file_name.replace(/\.(png|jpe?g|avif)$/i, '.webp')
             }

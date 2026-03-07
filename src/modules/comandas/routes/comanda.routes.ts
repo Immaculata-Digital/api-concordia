@@ -16,6 +16,25 @@ comandaRoutes.get('/', authenticate, async (req, res) => {
     return res.json(comandas)
 })
 
+comandaRoutes.get('/pedidos/historico', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    const pedidos = await repository.findPedidosHistorico(tenantId)
+    return res.json(pedidos)
+})
+
+comandaRoutes.get('/pedidos/kds', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    const pedidos = await repository.findPedidosKDS(tenantId)
+    return res.json(pedidos)
+})
+
+comandaRoutes.patch('/pedidos/:id/status', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    const { status } = req.body
+    await repository.updatePedidoStatus(tenantId, req.params.id as string, status, req.user!.uuid)
+    return res.json({ message: 'Status atualizado com sucesso' })
+})
+
 comandaRoutes.get('/:id', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId
     const comanda = await repository.findById(tenantId, req.params.id as string)

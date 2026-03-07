@@ -442,5 +442,20 @@
         "key": "erp:produtos:lista:excluir",
         "name": "Excluir Lista de Produto",
         "description": "Remover listas de produtos do sistema"
+    },
+    {
+        "key": "erp:pedidos:historico:listar",
+        "name": "Listar Histórico de Pedidos",
+        "description": "Permite visualizar o histórico completo de pedidos realizados"
+    },
+    {
+        "key": "erp:pedidos:historico:visualizar",
+        "name": "Ver Detalhes do Pedido",
+        "description": "Permite visualizar os itens e status de um pedido específico"
+    },
+    {
+        "key": "erp:kds:operacional",
+        "name": "KDS / Operacional",
+        "description": "Acesso ao painel de Cozinha (Kitchen Display System) para gestão de pedidos"
     }
 ]

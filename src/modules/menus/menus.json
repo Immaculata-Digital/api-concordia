@@ -98,6 +98,20 @@
         "category": "Pedidos"
     },
     {
+        "key": "erp:pedidos:historico:listar",
+        "name": "Histórico de Pedidos",
+        "icon": "History",
+        "url": "/pedidos/historico",
+        "category": "Pedidos"
+    },
+    {
+        "key": "erp:kds:operacional",
+        "name": "Operacional (KDS)",
+        "icon": "Timer",
+        "url": "/pedidos/kds",
+        "category": "Pedidos"
+    },
+    {
         "key": "erp:identidade-visual:listar",
         "name": "Identidade Visual",
         "icon": "Brush",

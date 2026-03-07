@@ -27,6 +27,7 @@ export interface ComandaProps {
     tenantId: string
     mesaId: string
     clienteNome?: string
+    whatsapp?: string
     status: 'ABERTA' | 'FECHADA' | 'PAGA' | 'CANCELADA'
     total: number
     abertaEm: Date

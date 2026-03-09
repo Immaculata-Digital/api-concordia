@@ -37,6 +37,7 @@ produtosRoutes.get('/:id', async (req, res) => {
         const media = await complementaryRepository.getMedia(req.params.id)
         const kit = await complementaryRepository.getKit(req.params.id)
         const variacoes = await complementaryRepository.getVariacoes(req.params.id)
+        const recompensa = await complementaryRepository.getRecompensa(req.params.id)
 
         return res.json({
             ...produto,
@@ -47,7 +48,8 @@ produtosRoutes.get('/:id', async (req, res) => {
             fichaTecnica,
             media,
             kit,
-            variacoes
+            variacoes,
+            recompensa
         })
     } catch (error) {
         console.error('Error getting product:', error)
@@ -148,6 +150,15 @@ produtosRoutes.post('/:id/seo', async (req, res) => {
         return res.json({ message: 'SEO atualizado' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar SEO' })
+    }
+})
+
+produtosRoutes.post('/:id/recompensa', async (req, res) => {
+    try {
+        await complementaryRepository.upsertRecompensa(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        return res.json({ message: 'Dados de recompensa atualizados' })
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao salvar dados de recompensa' })
     }
 })
 

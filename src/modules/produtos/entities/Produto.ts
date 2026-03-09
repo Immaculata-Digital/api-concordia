@@ -26,6 +26,14 @@ export interface ProdutoProps {
     deletedAt?: Date
     image_url?: string
     image_base64?: string
+    cardapio?: {
+        ordem: number
+        ativo: boolean
+    }
+    recompensa?: {
+        qtd_pontos_resgate: number
+        voucher_digital: boolean
+    }
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

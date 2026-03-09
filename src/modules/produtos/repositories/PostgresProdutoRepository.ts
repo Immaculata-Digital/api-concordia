@@ -5,7 +5,9 @@ export class PostgresProdutoRepository {
     async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string): Promise<ProdutoProps[]> {
         let query = `
             SELECT p.*, cat.name as categoria_nome,
-                   m.url as image_url, m.arquivo as image_base64
+                   m.url as image_url, m.arquivo as image_base64,
+                   (SELECT json_build_object('ordem', i.ordem, 'ativo', i.ativo) FROM app.produtos_cardapio i WHERE i.produto_id = p.uuid LIMIT 1) as cardapio,
+                   (SELECT json_build_object('qtd_pontos_resgate', r.qtd_pontos_resgate, 'voucher_digital', r.voucher_digital) FROM app.produtos_recompensas r WHERE r.produto_id = p.uuid LIMIT 1) as recompensa
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN LATERAL (
@@ -60,7 +62,9 @@ export class PostgresProdutoRepository {
 
     async findById(uuid: string): Promise<ProdutoProps | null> {
         const query = `
-            SELECT p.*, cat.name as categoria_nome
+            SELECT p.*, cat.name as categoria_nome,
+                   (SELECT json_build_object('ordem', i.ordem, 'ativo', i.ativo) FROM app.produtos_cardapio i WHERE i.produto_id = p.uuid LIMIT 1) as cardapio,
+                   (SELECT json_build_object('qtd_pontos_resgate', r.qtd_pontos_resgate, 'voucher_digital', r.voucher_digital) FROM app.produtos_recompensas r WHERE r.produto_id = p.uuid LIMIT 1) as recompensa
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             WHERE p.uuid = $1 AND p.deleted_at IS NULL
@@ -153,7 +157,9 @@ export class PostgresProdutoRepository {
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
             image_url: row.image_url,
-            image_base64: row.image_base64
+            image_base64: row.image_base64,
+            cardapio: row.cardapio,
+            recompensa: row.recompensa
         }
     }
 }

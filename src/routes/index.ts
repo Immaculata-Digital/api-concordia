@@ -18,6 +18,8 @@ import { comandaRoutes } from '../modules/comandas/routes/comanda.routes'
 import { brandRoutes } from '../modules/brand/routes/brand.routes'
 import { landingPageRoutes } from '../modules/landing-pages/routes/landing-page.routes'
 import { productListRoutes } from '../modules/product-lists/routes/product-list.routes'
+import { reportRoutes } from '../modules/reports/routes/report.routes'
+import { notificationRoutes } from '../modules/notifications/routes/notifications.routes'
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
@@ -54,3 +56,5 @@ routes.use('/comandas', comandaRoutes)
 routes.use('/identidade-visual', brandRoutes)
 routes.use('/landing-pages', landingPageRoutes)
 routes.use('/product-lists', productListRoutes)
+routes.use('/reports', reportRoutes)
+routes.use('/notifications', notificationRoutes)

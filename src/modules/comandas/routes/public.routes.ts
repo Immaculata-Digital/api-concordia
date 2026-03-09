@@ -52,17 +52,21 @@ publicComandaRoutes.post('/', async (req, res) => {
 
     const finalComanda = await repository.findById(tenantId, comanda.uuid)
 
+    console.log(`[PublicOrder] Pedido criado: #${createdPedido.seq_id} para Comanda: ${comanda.uuid}`)
+
     // Criar Notificação para o ERP
     try {
+        console.log(`[Notification] Tentando criar notificação para tenant: ${tenantId}`)
         const notification = await notificationRepository.create({
             tenantId,
             titulo: 'Novo Pedido Recebido',
             mensagem: `Pedido #${createdPedido.seq_id} de ${clienteNome || 'Cliente'} para a mesa ${finalComanda?.mesaNumero || ''}`,
             tipo: 'novo_pedido',
-            dataId: createdPedido.uuid,
-            link: `/pedidos/historico?id=${createdPedido.uuid}`
+            dataId: comanda.uuid,
+            link: `/pedidos/comandas?id=${comanda.uuid}`
         })
 
+        console.log(`[Notification] Notificação criada: ${notification.uuid}. Emitindo via Socket...`)
         socketManager.emitToTenant(tenantId, 'nova_notificacao', notification)
     } catch (err) {
         console.error('[Notification] Erro ao disparar notificação:', err)

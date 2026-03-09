@@ -42,6 +42,8 @@ export class SocketManager {
             const room = `tenant:${tenantId}`;
             this.io.to(room).emit(event, data);
             console.log(`[WebSocket] Emitted ${event} to ${room}`);
+        } else {
+            console.warn(`[WebSocket] Could not emit ${event} because socket.io is not initialized!`);
         }
     }
 }

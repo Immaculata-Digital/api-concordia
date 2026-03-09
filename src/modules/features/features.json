@@ -457,5 +457,10 @@
         "key": "erp:kds:operacional",
         "name": "KDS / Operacional",
         "description": "Acesso ao painel de Cozinha (Kitchen Display System) para gestão de pedidos"
+    },
+    {
+        "key": "erp:pedidos:dashboard:visualizar",
+        "name": "Visualizar Dashboard de Pedidos",
+        "description": "Permite visualizar o painel de indicadores e gráficos de pedidos"
     }
 ]

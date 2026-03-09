@@ -23,6 +23,9 @@ import { notificationRoutes } from '../modules/notifications/routes/notification
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
+import { publicLandingPageRoutes } from '../modules/landing-pages/routes/public.routes'
+import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
+import { publicProductListRoutes } from '../modules/product-lists/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -33,6 +36,9 @@ publicRoutes.use('/auth', authRoutes)
 // Rotas Públicas (Sem autenticação)
 publicRoutes.use('/public/cardapio', publicCardapioRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
+publicRoutes.use('/public/landing-pages', publicLandingPageRoutes)
+publicRoutes.use('/public/identidade-visual', publicBrandRoutes)
+publicRoutes.use('/public/product-lists', publicProductListRoutes)
 
 // Rotas públicas de leitura de recompensas (homepage carousel, etc.)
 publicRoutes.use('/recompensas', publicRecompensasRoutes)

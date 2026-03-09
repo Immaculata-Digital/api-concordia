@@ -73,9 +73,11 @@ export class PostgresProductListRepository {
                 p.nome, 
                 cat.name as categoria_nome, 
                 m.url as image_url, 
-                m.arquivo as image_base64
+                m.arquivo as image_base64,
+                pr.preco
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
             LEFT JOIN LATERAL (
                 SELECT url, arquivo 
                 FROM app.produtos_media 

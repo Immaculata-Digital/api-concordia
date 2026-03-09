@@ -13,7 +13,7 @@ export class PostgresCardapioItemRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as produto_imagem
-            FROM app.cardapio_itens i
+            FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
@@ -39,7 +39,7 @@ export class PostgresCardapioItemRepository {
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
                    pr.preco as produto_preco
-            FROM app.cardapio_itens i
+            FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
@@ -53,7 +53,7 @@ export class PostgresCardapioItemRepository {
     async create(item: CardapioItem): Promise<CardapioItemProps> {
         const props = item.toJSON()
         const query = `
-            INSERT INTO app.cardapio_itens (
+            INSERT INTO app.produtos_cardapio (
                 uuid, tenant_id, produto_id, ordem, ativo, created_by, updated_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
@@ -69,7 +69,7 @@ export class PostgresCardapioItemRepository {
     async update(item: CardapioItem): Promise<CardapioItemProps> {
         const props = item.toJSON()
         const query = `
-            UPDATE app.cardapio_itens SET 
+            UPDATE app.produtos_cardapio SET 
                 ordem = $3,
                 ativo = $4,
                 updated_by = $5,

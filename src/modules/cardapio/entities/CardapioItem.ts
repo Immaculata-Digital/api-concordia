@@ -7,6 +7,8 @@ export interface CardapioItemProps {
     produtoId: string
     ordem: number
     ativo: boolean
+    tempoPreparo_min?: number | null  // in minutes
+    tempoPreparo_max?: number | null  // in minutes
     createdAt: Date
     createdBy?: string
     updatedAt: Date

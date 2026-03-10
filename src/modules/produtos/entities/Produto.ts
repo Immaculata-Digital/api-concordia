@@ -14,6 +14,7 @@ export interface ProdutoProps {
     categoria_code?: string
     categoria_nome?: string
     garantia?: string
+    descricao?: string
     descricao_complementar?: string
     obs?: string
     dias_preparacao?: number

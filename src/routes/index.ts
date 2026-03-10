@@ -24,6 +24,7 @@ import { notificationRoutes } from '../modules/notifications/routes/notification
 
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
+import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/produtos/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()

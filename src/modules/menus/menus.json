@@ -38,7 +38,7 @@
         "key": "erp:pluvyt-clients:listar",
         "name": "Clientes",
         "icon": "AssignmentInd",
-        "url": "/pluvyt/clientes",
+        "url": "/peoples?view=clientes-pluvyt",
         "category": "PLUVYT"
     },
     {

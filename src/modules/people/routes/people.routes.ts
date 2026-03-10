@@ -112,10 +112,11 @@ peopleRoutes.get('/', async (req, res) => {
         const offset = (Number(page) - 1) * Number(limit)
 
         let query = `
-            SELECT p.*, t.name as tenant_name, u.login as usuario_login, u.full_name as usuario_nome
+            SELECT p.*, t.name as tenant_name, u.login as usuario_login, u.full_name as usuario_nome, pc.saldo as pluvyt_saldo
             FROM app.people p
             LEFT JOIN app.tenants t ON t.uuid = p.tenant_id
             LEFT JOIN app.users u ON u.uuid = p.usuario_id
+            LEFT JOIN app.pluvyt_clients pc ON pc.person_id = p.uuid
             WHERE p.tenant_id = $1
         `
         const params: any[] = [tenantId]
@@ -160,6 +161,7 @@ peopleRoutes.get('/', async (req, res) => {
             usuarioId: row.usuario_id,
             usuarioLogin: row.usuario_login,
             usuarioNome: row.usuario_nome,
+            pluvytSaldo: row.pluvyt_saldo,
             views: row.views || [],
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -187,10 +189,11 @@ peopleRoutes.get('/:id', async (req, res) => {
         const { id } = req.params
 
         const personResult = await pool.query(`
-            SELECT p.*, t.name as tenant_name, u.login as usuario_login, u.full_name as usuario_nome
+            SELECT p.*, t.name as tenant_name, u.login as usuario_login, u.full_name as usuario_nome, pc.saldo as pluvyt_saldo
             FROM app.people p
             LEFT JOIN app.tenants t ON t.uuid = p.tenant_id
             LEFT JOIN app.users u ON u.uuid = p.usuario_id
+            LEFT JOIN app.pluvyt_clients pc ON pc.person_id = p.uuid
             WHERE p.uuid = $1 AND p.tenant_id = $2
         `, [id, tenantId])
 
@@ -249,6 +252,7 @@ peopleRoutes.get('/:id', async (req, res) => {
             usuarioId: person.usuario_id,
             usuarioLogin: person.usuario_login,
             usuarioNome: person.usuario_nome,
+            pluvytSaldo: person.pluvyt_saldo,
             views: person.views || [],
             createdAt: person.created_at,
             updatedAt: person.updated_at,
@@ -366,6 +370,16 @@ peopleRoutes.post('/', async (req, res) => {
         )
         // Map to include views explicitly, though returning full record is standard here
         const row = result.rows[0];
+        
+        if (views && views.includes('clientes-pluvyt') && req.body.pluvytSaldo !== undefined) {
+             await pool.query(
+                 `INSERT INTO app.pluvyt_clients (tenant_id, person_id, saldo, created_by, updated_by)
+                  VALUES ($1, $2, $3, $4, $4)`,
+                 [targetTenantId, row.uuid, req.body.pluvytSaldo || 0, req.user!.uuid]
+             );
+             row.pluvyt_saldo = req.body.pluvytSaldo || 0;
+        }
+        
         row.views = row.views || [];
         return res.status(201).json(row)
     } catch (error) {
@@ -407,6 +421,24 @@ peopleRoutes.put('/:id', async (req, res) => {
 
         const row = result.rows[0];
         row.views = row.views || [];
+        
+        if (viewsValue.includes('clientes-pluvyt') && req.body.pluvytSaldo !== undefined) {
+            const clientExists = await pool.query('SELECT uuid FROM app.pluvyt_clients WHERE person_id = $1', [row.uuid]);
+            if (clientExists.rows.length === 0) {
+                 await pool.query(
+                     `INSERT INTO app.pluvyt_clients (tenant_id, person_id, saldo, created_by, updated_by)
+                      VALUES ($1, $2, $3, $4, $4)`,
+                     [targetTenantId, row.uuid, req.body.pluvytSaldo || 0, req.user!.uuid]
+                 );
+            } else {
+                 await pool.query(
+                     `UPDATE app.pluvyt_clients SET saldo = $1, updated_by = $2, updated_at = NOW() WHERE person_id = $3`,
+                     [req.body.pluvytSaldo || 0, req.user!.uuid, row.uuid]
+                 );
+            }
+            row.pluvyt_saldo = req.body.pluvytSaldo || 0;
+        }
+        
         return res.json(row)
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao atualizar pessoa' })

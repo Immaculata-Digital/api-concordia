@@ -22,6 +22,10 @@
             {
                 "name": "Lojas (E-commerce)",
                 "slug": "ecommercelojas"
+            },
+            {
+                "name": "Clientes Pluvyt",
+                "slug": "clientes-pluvyt"
             }
         ]
     }

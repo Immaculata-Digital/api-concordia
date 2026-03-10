@@ -116,6 +116,17 @@ export class PostgresProdutoRepository {
         await pool.query('UPDATE app.produtos SET deleted_at = NOW() WHERE uuid = $1', [uuid])
     }
 
+    async findDistinctViews(tenantId: string): Promise<string[]> {
+        const query = `
+            SELECT DISTINCT unnest(views) as view
+            FROM app.produtos
+            WHERE tenant_id = $1 AND deleted_at IS NULL
+            ORDER BY view ASC
+        `
+        const { rows } = await pool.query(query, [tenantId])
+        return rows.map(r => r.view).filter(Boolean)
+    }
+
     private normalizeEmptyStrings(props: ProdutoProps): ProdutoProps {
         const normalized = { ...props }
         Object.keys(normalized).forEach(key => {

@@ -24,6 +24,19 @@ produtosRoutes.get('/', async (req, res) => {
     }
 })
 
+produtosRoutes.get('/views', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+
+        const views = await repository.findDistinctViews(tenantId)
+        return res.json(views)
+    } catch (error) {
+        console.error('Error listing views:', error)
+        return res.status(500).json({ message: 'Erro ao listar views' })
+    }
+})
+
 produtosRoutes.get('/:id', async (req, res) => {
     try {
         const produto = await repository.findById(req.params.id)

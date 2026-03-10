@@ -42,20 +42,6 @@
         "category": "Cadastros"
     },
     {
-        "key": "erp:usuarios:listar",
-        "name": "Usuários",
-        "icon": "People",
-        "url": "/users",
-        "category": "Configurações"
-    },
-    {
-        "key": "erp:grupos-acesso:listar",
-        "name": "Grupos de Acesso",
-        "icon": "Groups",
-        "url": "/access/access-groups",
-        "category": "Configurações"
-    },
-    {
         "key": "erp:pluvyt-clients:listar",
         "name": "Clientes",
         "icon": "AssignmentInd",

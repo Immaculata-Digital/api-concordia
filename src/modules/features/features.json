@@ -414,7 +414,7 @@
         "description": "Permite acessar a tela de Pessoas na visualização de Lojas de E-commerce"
     },
     {
-        "key": "erp:produtos:ecommerceprodutos",
+        "key": "erp:produtos:ecommerce-produtos",
         "name": "Acessar Produtos (E-commerce)",
         "description": "Permite acessar a tela de Produtos na visualização de E-commerce"
     },

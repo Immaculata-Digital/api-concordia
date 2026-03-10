@@ -133,10 +133,10 @@
         "category": "E-commerce"
     },
     {
-        "key": "erp:produtos:ecommerceprodutos",
+        "key": "erp:produtos:ecommerce-produtos",
         "name": "Produtos",
         "icon": "Category",
-        "url": "/produtos?view=ecommerceprodutos",
+        "url": "/produtos?view=ecommerce-produtos",
         "category": "E-commerce"
     }
 ]

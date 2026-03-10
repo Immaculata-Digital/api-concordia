@@ -21,11 +21,22 @@ tenantRoutes.get('/:id', async (req, res) => {
         const tenant = await tenantRepository.findById(req.params.id)
         if (!tenant) return res.status(404).json({ message: 'Tenant não encontrado' })
 
-        const address = await complementaryRepository.findAddressByTenantId(req.params.id)
-        const contacts = await complementaryRepository.findContactsByTenantId(req.params.id)
+        let address = null
+        let contacts: any[] = []
+        let person = null
+
+        if (tenant.pessoaId) {
+            person = await complementaryRepository.findPersonById(tenant.pessoaId)
+            address = await complementaryRepository.findPersonAddress(tenant.pessoaId)
+            contacts = await complementaryRepository.findPersonContacts(tenant.pessoaId)
+        } else {
+            address = await complementaryRepository.findAddressByTenantId(req.params.id)
+            contacts = await complementaryRepository.findContactsByTenantId(req.params.id)
+        }
 
         return res.json({
             ...tenant,
+            person,
             address,
             contacts
         })
@@ -37,7 +48,7 @@ tenantRoutes.get('/:id', async (req, res) => {
 
 tenantRoutes.post('/', async (req, res) => {
     try {
-        const { name, slug } = req.body
+        const { name, slug, modules } = req.body
 
         // Check if slug already exists
         const existing = await tenantRepository.findBySlug(slug)
@@ -49,7 +60,8 @@ tenantRoutes.post('/', async (req, res) => {
             name,
             slug,
             createdBy: req.user!.uuid,
-            updatedBy: req.user!.uuid
+            updatedBy: req.user!.uuid,
+            modules: modules || []
         })
 
         const created = await tenantRepository.create(tenant)

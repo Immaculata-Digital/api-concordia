@@ -1,0 +1,27 @@
+[
+    {
+        "key": "pluvyt",
+        "name": "PLUVYT",
+        "menuParent": "PLUVYT"
+    },
+    {
+        "key": "restaurante",
+        "name": "Restaurante",
+        "menuParent": "Restaurante"
+    },
+    {
+        "key": "site",
+        "name": "Site",
+        "menuParent": "Site"
+    },
+    {
+        "key": "loja-virtual",
+        "name": "Loja Virtual",
+        "menuParent": "Loja Virtual"
+    },
+    {
+        "key": "vitrine",
+        "name": "Vitrine",
+        "menuParent": "Vitrine"
+    }
+]

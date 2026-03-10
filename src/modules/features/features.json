@@ -462,5 +462,10 @@
         "key": "erp:pedidos:dashboard:visualizar",
         "name": "Visualizar Dashboard de Pedidos",
         "description": "Permite visualizar o painel de indicadores e gráficos de pedidos"
+    },
+    {
+        "key": "erp:vitrine:listar",
+        "name": "Acessar Vitrine",
+        "description": "Permite visualizar o menu de Vitrine"
     }
 ]

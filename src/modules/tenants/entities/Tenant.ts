@@ -9,6 +9,8 @@ export interface TenantProps {
     createdBy?: string
     updatedAt: Date
     updatedBy?: string
+    modules?: string[]
+    pessoaId?: string | null
 }
 
 export type CreateTenantProps = Omit<TenantProps, 'uuid' | 'createdAt' | 'updatedAt'>

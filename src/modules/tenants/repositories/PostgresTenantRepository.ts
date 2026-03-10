@@ -13,6 +13,8 @@ export class PostgresTenantRepository implements ITenantRepository {
             createdBy: row.created_by,
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
+            modules: row.modules || [],
+            pessoaId: row.pessoa_id || null,
         }
     }
 
@@ -35,11 +37,11 @@ export class PostgresTenantRepository implements ITenantRepository {
         const data = tenant.toJSON()
         const result = await pool.query(
             `INSERT INTO app.tenants (
-                uuid, name, slug, created_by, updated_by, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                uuid, name, slug, created_by, updated_by, created_at, updated_at, modules
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
-                data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt
+                data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt, data.modules || []
             ]
         )
         return this.mapRowToProps(result.rows[0])
@@ -49,11 +51,11 @@ export class PostgresTenantRepository implements ITenantRepository {
         const data = tenant.toJSON()
         const result = await pool.query(
             `UPDATE app.tenants SET
-                name = $2, slug = $3, updated_by = $4, updated_at = NOW()
+                name = $2, slug = $3, updated_by = $4, modules = $5, updated_at = NOW()
             WHERE uuid = $1
             RETURNING *`,
             [
-                data.uuid, data.name, data.slug, data.updatedBy
+                data.uuid, data.name, data.slug, data.updatedBy, data.modules || []
             ]
         )
         return this.mapRowToProps(result.rows[0])

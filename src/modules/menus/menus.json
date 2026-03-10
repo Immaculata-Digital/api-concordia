@@ -35,13 +35,6 @@
         "category": "Cadastros"
     },
     {
-        "key": "erp:tenants:listar",
-        "name": "Tenants",
-        "icon": "Storage",
-        "url": "/tenants",
-        "category": "Cadastros"
-    },
-    {
         "key": "erp:pluvyt-clients:listar",
         "name": "Clientes",
         "icon": "AssignmentInd",

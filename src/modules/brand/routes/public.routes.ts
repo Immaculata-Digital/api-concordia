@@ -6,13 +6,23 @@ export const publicBrandRoutes = Router()
 const brandRepository = new PostgresBrandRepository()
 const tenantRepository = new PostgresTenantRepository()
 
-// GET /api/public/identidade-visual/:tenantSlug
-publicBrandRoutes.get('/:tenantSlug', async (req, res) => {
+// GET /api/public/identidade-visual/:identifier
+publicBrandRoutes.get('/:identifier', async (req, res) => {
     try {
-        const { tenantSlug } = req.params as { tenantSlug: string }
+        const { identifier } = req.params as { identifier: string }
         
-        // 1. Buscar tenant pelo slug
-        const tenant = await tenantRepository.findBySlug(tenantSlug)
+        let tenant = null
+        
+        // 1. Tentar buscar por UUID se o formato for válido
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        if (uuidRegex.test(identifier)) {
+            tenant = await tenantRepository.findById(identifier)
+        }
+        
+        // 2. Se não encontrou por UUID (ou não era UUID), tenta buscar pelo slug
+        if (!tenant) {
+            tenant = await tenantRepository.findBySlug(identifier)
+        }
         
         if (!tenant) {
             return res.status(404).json({ message: 'Tenant não encontrado' })

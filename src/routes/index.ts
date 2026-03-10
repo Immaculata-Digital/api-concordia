@@ -4,6 +4,7 @@ import { userRoutes } from '../modules/users/routes/user.routes'
 import { authRoutes } from '../modules/auth/routes/auth.routes'
 import { menuRoutes } from '../modules/menus/routes/menu.routes'
 import { featureRoutes } from '../modules/features/routes/feature.routes'
+import { appModuleRoutes } from '../modules/app-modules/routes/app-modules.routes'
 import { accessGroupRoutes } from '../modules/accessGroups/routes/accessGroup.routes'
 import { peopleRoutes } from '../modules/people/routes/people.routes'
 import { tenantRoutes } from '../modules/tenants/routes/tenant.routes'
@@ -23,6 +24,7 @@ import { notificationRoutes } from '../modules/notifications/routes/notification
 
 import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
+import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -33,6 +35,7 @@ publicRoutes.use('/auth', authRoutes)
 // Rotas Públicas (Sem autenticação)
 publicRoutes.use('/public/cardapio', publicCardapioRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
+publicRoutes.use('/public/people', publicPeopleRoutes)
 
 // Rotas públicas de leitura de recompensas (homepage carousel, etc.)
 publicRoutes.use('/recompensas', publicRecompensasRoutes)
@@ -42,6 +45,7 @@ routes.use(authenticate)
 routes.use('/usuarios', userRoutes)
 routes.use('/grupos-acesso', accessGroupRoutes)
 routes.use('/funcionalidades', featureRoutes)
+routes.use('/modules', appModuleRoutes)
 routes.use('/menus', menuRoutes)
 routes.use('/peoples', peopleRoutes)
 routes.use('/tenants', tenantRoutes)

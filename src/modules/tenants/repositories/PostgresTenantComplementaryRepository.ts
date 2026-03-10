@@ -25,6 +25,57 @@ export class PostgresTenantComplementaryRepository {
         }
     }
 
+    async findPersonById(personId: string): Promise<any | null> {
+        const result = await pool.query('SELECT uuid, name, cpf_cnpj, birth_date FROM app.people WHERE uuid = $1', [personId])
+        if (!result.rows[0]) return null
+        const row = result.rows[0]
+        return {
+            uuid: row.uuid,
+            name: row.name,
+            document: row.cpf_cnpj,
+            birthDate: row.birth_date
+        }
+    }
+
+    async findPersonAddress(personId: string): Promise<TenantAddressProps | null> {
+        const result = await pool.query('SELECT * FROM app.people_addresses WHERE people_id = $1', [personId])
+        if (!result.rows[0]) return null
+        const row = result.rows[0]
+        return {
+            uuid: row.uuid,
+            seqId: row.seq_id,
+            tenantId: row.tenant_id,
+            postalCode: row.postal_code,
+            street: row.street,
+            number: row.number,
+            complement: row.complement,
+            neighborhood: row.neighborhood,
+            city: row.city,
+            state: row.state,
+            createdAt: row.created_at,
+            createdBy: row.created_by,
+            updatedAt: row.updated_at,
+            updatedBy: row.updated_by
+        }
+    }
+
+    async findPersonContacts(personId: string): Promise<TenantContactProps[]> {
+        const result = await pool.query('SELECT * FROM app.people_contacts WHERE people_id = $1 ORDER BY is_default DESC, created_at ASC', [personId])
+        return result.rows.map(row => ({
+            uuid: row.uuid,
+            seqId: row.seq_id,
+            tenantId: row.tenant_id,
+            contactType: row.contact_type,
+            contactValue: row.contact_value,
+            label: row.label,
+            isDefault: row.is_default,
+            createdAt: row.created_at,
+            createdBy: row.created_by,
+            updatedAt: row.updated_at,
+            updatedBy: row.updated_by
+        }))
+    }
+
     async findContactsByTenantId(tenantId: string): Promise<TenantContactProps[]> {
         const result = await pool.query('SELECT * FROM app.tenant_contacts WHERE tenant_id = $1 ORDER BY is_default DESC, created_at ASC', [tenantId])
         return result.rows.map(row => ({

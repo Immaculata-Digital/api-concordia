@@ -81,62 +81,69 @@
         "name": "Cardápio",
         "icon": "Fastfood",
         "url": "/cardapio",
-        "category": "Pedidos"
+        "category": "Restaurante"
     },
     {
         "key": "erp:mesas:listar",
         "name": "Mesas",
         "icon": "TableRestaurant",
         "url": "/pedidos/mesas",
-        "category": "Pedidos"
+        "category": "Restaurante"
     },
     {
         "key": "erp:comandas:listar",
         "name": "Comandas / Vendas",
         "icon": "ReceiptLong",
         "url": "/pedidos/comandas",
-        "category": "Pedidos"
+        "category": "Restaurante"
     },
     {
         "key": "erp:pedidos:historico:listar",
         "name": "Histórico de Pedidos",
         "icon": "History",
         "url": "/pedidos/historico",
-        "category": "Pedidos"
+        "category": "Restaurante"
     },
     {
         "key": "erp:kds:operacional",
         "name": "Operacional (KDS)",
         "icon": "Timer",
         "url": "/pedidos/kds",
-        "category": "Pedidos"
+        "category": "Restaurante"
     },
     {
         "key": "erp:identidade-visual:listar",
         "name": "Identidade Visual",
         "icon": "Brush",
         "url": "/personalizacao/identidade-visual",
-        "category": "Personalização Site"
+        "category": "Site"
     },
     {
         "key": "erp:landing-pages:listar",
         "name": "Landing Page",
         "icon": "DashboardCustomize",
         "url": "/personalizacao/landing-page",
-        "category": "Personalização Site"
+        "category": "Site"
     },
     {
         "key": "erp:pessoas:ecommercelojas",
         "name": "Lojas",
         "icon": "Store",
         "url": "/peoples?view=ecommercelojas",
-        "category": "E-commerce"
+        "category": "Loja Virtual"
     },
     {
         "key": "erp:produtos:ecommerceprodutos",
         "name": "Produtos",
         "icon": "Category",
         "url": "/produtos?view=ecommerceprodutos",
-        "category": "E-commerce"
+        "category": "Loja Virtual"
+    },
+    {
+        "key": "erp:vitrine:listar",
+        "name": "Vitrine",
+        "icon": "Storefront",
+        "url": "/vitrine",
+        "category": "Vitrine"
     }
 ]

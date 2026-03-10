@@ -22,7 +22,6 @@ import { productListRoutes } from '../modules/product-lists/routes/product-list.
 import { reportRoutes } from '../modules/reports/routes/report.routes'
 import { notificationRoutes } from '../modules/notifications/routes/notifications.routes'
 
-import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
 
@@ -31,9 +30,10 @@ export const routes = Router()
 
 // Rotas exclusivas de Login/Auth
 publicRoutes.use('/auth', authRoutes)
-
+ 
 // Rotas Públicas (Sem autenticação)
-publicRoutes.use('/public/cardapio', publicCardapioRoutes)
+publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)
+publicRoutes.use('/public/produtos', publicProdutoRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
 publicRoutes.use('/public/people', publicPeopleRoutes)
 

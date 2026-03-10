@@ -182,4 +182,27 @@ export class PostgresProdutoComplementaryRepository {
     async deleteVariacao(uuid: string): Promise<void> {
         await pool.query('DELETE FROM app.produtos_variacoes WHERE uuid = $1', [uuid])
     }
+
+    async getRecompensa(produtoId: string): Promise<any> {
+        const { rows } = await pool.query('SELECT * FROM app.produtos_recompensas WHERE produto_id = $1', [produtoId])
+        return rows[0] || null
+    }
+
+    async upsertRecompensa(produtoId: string, tenantId: string, data: any, userId: string): Promise<void> {
+        const existing = await this.getRecompensa(produtoId)
+
+        if (existing) {
+            await pool.query(
+                'UPDATE app.produtos_recompensas SET qtd_pontos_resgate = $1, voucher_digital = $2, updated_by = $3, updated_at = NOW() WHERE produto_id = $4',
+                [data.qtd_pontos_resgate, data.voucher_digital, userId, produtoId]
+            )
+        } else {
+            await pool.query(
+                `INSERT INTO app.produtos_recompensas (
+                    uuid, tenant_id, produto_id, qtd_pontos_resgate, voucher_digital, created_by, updated_by
+                ) VALUES ($1, $2, $3, $4, $5, $6, $6)`,
+                [require('crypto').randomUUID(), tenantId, produtoId, data.qtd_pontos_resgate, data.voucher_digital, userId]
+            )
+        }
+    }
 }

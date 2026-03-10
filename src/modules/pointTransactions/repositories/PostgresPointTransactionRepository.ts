@@ -31,7 +31,7 @@ export class PostgresPointTransactionRepository implements IPointTransactionRepo
             FROM app.point_transactions t
             LEFT JOIN app.pluvyt_clients c ON c.uuid = t.client_id
             LEFT JOIN app.people p ON p.uuid = c.person_id
-            LEFT JOIN app.recompensas r ON r.uuid = t.reward_item_id
+            LEFT JOIN app.produtos_recompensas r ON r.uuid = t.reward_item_id
             LEFT JOIN app.produtos prod ON prod.uuid = r.produto_id
             WHERE t.tenant_id = $1
         `
@@ -54,7 +54,7 @@ export class PostgresPointTransactionRepository implements IPointTransactionRepo
              FROM app.point_transactions t
              LEFT JOIN app.pluvyt_clients c ON c.uuid = t.client_id
              LEFT JOIN app.people p ON p.uuid = c.person_id
-             LEFT JOIN app.recompensas r ON r.uuid = t.reward_item_id
+             LEFT JOIN app.produtos_recompensas r ON r.uuid = t.reward_item_id
              LEFT JOIN app.produtos prod ON prod.uuid = r.produto_id
              WHERE t.tenant_id = $1 AND t.uuid = $2`,
             [tenantId, uuid]

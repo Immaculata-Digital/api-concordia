@@ -1,0 +1,28 @@
+[
+    {
+        "screen": "Produtos",
+        "views": [
+            {
+                "name": "Cardápio",
+                "slug": "cardapio"
+            },
+            {
+                "name": "Itens de Recompensa",
+                "slug": "itens-de-recompensa"
+            },
+            {
+                "name": "E-commerce",
+                "slug": "ecommerce-produtos"
+            }
+        ]
+    },
+    {
+        "screen": "Pessoas",
+        "views": [
+            {
+                "name": "Lojas (E-commerce)",
+                "slug": "ecommercelojas"
+            }
+        ]
+    }
+]

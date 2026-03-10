@@ -2,7 +2,7 @@ import { pool } from '../../../infra/database/pool'
 import { CardapioItem, CardapioItemProps } from '../entities/CardapioItem'
 
 export class PostgresCardapioItemRepository {
-    async findAll(tenantId: string, categoriaCode?: string): Promise<CardapioItemProps[]> {
+    async findAll(tenantId: string, categoriaCode?: string, produtoId?: string): Promise<CardapioItemProps[]> {
         let query = `
             SELECT i.*, 
                    p.nome as produto_nome, 
@@ -13,7 +13,7 @@ export class PostgresCardapioItemRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as produto_imagem
-            FROM app.cardapio_itens i
+            FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
@@ -22,14 +22,24 @@ export class PostgresCardapioItemRepository {
         const values: any[] = [tenantId]
 
         if (categoriaCode) {
-            query += ` AND p.categoria_code = $2`
+            query += ` AND p.categoria_code = $${values.length + 1}`
             values.push(categoriaCode)
+        }
+
+        if (produtoId) {
+            query += ` AND i.produto_id = $${values.length + 1}`
+            values.push(produtoId)
         }
 
         query += ` ORDER BY cat.sort ASC, i.ordem ASC, p.nome ASC`
 
         const { rows } = await pool.query(query, values)
         return rows.map((row: any) => this.mapToProps(row))
+    }
+
+    async findByProdutoId(tenantId: string, produtoId: string): Promise<CardapioItemProps | null> {
+        const items = await this.findAll(tenantId, undefined, produtoId)
+        return items.length > 0 ? items[0] : null
     }
 
     async findById(tenantId: string, uuid: string): Promise<CardapioItemProps | null> {
@@ -39,7 +49,7 @@ export class PostgresCardapioItemRepository {
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
                    pr.preco as produto_preco
-            FROM app.cardapio_itens i
+            FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND pr.tenant_id = $1
@@ -53,7 +63,7 @@ export class PostgresCardapioItemRepository {
     async create(item: CardapioItem): Promise<CardapioItemProps> {
         const props = item.toJSON()
         const query = `
-            INSERT INTO app.cardapio_itens (
+            INSERT INTO app.produtos_cardapio (
                 uuid, tenant_id, produto_id, ordem, ativo, created_by, updated_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
@@ -69,7 +79,7 @@ export class PostgresCardapioItemRepository {
     async update(item: CardapioItem): Promise<CardapioItemProps> {
         const props = item.toJSON()
         const query = `
-            UPDATE app.cardapio_itens SET 
+            UPDATE app.produtos_cardapio SET 
                 ordem = $3,
                 ativo = $4,
                 updated_by = $5,
@@ -87,7 +97,7 @@ export class PostgresCardapioItemRepository {
 
     async delete(tenantId: string, uuid: string): Promise<void> {
         const query = `
-            UPDATE app.cardapio_itens 
+            UPDATE app.produtos_cardapio 
             SET deleted_at = NOW() 
             WHERE tenant_id = $1 AND uuid = $2
         `

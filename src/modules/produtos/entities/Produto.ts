@@ -14,6 +14,7 @@ export interface ProdutoProps {
     categoria_code?: string
     categoria_nome?: string
     garantia?: string
+    descricao?: string
     descricao_complementar?: string
     obs?: string
     dias_preparacao?: number
@@ -26,6 +27,21 @@ export interface ProdutoProps {
     deletedAt?: Date
     image_url?: string
     image_base64?: string
+    cardapio?: {
+        ordem: number
+        ativo: boolean
+    }
+    recompensa?: {
+        qtd_pontos_resgate: number
+        voucher_digital: boolean
+    }
+    produtoId?: string
+    produtoCategoriaId?: string
+    categoriaNome?: string
+    produtoNome?: string
+    produtoPreco?: number
+    produtoImagem?: string
+    fichaTecnica?: any[]
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

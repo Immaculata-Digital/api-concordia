@@ -35,27 +35,6 @@
         "category": "Cadastros"
     },
     {
-        "key": "erp:tenants:listar",
-        "name": "Tenants",
-        "icon": "Storage",
-        "url": "/tenants",
-        "category": "Cadastros"
-    },
-    {
-        "key": "erp:usuarios:listar",
-        "name": "Usuários",
-        "icon": "People",
-        "url": "/users",
-        "category": "Configurações"
-    },
-    {
-        "key": "erp:grupos-acesso:listar",
-        "name": "Grupos de Acesso",
-        "icon": "Groups",
-        "url": "/access/access-groups",
-        "category": "Configurações"
-    },
-    {
         "key": "erp:pluvyt-clients:listar",
         "name": "Clientes",
         "icon": "AssignmentInd",
@@ -66,7 +45,7 @@
         "key": "erp:recompensas:listar",
         "name": "Itens de Recompensa",
         "icon": "Redeem",
-        "url": "/pluvyt/recompensas",
+        "url": "/produtos?view=itens-de-recompensa",
         "category": "PLUVYT"
     },
     {
@@ -133,7 +112,7 @@
         "category": "Loja Virtual"
     },
     {
-        "key": "erp:produtos:ecommerceprodutos",
+        "key": "erp:produtos:ecommerce-produtos",
         "name": "Produtos",
         "icon": "Category",
         "url": "/produtos?view=ecommerceprodutos",

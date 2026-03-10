@@ -5,13 +5,13 @@ import { Recompensa, RecompensaProps } from '../entities/Recompensa'
 export class PostgresRecompensaRepository {
     async findAll(tenantId?: string, view?: string, limit: number = 12, category?: string, sort?: string): Promise<RecompensaProps[]> {
         const isCompact = view === 'compact'
-        const selectFields = isCompact 
+        const selectFields = isCompact
             ? 'r.*, p.nome, p.codigo, p.unidade, p.marca, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal'
             : 'r.*, p.nome, p.codigo, p.unidade, p.marca, p.descricao_complementar, cat.name as categoria_nome, s.slug, m.arquivo as imagem_principal'
 
         let query = `
             SELECT ${selectFields}
-            FROM app.recompensas r
+            FROM app.produtos_recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
@@ -26,7 +26,7 @@ export class PostgresRecompensaRepository {
             ${tenantId ? 'AND r.tenant_id = $1' : ''}
             ${category && category !== 'Todos' ? `AND cat.name = $${tenantId ? 2 : 1}` : ''}
         `
-        
+
         let paramCount = tenantId ? 1 : 0
         const values: any[] = tenantId ? [tenantId] : []
 
@@ -66,7 +66,7 @@ export class PostgresRecompensaRepository {
                         WHERE produto_id = p.uuid AND tipo_code = 'imagem'
                     ) m_list
                 ) as media
-            FROM app.recompensas r
+            FROM app.produtos_recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
@@ -80,7 +80,7 @@ export class PostgresRecompensaRepository {
     async create(recompensa: Recompensa): Promise<RecompensaProps> {
         const props = recompensa.toJSON()
         const query = `
-            INSERT INTO app.recompensas (
+            INSERT INTO app.produtos_recompensas (
                 uuid, tenant_id, produto_id, qtd_pontos_resgate, voucher_digital,
                 created_by, updated_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -99,7 +99,7 @@ export class PostgresRecompensaRepository {
     async update(recompensa: Recompensa): Promise<RecompensaProps> {
         const props = recompensa.toJSON()
         const query = `
-            UPDATE app.recompensas SET 
+            UPDATE app.produtos_recompensas SET 
                 qtd_pontos_resgate = $2, voucher_digital = $3,
                 updated_by = $4, updated_at = NOW()
             WHERE uuid = $1
@@ -113,13 +113,13 @@ export class PostgresRecompensaRepository {
     }
 
     async delete(uuid: string): Promise<void> {
-        await pool.query('UPDATE app.recompensas SET deleted_at = NOW() WHERE uuid = $1', [uuid])
+        await pool.query('UPDATE app.produtos_recompensas SET deleted_at = NOW() WHERE uuid = $1', [uuid])
     }
 
     async findAllCategories(tenantId?: string): Promise<string[]> {
         const query = `
             SELECT DISTINCT cat.name
-            FROM app.recompensas r
+            FROM app.produtos_recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
             JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             WHERE r.deleted_at IS NULL

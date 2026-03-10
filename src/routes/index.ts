@@ -26,7 +26,7 @@ import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicLandingPageRoutes } from '../modules/landing-pages/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
 import { publicProductListRoutes } from '../modules/product-lists/routes/public.routes'
-import { PostgresProdutoCategoriaRepository } from '../modules/produtos/repositories/PostgresProdutoCategoriaRepository'
+import { publicProdutoCategoriaRoutes } from '../modules/produtos/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -34,21 +34,8 @@ export const routes = Router()
 // Rotas exclusivas de Login/Auth
 publicRoutes.use('/auth', authRoutes)
  
-const categoriaRepository = new PostgresProdutoCategoriaRepository()
- 
-// Listar categorias de um tenant (Global Público)
-publicRoutes.get('/public/categorias', async (req, res) => {
-    const { tenantId } = req.query
-    if (!tenantId) return res.status(400).json({ message: 'tenantId é obrigatório' })
-    try {
-        const categories = await categoriaRepository.findAll(tenantId as string)
-        return res.json(categories)
-    } catch (error) {
-        return res.status(500).json({ message: 'Erro ao listar categorias' })
-    }
-})
-
 // Rotas Públicas (Sem autenticação)
+publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)
 publicRoutes.use('/public/cardapio', publicCardapioRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
 publicRoutes.use('/public/landing-pages', publicLandingPageRoutes)

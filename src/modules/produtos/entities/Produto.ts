@@ -12,20 +12,27 @@ export interface ProdutoProps {
     situacao_code?: string
     classe_produto_code?: string
     categoria_code?: string
-    categoria_nome?: string
+    produtoCategoriaId?: string
+    image_url?: string
+    image_base64?: string
+    produto_imagem?: string
+    produtoImagem?: string
+    produtoId?: string
+    produtoNome?: string
+    categoriaNome?: string
+    produtoPreco?: number
     garantia?: string
     descricao_complementar?: string
     obs?: string
     dias_preparacao?: number
     tags?: string[]
     views?: string[]
+    fichaTecnica?: any[]
     createdAt: Date
     createdBy?: string
     updatedAt: Date
     updatedBy?: string
     deletedAt?: Date
-    image_url?: string
-    image_base64?: string
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

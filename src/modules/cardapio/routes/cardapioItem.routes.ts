@@ -8,7 +8,14 @@ const repository = new PostgresCardapioItemRepository()
 cardapioItemRoutes.get('/', async (req, res) => {
     const tenantId = req.user!.tenantId
     const categoriaCode = req.query.categoriaCode as string | undefined
-    const items = await repository.findAll(tenantId, categoriaCode)
+    const produtoId = req.query.produtoId as string | undefined
+
+    // Guards against invalid UUIDs being passed (like "none" from older frontend versions)
+    if (produtoId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(produtoId)) {
+        return res.json([])
+    }
+
+    const items = await repository.findAll(tenantId, categoriaCode, produtoId)
     return res.json(items)
 })
 

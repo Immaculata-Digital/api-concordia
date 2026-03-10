@@ -167,9 +167,11 @@ produtosRoutes.post('/:id/seo', async (req, res) => {
 // Ficha Técnica
 produtosRoutes.post('/:id/ficha-tecnica', async (req, res) => {
     try {
-        await complementaryRepository.addFichaTecnica(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        const tenantId = req.body.tenantId || req.user!.tenantId
+        await complementaryRepository.addFichaTecnica(req.params.id, tenantId, req.body, req.user!.uuid)
         return res.status(201).json({ message: 'Item de ficha técnica adicionado' })
     } catch (error) {
+        console.error('[produtosRoutes.post/:id/ficha-tecnica] Error:', error)
         return res.status(500).json({ message: 'Erro ao adicionar item de ficha técnica' })
     }
 })

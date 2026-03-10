@@ -26,7 +26,7 @@ import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicLandingPageRoutes } from '../modules/landing-pages/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
 import { publicProductListRoutes } from '../modules/product-lists/routes/public.routes'
-import { publicProdutoCategoriaRoutes } from '../modules/produtos/routes/public.routes'
+import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/produtos/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -36,7 +36,7 @@ publicRoutes.use('/auth', authRoutes)
  
 // Rotas Públicas (Sem autenticação)
 publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)
-publicRoutes.use('/public/cardapio', publicCardapioRoutes)
+publicRoutes.use('/public/produtos', publicProdutoRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
 publicRoutes.use('/public/landing-pages', publicLandingPageRoutes)
 publicRoutes.use('/public/identidade-visual', publicBrandRoutes)

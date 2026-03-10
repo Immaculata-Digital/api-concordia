@@ -24,6 +24,19 @@ produtosRoutes.get('/', async (req, res) => {
     }
 })
 
+produtosRoutes.get('/views', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+
+        const views = await repository.findDistinctViews(tenantId)
+        return res.json(views)
+    } catch (error) {
+        console.error('Error listing views:', error)
+        return res.status(500).json({ message: 'Erro ao listar views' })
+    }
+})
+
 produtosRoutes.get('/:id', async (req, res) => {
     try {
         const produto = await repository.findById(req.params.id)
@@ -165,9 +178,11 @@ produtosRoutes.post('/:id/recompensa', async (req, res) => {
 // Ficha Técnica
 produtosRoutes.post('/:id/ficha-tecnica', async (req, res) => {
     try {
-        await complementaryRepository.addFichaTecnica(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        const tenantId = req.body.tenantId || req.user!.tenantId
+        await complementaryRepository.addFichaTecnica(req.params.id, tenantId, req.body, req.user!.uuid)
         return res.status(201).json({ message: 'Item de ficha técnica adicionado' })
     } catch (error) {
+        console.error('[produtosRoutes.post/:id/ficha-tecnica] Error:', error)
         return res.status(500).json({ message: 'Erro ao adicionar item de ficha técnica' })
     }
 })

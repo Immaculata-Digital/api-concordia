@@ -55,9 +55,11 @@ protectedRecompensasRoutes.post('/', async (req, res) => {
         if (!req.user) return res.status(401).json({ message: 'Não autorizado' })
 
         const {
-            tenantId, produtoId,
+            produtoId,
             qtd_pontos_resgate, voucher_digital
         } = req.body
+
+        const tenantId = req.body.tenantId || req.user.tenantId
 
         const recompensa = Recompensa.create({
             tenantId,

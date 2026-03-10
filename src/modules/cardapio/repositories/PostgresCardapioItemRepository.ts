@@ -2,7 +2,7 @@ import { pool } from '../../../infra/database/pool'
 import { CardapioItem, CardapioItemProps } from '../entities/CardapioItem'
 
 export class PostgresCardapioItemRepository {
-    async findAll(tenantId: string, categoriaCode?: string): Promise<CardapioItemProps[]> {
+    async findAll(tenantId: string, categoriaCode?: string, produtoId?: string): Promise<CardapioItemProps[]> {
         let query = `
             SELECT i.*, 
                    p.nome as produto_nome, 
@@ -22,14 +22,24 @@ export class PostgresCardapioItemRepository {
         const values: any[] = [tenantId]
 
         if (categoriaCode) {
-            query += ` AND p.categoria_code = $2`
+            query += ` AND p.categoria_code = $${values.length + 1}`
             values.push(categoriaCode)
+        }
+
+        if (produtoId) {
+            query += ` AND i.produto_id = $${values.length + 1}`
+            values.push(produtoId)
         }
 
         query += ` ORDER BY cat.sort ASC, i.ordem ASC, p.nome ASC`
 
         const { rows } = await pool.query(query, values)
         return rows.map((row: any) => this.mapToProps(row))
+    }
+
+    async findByProdutoId(tenantId: string, produtoId: string): Promise<CardapioItemProps | null> {
+        const items = await this.findAll(tenantId, undefined, produtoId)
+        return items.length > 0 ? items[0] : null
     }
 
     async findById(tenantId: string, uuid: string): Promise<CardapioItemProps | null> {
@@ -87,7 +97,7 @@ export class PostgresCardapioItemRepository {
 
     async delete(tenantId: string, uuid: string): Promise<void> {
         const query = `
-            UPDATE app.cardapio_itens 
+            UPDATE app.produtos_cardapio 
             SET deleted_at = NOW() 
             WHERE tenant_id = $1 AND uuid = $2
         `

@@ -4,12 +4,21 @@ import { Produto, ProdutoProps } from '../entities/Produto'
 export class PostgresProdutoRepository {
     async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string): Promise<ProdutoProps[]> {
         let query = `
-            SELECT p.*, cat.name as categoria_nome,
+            SELECT p.*, 
+                   p.nome as produto_nome,
+                   cat.name as categoria_nome,
+                   pr.preco as produto_preco,
+                   (SELECT COALESCE(m.arquivo, m.url) 
+                    FROM app.produtos_media m 
+                    WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                    ORDER BY m.ordem ASC LIMIT 1) as produto_imagem,
                    m.url as image_url, m.arquivo as image_base64,
-                   (SELECT json_build_object('ordem', i.ordem, 'ativo', i.ativo) FROM app.produtos_cardapio i WHERE i.produto_id = p.uuid LIMIT 1) as cardapio,
-                   (SELECT json_build_object('qtd_pontos_resgate', r.qtd_pontos_resgate, 'voucher_digital', r.voucher_digital) FROM app.produtos_recompensas r WHERE r.produto_id = p.uuid LIMIT 1) as recompensa
+                   (SELECT json_agg(json_build_object('chave', ft.chave, 'valor', ft.valor, 'ordem', ft.sort))
+                    FROM app.produtos_ficha_tecnica ft
+                    WHERE ft.produto_id = p.uuid) as ficha_tecnica
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND (pr.tenant_id = p.tenant_id OR p.tenant_id IS NULL)
             LEFT JOIN LATERAL (
                 SELECT url, arquivo 
                 FROM app.produtos_media 
@@ -34,6 +43,7 @@ export class PostgresProdutoRepository {
             } else {
                 query += ` AND $${idx} = ANY(p.views)`
             }
+
             values.push(viewContext)
             idx++
         }
@@ -62,9 +72,7 @@ export class PostgresProdutoRepository {
 
     async findById(uuid: string): Promise<ProdutoProps | null> {
         const query = `
-            SELECT p.*, cat.name as categoria_nome,
-                   (SELECT json_build_object('ordem', i.ordem, 'ativo', i.ativo) FROM app.produtos_cardapio i WHERE i.produto_id = p.uuid LIMIT 1) as cardapio,
-                   (SELECT json_build_object('qtd_pontos_resgate', r.qtd_pontos_resgate, 'voucher_digital', r.voucher_digital) FROM app.produtos_recompensas r WHERE r.produto_id = p.uuid LIMIT 1) as recompensa
+            SELECT p.*, cat.name as categoria_nome
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             WHERE p.uuid = $1 AND p.deleted_at IS NULL
@@ -120,6 +128,17 @@ export class PostgresProdutoRepository {
         await pool.query('UPDATE app.produtos SET deleted_at = NOW() WHERE uuid = $1', [uuid])
     }
 
+    async findDistinctViews(tenantId: string): Promise<string[]> {
+        const query = `
+            SELECT DISTINCT unnest(views) as view
+            FROM app.produtos
+            WHERE tenant_id = $1 AND deleted_at IS NULL
+            ORDER BY view ASC
+        `
+        const { rows } = await pool.query(query, [tenantId])
+        return rows.map(r => r.view).filter(Boolean)
+    }
+
     private normalizeEmptyStrings(props: ProdutoProps): ProdutoProps {
         const normalized = { ...props }
         Object.keys(normalized).forEach(key => {
@@ -144,7 +163,7 @@ export class PostgresProdutoRepository {
             situacao_code: row.situacao_code,
             classe_produto_code: row.classe_produto_code,
             categoria_code: row.categoria_code,
-            categoria_nome: row.categoria_nome,
+            produtoCategoriaId: row.categoria_code,
             garantia: row.garantia,
             descricao_complementar: row.descricao_complementar,
             obs: row.obs,
@@ -156,10 +175,14 @@ export class PostgresProdutoRepository {
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
+            produtoNome: row.produto_nome,
+            categoriaNome: row.categoria_nome,
+            produtoPreco: row.produto_preco,
+            produtoImagem: row.produto_imagem,
+            produtoId: row.uuid,
             image_url: row.image_url,
             image_base64: row.image_base64,
-            cardapio: row.cardapio,
-            recompensa: row.recompensa
+            fichaTecnica: row.ficha_tecnica || []
         }
     }
 }

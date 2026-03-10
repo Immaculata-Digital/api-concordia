@@ -35,6 +35,13 @@ export interface ProdutoProps {
         qtd_pontos_resgate: number
         voucher_digital: boolean
     }
+    produtoId?: string
+    produtoCategoriaId?: string
+    categoriaNome?: string
+    produtoNome?: string
+    produtoPreco?: number
+    produtoImagem?: string
+    fichaTecnica?: any[]
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

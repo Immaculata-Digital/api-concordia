@@ -21,7 +21,6 @@ import { productListRoutes } from '../modules/product-lists/routes/product-list.
 import { reportRoutes } from '../modules/reports/routes/report.routes'
 import { notificationRoutes } from '../modules/notifications/routes/notifications.routes'
 
-import { publicCardapioRoutes } from '../modules/cardapio/routes/public.routes'
 import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicLandingPageRoutes } from '../modules/landing-pages/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'

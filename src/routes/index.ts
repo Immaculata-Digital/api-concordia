@@ -36,7 +36,7 @@ publicRoutes.use('/auth', authRoutes)
 // Rotas Públicas (Sem autenticação)
 publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)
 publicRoutes.use('/public/produtos', publicProdutoRoutes)
-publicRoutes.use('/public/restaurante', publicComandaRoutes)
+publicRoutes.use('/public/pedidos', publicComandaRoutes)
 publicRoutes.use('/public/people', publicPeopleRoutes)
 publicRoutes.use('/public/identidade-visual', publicBrandRoutes)
 

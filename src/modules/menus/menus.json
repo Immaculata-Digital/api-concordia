@@ -56,6 +56,13 @@
         "category": "PLUVYT"
     },
     {
+        "key": "erp:restaurante:dashboard:visualizar",
+        "name": "Indicadores",
+        "icon": "Dashboard",
+        "url": "/restaurante/indicadores",
+        "category": "Restaurante"
+    },
+    {
         "key": "erp:cardapio:itens:listar",
         "name": "Cardápio",
         "icon": "Fastfood",
@@ -66,28 +73,28 @@
         "key": "erp:mesas:listar",
         "name": "Mesas",
         "icon": "TableRestaurant",
-        "url": "/pedidos/mesas",
+        "url": "/restaurante/mesas",
         "category": "Restaurante"
     },
     {
         "key": "erp:comandas:listar",
         "name": "Comandas / Vendas",
         "icon": "ReceiptLong",
-        "url": "/pedidos/comandas",
+        "url": "/restaurante/comandas",
         "category": "Restaurante"
     },
     {
-        "key": "erp:pedidos:historico:listar",
+        "key": "erp:restaurante:historico:listar",
         "name": "Histórico de Pedidos",
         "icon": "History",
-        "url": "/pedidos/historico",
+        "url": "/restaurante/historico",
         "category": "Restaurante"
     },
     {
         "key": "erp:kds:operacional",
         "name": "Operacional (KDS)",
         "icon": "Timer",
-        "url": "/pedidos/kds",
+        "url": "/restaurante/kds",
         "category": "Restaurante"
     },
     {

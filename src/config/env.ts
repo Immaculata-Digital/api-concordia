@@ -30,6 +30,11 @@ const envSchema = z.object({
         fromEmail: z.string().optional(),
     }).optional(),
     pluvytWebUrl: z.string().optional().default('https://clube.pluvyt.com.br'),
+    evolutionApi: z.object({
+        apiUrl: z.string().optional().default('https://api-evolution.concordiaerp.com'),
+        apiKey: z.string().optional(),
+        notificationsInstance: z.string().optional().default('notificacoes'),
+    }),
 })
 
 export const env = envSchema.parse({
@@ -59,4 +64,9 @@ export const env = envSchema.parse({
         fromEmail: process.env.SMTP_FROM_EMAIL,
     },
     pluvytWebUrl: process.env.PLUVYT_WEB_URL,
+    evolutionApi: {
+        apiUrl: process.env.EVOLUTION_API_URL,
+        apiKey: process.env.EVOLUTION_API_KEY,
+        notificationsInstance: process.env.EVOLUTION_NOTIFICATIONS_INSTANCE,
+    },
 })

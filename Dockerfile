@@ -33,6 +33,9 @@ COPY --from=builder /app/dist ./dist
 # Variável de ambiente padrão para a porta
 ENV PORT=3001
 ENV NODE_ENV=production
+ENV EVOLUTION_API_URL=https://api-evolution.concordiaerp.com
+ENV EVOLUTION_API_KEY=""
+ENV EVOLUTION_NOTIFICATIONS_INSTANCE="notificacoes"
 
 # Expor a porta que a aplicação vai rodar (internamente)
 EXPOSE 3001

@@ -118,6 +118,13 @@ export class PostgresProdutoComplementaryRepository {
         await pool.query('DELETE FROM app.produtos_ficha_tecnica WHERE uuid = $1', [uuid])
     }
 
+    async updateFichaTecnica(uuid: string, data: any, userId: string): Promise<void> {
+        await pool.query(
+            'UPDATE app.produtos_ficha_tecnica SET chave = $1, valor = $2, sort = $3, updated_by = $4, updated_at = NOW() WHERE uuid = $5',
+            [data.chave, data.valor, data.sort || 0, userId, uuid]
+        )
+    }
+
     async getMedia(produtoId: string): Promise<any[]> {
         const { rows } = await pool.query('SELECT * FROM app.produtos_media WHERE produto_id = $1 ORDER BY ordem', [produtoId])
         return rows

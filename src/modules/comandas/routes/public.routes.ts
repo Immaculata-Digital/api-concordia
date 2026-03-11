@@ -63,7 +63,7 @@ publicComandaRoutes.post('/', async (req, res) => {
             mensagem: `Pedido #${createdPedido.seq_id} de ${clienteNome || 'Cliente'} para a mesa ${finalComanda?.mesaNumero || ''}`,
             tipo: 'novo_pedido',
             dataId: comanda.uuid,
-            link: `/pedidos/comandas?id=${comanda.uuid}`
+            link: `/restaurante/comandas?id=${comanda.uuid}`
         })
 
         console.log(`[Notification] Notificação criada: ${notification.uuid}. Emitindo via Socket...`)

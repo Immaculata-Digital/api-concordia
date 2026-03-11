@@ -5,27 +5,22 @@ export class PostgresProdutoRepository {
     async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string): Promise<ProdutoProps[]> {
         let query = `
             SELECT p.*, 
-                   p.nome as produto_nome,
                    cat.name as categoria_nome,
-                   pr.preco as produto_preco,
+                   pp.preco as produto_preco,
+                   pp.preco_custo as produto_preco_custo,
+                   pp.preco_promocional as produto_preco_promocional,
+                   cp.ordem as cardapio_ordem,
+                   cp.ativo as cardapio_ativo,
+                   cp.tempo_preparo_min as tempo_preparo_min,
+                   cp.tempo_preparo_max as tempo_preparo_max,
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
-                    ORDER BY m.ordem ASC LIMIT 1) as produto_imagem,
-                   m.url as image_url, m.arquivo as image_base64,
-                   (SELECT json_agg(json_build_object('chave', ft.chave, 'valor', ft.valor, 'ordem', ft.sort))
-                    FROM app.produtos_ficha_tecnica ft
-                    WHERE ft.produto_id = p.uuid) as ficha_tecnica
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url
             FROM app.produtos p
-            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
-            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND (pr.tenant_id = p.tenant_id OR p.tenant_id IS NULL)
-            LEFT JOIN LATERAL (
-                SELECT url, arquivo 
-                FROM app.produtos_media 
-                WHERE produto_id = p.uuid 
-                ORDER BY ordem ASC 
-                LIMIT 1
-            ) m ON true
+            LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
+            LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
             WHERE p.deleted_at IS NULL
         `
         const values: any[] = []
@@ -72,9 +67,23 @@ export class PostgresProdutoRepository {
 
     async findById(uuid: string): Promise<ProdutoProps | null> {
         const query = `
-            SELECT p.*, cat.name as categoria_nome
+            SELECT p.*, 
+                   cat.name as categoria_nome,
+                   pp.preco as produto_preco,
+                   pp.preco_custo as produto_preco_custo,
+                   pp.preco_promocional as produto_preco_promocional,
+                   cp.ordem as cardapio_ordem,
+                   cp.ativo as cardapio_ativo,
+                   cp.tempo_preparo_min as tempo_preparo_min,
+                   cp.tempo_preparo_max as tempo_preparo_max,
+                   (SELECT COALESCE(m.arquivo, m.url) 
+                    FROM app.produtos_media m 
+                    WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url
             FROM app.produtos p
-            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
+            LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
             WHERE p.uuid = $1 AND p.deleted_at IS NULL
         `
         const { rows } = await pool.query(query, [uuid])
@@ -153,7 +162,6 @@ export class PostgresProdutoRepository {
     private mapToProps(row: any): ProdutoProps {
         return {
             uuid: row.uuid,
-            seqId: row.seq_id,
             tenantId: row.tenant_id,
             nome: row.nome,
             codigo: row.codigo,
@@ -163,7 +171,7 @@ export class PostgresProdutoRepository {
             situacao_code: row.situacao_code,
             classe_produto_code: row.classe_produto_code,
             categoria_code: row.categoria_code,
-            produtoCategoriaId: row.categoria_code,
+            categoria_nome: row.categoria_nome,
             garantia: row.garantia,
             descricao: row.descricao,
             descricao_complementar: row.descricao_complementar,
@@ -176,14 +184,18 @@ export class PostgresProdutoRepository {
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
-            produtoNome: row.produto_nome,
-            categoriaNome: row.categoria_nome,
-            produtoPreco: row.produto_preco,
-            produtoImagem: row.produto_imagem,
-            produtoId: row.uuid,
-            image_url: row.image_url,
-            image_base64: row.image_base64,
-            fichaTecnica: row.ficha_tecnica || []
+            image_url: row.main_image_url || row.image_url,
+            precos: {
+                preco: row.produto_preco || 0,
+                preco_custo: row.produto_preco_custo || 0,
+                preco_promocional: row.produto_preco_promocional || 0
+            },
+            cardapio: {
+                ordem: row.cardapio_ordem || 0,
+                ativo: row.cardapio_ativo ?? true,
+                tempo_preparo_min: row.tempo_preparo_min,
+                tempo_preparo_max: row.tempo_preparo_max
+            }
         }
     }
 }

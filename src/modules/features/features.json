@@ -444,12 +444,12 @@
         "description": "Remover listas de produtos do sistema"
     },
     {
-        "key": "erp:pedidos:historico:listar",
+        "key": "erp:restaurante:historico:listar",
         "name": "Listar Histórico de Pedidos",
         "description": "Permite visualizar o histórico completo de pedidos realizados"
     },
     {
-        "key": "erp:pedidos:historico:visualizar",
+        "key": "erp:restaurante:historico:visualizar",
         "name": "Ver Detalhes do Pedido",
         "description": "Permite visualizar os itens e status de um pedido específico"
     },
@@ -459,8 +459,8 @@
         "description": "Acesso ao painel de Cozinha (Kitchen Display System) para gestão de pedidos"
     },
     {
-        "key": "erp:pedidos:dashboard:visualizar",
-        "name": "Visualizar Dashboard de Pedidos",
+        "key": "erp:restaurante:dashboard:visualizar",
+        "name": "Visualizar Dashboard de Pedidos de Restaurante",
         "description": "Permite visualizar o painel de indicadores e gráficos de pedidos"
     },
     {

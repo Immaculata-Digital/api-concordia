@@ -56,7 +56,7 @@ produtosRoutes.get('/:id', async (req, res) => {
             ...produto,
             fiscal,
             logistica,
-            precos,
+            precos: precos || produto.precos,
             seo,
             fichaTecnica,
             media,
@@ -193,6 +193,15 @@ produtosRoutes.delete('/ficha-tecnica/:itemId', async (req, res) => {
         return res.status(204).send()
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao excluir item de ficha técnica' })
+    }
+})
+
+produtosRoutes.put('/ficha-tecnica/:itemId', async (req, res) => {
+    try {
+        await complementaryRepository.updateFichaTecnica(req.params.itemId, req.body, req.user!.uuid)
+        return res.json({ message: 'Item de ficha técnica atualizado' })
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao atualizar item de ficha técnica' })
     }
 })
 

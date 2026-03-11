@@ -5,7 +5,8 @@ export class PostgresCardapioItemRepository {
     async findAll(tenantId: string, categoriaCode?: string, produtoId?: string): Promise<CardapioItemProps[]> {
         let query = `
             SELECT i.*, 
-                   p.nome as produto_nome, 
+                   p.nome as produto_nome,
+                   p.descricao as produto_descricao,
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
                    pr.preco as produto_preco,
@@ -45,7 +46,8 @@ export class PostgresCardapioItemRepository {
     async findById(tenantId: string, uuid: string): Promise<CardapioItemProps | null> {
         const query = `
             SELECT i.*, 
-                   p.nome as produto_nome, 
+                   p.nome as produto_nome,
+                   p.descricao as produto_descricao,
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
                    pr.preco as produto_preco
@@ -64,13 +66,17 @@ export class PostgresCardapioItemRepository {
         const props = item.toJSON()
         const query = `
             INSERT INTO app.produtos_cardapio (
-                uuid, tenant_id, produto_id, ordem, ativo, created_by, updated_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                uuid, tenant_id, produto_id, ordem, ativo, 
+                tempo_preparo_min, tempo_preparo_max,
+                created_by, updated_by
+            ) VALUES ($1, $2, $3, $4, $5, ($6 || ' minutes')::interval, ($7 || ' minutes')::interval, $8, $9)
             RETURNING *
         `
         const values = [
             props.uuid, props.tenantId, props.produtoId,
-            props.ordem, props.ativo, props.createdBy, props.updatedBy
+            props.ordem, props.ativo, 
+            props.tempoPreparo_min || null, props.tempoPreparo_max || null,
+            props.createdBy, props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
         return this.findById(props.tenantId, rows[0].uuid) as Promise<CardapioItemProps>
@@ -82,14 +88,18 @@ export class PostgresCardapioItemRepository {
             UPDATE app.produtos_cardapio SET 
                 ordem = $3,
                 ativo = $4,
-                updated_by = $5,
+                tempo_preparo_min = ($5 || ' minutes')::interval,
+                tempo_preparo_max = ($6 || ' minutes')::interval,
+                updated_by = $7,
                 updated_at = NOW()
             WHERE tenant_id = $1 AND uuid = $2
             RETURNING *
         `
         const values = [
             props.tenantId, props.uuid,
-            props.ordem, props.ativo, props.updatedBy
+            props.ordem, props.ativo,
+            props.tempoPreparo_min || null, props.tempoPreparo_max || null,
+            props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
         return this.findById(props.tenantId, rows[0].uuid) as Promise<CardapioItemProps>
@@ -112,12 +122,15 @@ export class PostgresCardapioItemRepository {
             produtoId: row.produto_id,
             ordem: row.ordem,
             ativo: row.ativo,
+            tempoPreparo_min: row.tempo_preparo_min,
+            tempoPreparo_max: row.tempo_preparo_max,
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
             produtoNome: row.produto_nome,
+            produtoDescricao: row.produto_descricao,
             produtoPreco: row.produto_preco,
             produtoImagem: row.produto_imagem,
             categoriaCode: row.categoria_code,

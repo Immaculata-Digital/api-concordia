@@ -27,9 +27,16 @@ export interface ProdutoProps {
     deletedAt?: Date
     image_url?: string
     image_base64?: string
+    precos?: {
+        preco: number
+        preco_custo?: number
+        preco_promocional?: number
+    }
     cardapio?: {
         ordem: number
         ativo: boolean
+        tempo_preparo_min?: number
+        tempo_preparo_max?: number
     }
     recompensa?: {
         qtd_pontos_resgate: number
@@ -37,11 +44,13 @@ export interface ProdutoProps {
     }
     produtoId?: string
     produtoCategoriaId?: string
-    categoriaNome?: string
+    categoriaNome?: string // Mantendo para compatibilidade legada se necessário
     produtoNome?: string
     produtoPreco?: number
     produtoImagem?: string
     fichaTecnica?: any[]
+    tempoPreparo_min?: string
+    tempoPreparo_max?: string
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

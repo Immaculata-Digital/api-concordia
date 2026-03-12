@@ -154,6 +154,11 @@
         "name": "Remover tenants do sistema"
     },
     {
+        "key": "erp:tenants:pluvyt:listar",
+        "name": "Listar Estabelecimentos Pluvyt",
+        "description": "Visualize a listagem de estabelecimentos vinculados ao programa Pluvyt"
+    },
+    {
         "key": "erp:pluvyt-clients:listar",
         "name": "Listar Clientes Pluvyt",
         "description": "Visualize a listagem de clientes do programa Pluvyt"
@@ -179,6 +184,11 @@
         "description": "Remover vínculo Pluvyt da pessoa"
     },
     {
+        "key": "erp:pluvyt:creditar-pontos",
+        "name": "Creditar Pontos Pluvyt",
+        "description": "Permite realizar o crédito manual de pontos para clientes Pluvyt através do Valor da Compra"
+    },
+    {
         "key": "erp:produtos:listar",
         "name": "Listar Produtos",
         "description": "Visualize a listagem de produtos cadastrados"
@@ -196,7 +206,7 @@
     {
         "key": "erp:produtos:editar",
         "name": "Editar Produto",
-        "description": "Alterar dados cadastrais e complementares de produtos"
+        "description": "Alterar dados cadastrais and complementares de produtos"
     },
     {
         "key": "erp:produtos:excluir",

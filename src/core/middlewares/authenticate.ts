@@ -28,6 +28,7 @@ declare global {
                 tenantId: string
                 login: string
                 email: string
+                permissions?: string[]
             }
         }
     }

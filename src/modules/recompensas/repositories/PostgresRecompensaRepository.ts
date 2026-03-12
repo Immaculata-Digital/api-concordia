@@ -22,7 +22,7 @@ export class PostgresRecompensaRepository {
                 ORDER BY (ordem = 1) DESC, ordem ASC NULLS LAST, created_at ASC
                 LIMIT 1
             ) m ON true
-            WHERE r.deleted_at IS NULL
+            WHERE r.deleted_at IS NULL AND 'itens-de-recompensa' = ANY(p.views)
             ${tenantId ? 'AND r.tenant_id = $1' : ''}
             ${category && category !== 'Todos' ? `AND cat.name = $${tenantId ? 2 : 1}` : ''}
         `
@@ -70,7 +70,9 @@ export class PostgresRecompensaRepository {
             JOIN app.produtos p ON p.uuid = r.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_seo s ON s.produto_id = p.uuid
-            WHERE (r.uuid::text = $1 OR s.slug = $1 OR r.produto_id::text = $1) AND r.deleted_at IS NULL
+            WHERE (r.uuid::text = $1 OR s.slug = $1 OR r.produto_id::text = $1) 
+            AND r.deleted_at IS NULL 
+            AND 'itens-de-recompensa' = ANY(p.views)
         `
         const { rows } = await pool.query(query, [uuidOrSlug])
         if (rows.length === 0) return null
@@ -122,7 +124,7 @@ export class PostgresRecompensaRepository {
             FROM app.produtos_recompensas r
             JOIN app.produtos p ON p.uuid = r.produto_id
             JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
-            WHERE r.deleted_at IS NULL
+            WHERE r.deleted_at IS NULL AND 'itens-de-recompensa' = ANY(p.views)
             ${tenantId ? 'AND r.tenant_id = $1' : ''}
             ORDER BY cat.name ASC
         `

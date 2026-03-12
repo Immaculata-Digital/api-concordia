@@ -26,6 +26,7 @@ import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
 import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/produtos/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
+import { publicTenantRoutes } from '../modules/tenants/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -39,6 +40,7 @@ publicRoutes.use('/public/produtos', publicProdutoRoutes)
 publicRoutes.use('/public/pedidos', publicComandaRoutes)
 publicRoutes.use('/public/people', publicPeopleRoutes)
 publicRoutes.use('/public/identidade-visual', publicBrandRoutes)
+publicRoutes.use('/public/tenants', publicTenantRoutes)
 
 // Rotas públicas de leitura de recompensas (homepage carousel, etc.)
 publicRoutes.use('/recompensas', publicRecompensasRoutes)

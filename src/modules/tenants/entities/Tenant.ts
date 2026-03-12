@@ -11,6 +11,11 @@ export interface TenantProps {
     updatedBy?: string
     modules?: string[]
     pessoaId?: string | null
+    logo?: string | null
+    category?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    plusCode?: string | null
 }
 
 export type CreateTenantProps = Omit<TenantProps, 'uuid' | 'createdAt' | 'updatedAt'>

@@ -10,6 +10,9 @@ export interface TenantAddressProps {
     neighborhood: string
     city: string
     state: string
+    latitude?: number | null
+    longitude?: number | null
+    plusCode?: string | null
     createdAt: Date
     createdBy?: string
     updatedAt: Date

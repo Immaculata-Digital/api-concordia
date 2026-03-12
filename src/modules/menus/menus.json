@@ -49,6 +49,13 @@
         "category": "PLUVYT"
     },
     {
+        "key": "erp:tenants:pluvyt:listar",
+        "name": "Estabelecimentos",
+        "icon": "Store",
+        "url": "/pluvyt/estabelecimentos",
+        "category": "PLUVYT"
+    },
+    {
         "key": "erp:transacoes-pontos:listar",
         "name": "Transações",
         "icon": "CurrencyExchange",

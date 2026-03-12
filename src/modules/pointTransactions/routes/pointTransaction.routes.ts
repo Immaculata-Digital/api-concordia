@@ -27,6 +27,14 @@ pointTransactionRoutes.get('/:id', async (req, res) => {
 pointTransactionRoutes.post('/', async (req, res) => {
     const tenantId = req.user!.tenantId
     const { clientId, type, points, origin, rewardItemId, lojaId, observation } = req.body
+    
+    // Check permission for manual credit
+    if (origin === 'MANUAL' && type === 'CREDITO') {
+        const userPermissions = req.user?.permissions || [];
+        if (!userPermissions.includes('erp:pluvyt:creditar-pontos')) {
+            return res.status(403).json({ message: 'Você não tem permissão para realizar crédito manual de pontos.' });
+        }
+    }
 
     const ptPoints = Number(points)
     const clientRecord = await clientRepository.findById(clientId, tenantId)
@@ -37,7 +45,10 @@ pointTransactionRoutes.post('/', async (req, res) => {
 
     // Bloqueia se o e-mail do usuário não estiver verificado
     const userRes = await pool.query(
-        'SELECT email_verified_at, email_verification_token FROM app.users WHERE person_id = $1 AND tenant_id = $2',
+        `SELECT u.email_verified_at, u.email_verification_token 
+         FROM app.users u
+         JOIN app.people p ON p.usuario_id = u.uuid
+         WHERE p.uuid = $1 AND u.tenant_id = $2`,
         [clientRecord.toJSON().personId, tenantId]
     )
     if (userRes.rowCount && userRes.rowCount > 0) {

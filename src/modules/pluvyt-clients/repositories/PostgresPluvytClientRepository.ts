@@ -17,15 +17,17 @@ export class PostgresPluvytClientRepository implements IPluvytClientRepository {
             deletedAt: row.deleted_at,
             // Enriched data from JOIN
             ...(row.person_name && { personName: row.person_name }),
-            ...(row.person_cpf_cnpj && { personCpfCnpj: row.person_cpf_cnpj })
+            ...(row.person_cpf_cnpj && { personCpfCnpj: row.person_cpf_cnpj }),
+            ...(row.person_phone && { personPhone: row.person_phone })
         } as any)
     }
 
     async findAll(tenantId: string): Promise<PluvytClient[]> {
         const result = await pool.query(
-            `SELECT c.*, p.name as person_name, p.cpf_cnpj as person_cpf_cnpj
+            `SELECT c.*, p.name as person_name, p.cpf_cnpj as person_cpf_cnpj, pc.contact_value as person_phone
              FROM app.pluvyt_clients c
              JOIN app.people p ON p.uuid = c.person_id
+             LEFT JOIN app.people_contacts pc ON pc.people_id = p.uuid AND pc.is_default = true
              WHERE c.tenant_id = $1 AND c.deleted_at IS NULL
              ORDER BY c.created_at DESC`,
             [tenantId]
@@ -35,9 +37,10 @@ export class PostgresPluvytClientRepository implements IPluvytClientRepository {
 
     async findById(uuid: string, tenantId: string): Promise<PluvytClient | null> {
         const result = await pool.query(
-            `SELECT c.*, p.name as person_name, p.cpf_cnpj as person_cpf_cnpj
+            `SELECT c.*, p.name as person_name, p.cpf_cnpj as person_cpf_cnpj, pc.contact_value as person_phone
              FROM app.pluvyt_clients c
              JOIN app.people p ON p.uuid = c.person_id
+             LEFT JOIN app.people_contacts pc ON pc.people_id = p.uuid AND pc.is_default = true
              WHERE c.uuid = $1 AND c.tenant_id = $2 AND c.deleted_at IS NULL`,
             [uuid, tenantId]
         )
@@ -49,6 +52,20 @@ export class PostgresPluvytClientRepository implements IPluvytClientRepository {
             `SELECT * FROM app.pluvyt_clients 
              WHERE person_id = $1 AND tenant_id = $2 AND deleted_at IS NULL`,
             [personId, tenantId]
+        )
+        return result.rows[0] ? this.mapRowToEntity(result.rows[0]) : null
+    }
+
+    async findByCpf(cpf: string, tenantId: string): Promise<PluvytClient | null> {
+        const cleanCpf = cpf.replace(/\D/g, '')
+        const result = await pool.query(
+            `SELECT c.*, p.name as person_name, p.cpf_cnpj as person_cpf_cnpj, pc.contact_value as person_phone
+             FROM app.pluvyt_clients c
+             JOIN app.people p ON p.uuid = c.person_id
+             LEFT JOIN app.people_contacts pc ON pc.people_id = p.uuid AND pc.is_default = true
+             WHERE (p.cpf_cnpj = $1 OR REPLACE(REPLACE(p.cpf_cnpj, '.', ''), '-', '') = $1)
+               AND c.tenant_id = $2 AND c.deleted_at IS NULL`,
+            [cleanCpf, tenantId]
         )
         return result.rows[0] ? this.mapRowToEntity(result.rows[0]) : null
     }

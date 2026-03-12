@@ -48,7 +48,7 @@ tenantRoutes.get('/:id', async (req, res) => {
 
 tenantRoutes.post('/', async (req, res) => {
     try {
-        const { name, slug, modules } = req.body
+        const { name, slug, modules, logo, category } = req.body
 
         // Check if slug already exists
         const existing = await tenantRepository.findBySlug(slug)
@@ -61,7 +61,9 @@ tenantRoutes.post('/', async (req, res) => {
             slug,
             createdBy: req.user!.uuid,
             updatedBy: req.user!.uuid,
-            modules: modules || []
+            modules: modules || [],
+            logo,
+            category
         })
 
         const created = await tenantRepository.create(tenant)
@@ -100,13 +102,26 @@ tenantRoutes.delete('/:id', async (req, res) => {
 // Address CRUD
 tenantRoutes.post('/:id/address', async (req, res) => {
     try {
-        await complementaryRepository.upsertAddress({
-            tenantId: req.params.id,
-            ...req.body,
-            updatedBy: req.user!.uuid
-        })
+        const tenant = await tenantRepository.findById(req.params.id)
+        if (!tenant) return res.status(404).json({ message: 'Tenant não encontrado' })
+
+        if (tenant.pessoaId) {
+            await complementaryRepository.upsertPersonAddress({
+                personId: tenant.pessoaId,
+                tenantId: req.params.id,
+                ...req.body,
+                updatedBy: req.user!.uuid
+            })
+        } else {
+            await complementaryRepository.upsertAddress({
+                tenantId: req.params.id,
+                ...req.body,
+                updatedBy: req.user!.uuid
+            })
+        }
         return res.status(200).json({ message: 'Endereço atualizado' })
     } catch (error) {
+        console.error('Error in upsertAddress:', error)
         return res.status(500).json({ message: 'Erro ao salvar endereço' })
     }
 })

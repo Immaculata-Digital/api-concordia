@@ -29,6 +29,19 @@ pluvytClientRoutes.get('/:id', async (req, res) => {
     }
 })
 
+pluvytClientRoutes.get('/by-cpf/:cpf', async (req, res) => {
+    try {
+        const tenantId = req.user!.tenantId
+        const { cpf } = req.params
+        const client = await repository.findByCpf(cpf, tenantId)
+        if (!client) return res.status(404).json({ message: 'Cliente não encontrado' })
+        return res.json(client.toJSON())
+    } catch (error) {
+        console.error('Error finding pluvyt client by cpf:', error)
+        return res.status(500).json({ message: 'Erro ao buscar cliente por CPF' })
+    }
+})
+
 pluvytClientRoutes.post('/', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId

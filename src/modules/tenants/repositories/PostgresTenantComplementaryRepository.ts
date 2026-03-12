@@ -18,6 +18,9 @@ export class PostgresTenantComplementaryRepository {
             neighborhood: row.neighborhood,
             city: row.city,
             state: row.state,
+            latitude: row.latitude,
+            longitude: row.longitude,
+            plusCode: row.plus_code,
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,
@@ -52,6 +55,9 @@ export class PostgresTenantComplementaryRepository {
             neighborhood: row.neighborhood,
             city: row.city,
             state: row.state,
+            latitude: row.latitude,
+            longitude: row.longitude,
+            plusCode: row.plus_code,
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,
@@ -94,23 +100,61 @@ export class PostgresTenantComplementaryRepository {
     }
 
     async upsertAddress(data: any): Promise<void> {
-        const { tenantId, postalCode, street, number, complement, neighborhood, city, state, updatedBy } = data
-        await pool.query(
-            `INSERT INTO app.tenant_addresses (
-                tenant_id, postal_code, street, number, complement, neighborhood, city, state, created_by, updated_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
-            ON CONFLICT (tenant_id) DO UPDATE SET
-                postal_code = EXCLUDED.postal_code,
-                street = EXCLUDED.street,
-                number = EXCLUDED.number,
-                complement = EXCLUDED.complement,
-                neighborhood = EXCLUDED.neighborhood,
-                city = EXCLUDED.city,
-                state = EXCLUDED.state,
-                updated_by = EXCLUDED.updated_by,
-                updated_at = NOW()`,
-            [tenantId, postalCode, street, number, complement, neighborhood, city, state, updatedBy]
-        )
+        try {
+            const { tenantId, postalCode, street, number, complement, neighborhood, city, state, latitude, longitude, plusCode, updatedBy } = data
+            await pool.query(
+                `INSERT INTO app.tenant_addresses (
+                    tenant_id, postal_code, street, number, complement, neighborhood, city, state, latitude, longitude, plus_code, created_by, updated_by
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $12)
+                ON CONFLICT (tenant_id) DO UPDATE SET
+                    postal_code = EXCLUDED.postal_code,
+                    street = EXCLUDED.street,
+                    number = EXCLUDED.number,
+                    complement = EXCLUDED.complement,
+                    neighborhood = EXCLUDED.neighborhood,
+                    city = EXCLUDED.city,
+                    state = EXCLUDED.state,
+                    latitude = EXCLUDED.latitude,
+                    longitude = EXCLUDED.longitude,
+                    plus_code = EXCLUDED.plus_code,
+                    updated_by = EXCLUDED.updated_by,
+                    updated_at = NOW()`,
+                [tenantId, postalCode, street, number, complement, neighborhood, city, state, latitude, longitude, plusCode, updatedBy]
+            )
+        } catch (error) {
+            console.error('Error in upsertAddress repository:', error)
+            throw error
+        }
+    }
+
+    async upsertPersonAddress(data: any): Promise<void> {
+        try {
+            const { personId, tenantId, postalCode, street, number, complement, neighborhood, city, state, latitude, longitude, plusCode, updatedBy } = data
+            
+            const existing = await pool.query('SELECT uuid FROM app.people_addresses WHERE people_id = $1 LIMIT 1', [personId])
+            
+            if (existing.rows.length > 0) {
+                await pool.query(
+                    `UPDATE app.people_addresses SET
+                        postal_code = $2, street = $3, number = $4, complement = $5,
+                        neighborhood = $6, city = $7, state = $8,
+                        latitude = $9, longitude = $10, plus_code = $11,
+                        updated_by = $12, updated_at = NOW()
+                    WHERE uuid = $1`,
+                    [existing.rows[0].uuid, postalCode, street, number, complement, neighborhood, city, state, latitude, longitude, plusCode, updatedBy]
+                )
+            } else {
+                await pool.query(
+                    `INSERT INTO app.people_addresses (
+                        people_id, tenant_id, postal_code, street, number, complement, neighborhood, city, state, latitude, longitude, plus_code, created_by, updated_by
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $13)`,
+                    [personId, tenantId, postalCode, street, number, complement, neighborhood, city, state, latitude, longitude, plusCode, updatedBy]
+                )
+            }
+        } catch (error) {
+            console.error('Error in upsertPersonAddress repository:', error)
+            throw error
+        }
     }
 
     async createContact(data: any): Promise<void> {

@@ -9,6 +9,8 @@ export interface ProdutoCategoriaProps {
     name: string
     description?: string
     icon: string
+    image_url?: string
+    parent_uuid?: string
     sort: number
     enabled: boolean
     createdAt: Date
@@ -41,13 +43,14 @@ export class PostgresProdutoCategoriaRepository {
         const uuid = randomUUID()
         const query = `
             INSERT INTO app.produtos_categoria_category_enum (
-                uuid, code, tenant_id, name, description, icon, sort, enabled
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                uuid, code, tenant_id, name, description, icon, image_url, parent_uuid, sort, enabled
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
         `
         const values = [
             uuid, data.code, data.tenantId, data.name, data.description,
-            data.icon || 'Notification', data.sort || 0, data.enabled ?? true
+            data.icon || 'Notification', data.image_url, data.parent_uuid, 
+            data.sort || 0, data.enabled ?? true
         ]
         const { rows } = await pool.query(query, values)
         return this.mapToProps(rows[0])
@@ -59,15 +62,18 @@ export class PostgresProdutoCategoriaRepository {
                 name = COALESCE($3, name),
                 description = COALESCE($4, description),
                 icon = COALESCE($5, icon),
-                sort = COALESCE($6, sort),
-                enabled = COALESCE($7, enabled),
+                image_url = COALESCE($6, image_url),
+                parent_uuid = COALESCE($7, parent_uuid),
+                sort = COALESCE($8, sort),
+                enabled = COALESCE($9, enabled),
                 updated_at = NOW()
             WHERE uuid = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
             RETURNING *
         `
         const values = [
             uuid, tenantId, data.name, data.description,
-            data.icon, data.sort, data.enabled
+            data.icon, data.image_url, data.parent_uuid, 
+            data.sort, data.enabled
         ]
         const { rows } = await pool.query(query, values)
         return this.mapToProps(rows[0])
@@ -90,6 +96,8 @@ export class PostgresProdutoCategoriaRepository {
             name: row.name,
             description: row.description,
             icon: row.icon,
+            image_url: row.image_url,
+            parent_uuid: row.parent_uuid,
             sort: row.sort,
             enabled: row.enabled,
             createdAt: row.created_at,

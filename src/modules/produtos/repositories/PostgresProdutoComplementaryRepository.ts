@@ -169,6 +169,13 @@ export class PostgresProdutoComplementaryRepository {
         await pool.query('DELETE FROM app.produtos_kit WHERE uuid = $1', [uuid])
     }
 
+    async updateKitItem(uuid: string, data: any, userId: string): Promise<void> {
+        await pool.query(
+            'UPDATE app.produtos_kit SET produto_filho_id = $1, quantidade = $2, updated_by = $3, updated_at = NOW() WHERE uuid = $4',
+            [data.produto_filho_id, data.quantidade, userId, uuid]
+        )
+    }
+
     async getVariacoes(produtoPaiId: string): Promise<any[]> {
         const { rows } = await pool.query(`
             SELECT v.*, p.nome as produto_nome, p.codigo as produto_codigo 
@@ -188,6 +195,13 @@ export class PostgresProdutoComplementaryRepository {
 
     async deleteVariacao(uuid: string): Promise<void> {
         await pool.query('DELETE FROM app.produtos_variacoes WHERE uuid = $1', [uuid])
+    }
+
+    async updateVariacao(uuid: string, data: any, userId: string): Promise<void> {
+        await pool.query(
+            'UPDATE app.produtos_variacoes SET produto_filho_id = $1, grade = $2, updated_by = $3, updated_at = NOW() WHERE uuid = $4',
+            [data.produto_filho_id, JSON.stringify(data.grade), userId, uuid]
+        )
     }
 
     async getRecompensa(produtoId: string): Promise<any> {

@@ -17,6 +17,7 @@ export class PostgresTenantRepository implements ITenantRepository {
             pessoaId: row.pessoa_id || null,
             logo: row.logo || null,
             category: row.category || 'Sem Categoria',
+            brand_settings: row.brand_settings || null,
         }
     }
 
@@ -47,7 +48,8 @@ export class PostgresTenantRepository implements ITenantRepository {
             category: row.category || 'Sem Categoria',
             latitude: (row.latitude !== null && row.latitude !== undefined) ? parseFloat(row.latitude) : null,
             longitude: (row.longitude !== null && row.longitude !== undefined) ? parseFloat(row.longitude) : null,
-            plusCode: row.plus_code
+            plusCode: row.plus_code,
+            brand_settings: row.brand_settings || null,
         }))
     }
 
@@ -65,11 +67,12 @@ export class PostgresTenantRepository implements ITenantRepository {
         const data = tenant.toJSON()
         const result = await pool.query(
             `INSERT INTO app.tenants (
-                uuid, name, slug, created_by, updated_by, created_at, updated_at, modules, logo, category
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                uuid, name, slug, created_by, updated_by, created_at, updated_at, modules, logo, category, brand_settings
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *`,
             [
-                data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt, data.modules || [], data.logo || null, data.category || 'Sem Categoria'
+                data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt, 
+                data.modules || [], data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null
             ]
         )
         return this.mapRowToProps(result.rows[0])
@@ -79,11 +82,13 @@ export class PostgresTenantRepository implements ITenantRepository {
         const data = tenant.toJSON()
         const result = await pool.query(
             `UPDATE app.tenants SET
-                name = $2, slug = $3, updated_by = $4, modules = $5, logo = $6, category = $7, updated_at = NOW()
+                name = $2, slug = $3, updated_by = $4, modules = $5, logo = $6, category = $7, 
+                brand_settings = $8, updated_at = NOW()
             WHERE uuid = $1
             RETURNING *`,
             [
-                data.uuid, data.name, data.slug, data.updatedBy, data.modules || [], data.logo || null, data.category || 'Sem Categoria'
+                data.uuid, data.name, data.slug, data.updatedBy, data.modules || [], 
+                data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null
             ]
         )
         return this.mapRowToProps(result.rows[0])

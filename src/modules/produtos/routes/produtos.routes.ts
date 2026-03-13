@@ -300,6 +300,15 @@ produtosRoutes.delete('/kit/:itemId', async (req, res) => {
     }
 })
 
+produtosRoutes.put('/kit/:itemId', async (req, res) => {
+    try {
+        await complementaryRepository.updateKitItem(req.params.itemId, req.body, req.user!.uuid)
+        return res.json({ message: 'Item de kit atualizado' })
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao atualizar item de kit' })
+    }
+})
+
 // Variacoes
 produtosRoutes.post('/:id/variacoes', async (req, res) => {
     try {
@@ -316,5 +325,14 @@ produtosRoutes.delete('/variacoes/:id', async (req, res) => {
         return res.status(204).send()
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao excluir variação' })
+    }
+})
+
+produtosRoutes.put('/variacoes/:id', async (req, res) => {
+    try {
+        await complementaryRepository.updateVariacao(req.params.id, req.body, req.user!.uuid)
+        return res.json({ message: 'Variação atualizada' })
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao atualizar variação' })
     }
 })

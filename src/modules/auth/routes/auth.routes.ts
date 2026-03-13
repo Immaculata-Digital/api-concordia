@@ -12,6 +12,7 @@ import menus from '../../menus/menus.json'
 import { pool } from '../../../infra/database/pool'
 import { sendMail } from '../../../infra/email/mailer'
 import { getEmailVerificationTemplate, getPasswordResetTemplate } from '../../../infra/email/templates'
+import { filterMenusByTenant } from '../../menus/utils/menuUtils'
 
 export const authRoutes = Router()
 const userRepository = new PostgresUserRepository()
@@ -153,6 +154,11 @@ authRoutes.post('/login', async (req, res) => {
             [extra.person_id]
         )
 
+
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
+        const tenantModules = tenantRes.rows[0]?.modules || []
+        const filteredMenus = filterMenusByTenant(menus, tenantModules)
+
         return res.json({
             accessToken,
             refreshToken,
@@ -187,7 +193,7 @@ authRoutes.post('/login', async (req, res) => {
                 })),
                 redemptions: []
             },
-            menus,
+            menus: filteredMenus,
             permissions
         })
     } catch (error: any) {

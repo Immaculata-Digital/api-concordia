@@ -11,8 +11,9 @@ export class PostgresProdutoRepository {
                    pp.preco_promocional as produto_preco_promocional,
                    cp.ordem as cardapio_ordem,
                    cp.ativo as cardapio_ativo,
-                   cp.tempo_preparo_min as tempo_preparo_min,
-                   cp.tempo_preparo_max as tempo_preparo_max,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_min)/60)::integer as tempo_preparo_min_raw,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_max)/60)::integer as tempo_preparo_max_raw,
+                   cp.exibir_tempo_preparo as exibir_tempo_preparo,
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
@@ -37,6 +38,9 @@ export class PostgresProdutoRepository {
                 query += ` AND ($${idx} = ANY(p.views) OR p.views IS NULL OR p.views = '{}')`
             } else {
                 query += ` AND $${idx} = ANY(p.views)`
+                if (viewContext === 'cardapio') {
+                    query += ` AND (cp.ativo IS TRUE)`
+                }
             }
 
             values.push(viewContext)
@@ -74,8 +78,9 @@ export class PostgresProdutoRepository {
                    pp.preco_promocional as produto_preco_promocional,
                    cp.ordem as cardapio_ordem,
                    cp.ativo as cardapio_ativo,
-                   cp.tempo_preparo_min as tempo_preparo_min,
-                   cp.tempo_preparo_max as tempo_preparo_max,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_min)/60)::integer as tempo_preparo_min_raw,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_max)/60)::integer as tempo_preparo_max_raw,
+                   cp.exibir_tempo_preparo as exibir_tempo_preparo,
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
@@ -193,8 +198,9 @@ export class PostgresProdutoRepository {
             cardapio: {
                 ordem: row.cardapio_ordem || 0,
                 ativo: row.cardapio_ativo ?? true,
-                tempo_preparo_min: row.tempo_preparo_min,
-                tempo_preparo_max: row.tempo_preparo_max
+                tempoPreparo_min: row.tempo_preparo_min_raw ?? 0,
+                tempoPreparo_max: row.tempo_preparo_max_raw ?? 0,
+                exibir_tempo_preparo: row.exibir_tempo_preparo ?? false
             }
         }
     }

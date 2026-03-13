@@ -22,9 +22,22 @@ comandaRoutes.get('/restaurante/historico', authenticate, async (req, res) => {
     return res.json(pedidos)
 })
 
+comandaRoutes.get('/restaurante/metas', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    const metas = await repository.findRestauranteMetas(tenantId)
+    return res.json(metas)
+})
+
+comandaRoutes.post('/restaurante/metas', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    await repository.upsertRestauranteMetas(tenantId, req.body)
+    return res.status(201).json({ message: 'Metas atualizadas com sucesso' })
+})
+
 comandaRoutes.get('/restaurante/kds', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId
-    const pedidos = await repository.findPedidosKDS(tenantId)
+    const { type } = req.query
+    const pedidos = await repository.findPedidosKDS(tenantId, type as string)
     return res.json(pedidos)
 })
 

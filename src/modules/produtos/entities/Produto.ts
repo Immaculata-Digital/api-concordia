@@ -35,8 +35,9 @@ export interface ProdutoProps {
     cardapio?: {
         ordem: number
         ativo: boolean
-        tempo_preparo_min?: number
-        tempo_preparo_max?: number
+        tempoPreparo_min?: number
+        tempoPreparo_max?: number
+        exibir_tempo_preparo?: boolean
     }
     recompensa?: {
         qtd_pontos_resgate: number
@@ -44,7 +45,6 @@ export interface ProdutoProps {
     }
     produtoId?: string
     produtoCategoriaId?: string
-    categoriaNome?: string // Mantendo para compatibilidade legada se necessário
     produtoNome?: string
     produtoPreco?: number
     produtoImagem?: string

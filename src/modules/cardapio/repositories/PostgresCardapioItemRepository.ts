@@ -13,7 +13,10 @@ export class PostgresCardapioItemRepository {
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
-                    ORDER BY m.ordem ASC LIMIT 1) as produto_imagem
+                    ORDER BY m.ordem ASC LIMIT 1) as produto_imagem,
+                    i.exibir_tempo_preparo as exibir_tempo_preparo,
+                    ROUND(EXTRACT(EPOCH FROM i.tempo_preparo_min)/60)::integer as tempo_preparo_min_raw,
+                    ROUND(EXTRACT(EPOCH FROM i.tempo_preparo_max)/60)::integer as tempo_preparo_max_raw
             FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
@@ -50,7 +53,9 @@ export class PostgresCardapioItemRepository {
                    p.descricao as produto_descricao,
                    p.categoria_code as categoria_code,
                    cat.name as categoria_nome,
-                   pr.preco as produto_preco
+                   pr.preco as produto_preco,
+                   ROUND(EXTRACT(EPOCH FROM i.tempo_preparo_min)/60)::integer as tempo_preparo_min_raw,
+                   ROUND(EXTRACT(EPOCH FROM i.tempo_preparo_max)/60)::integer as tempo_preparo_max_raw
             FROM app.produtos_cardapio i
             JOIN app.produtos p ON p.uuid = i.produto_id
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code AND (cat.tenant_id = $1 OR cat.tenant_id IS NULL)
@@ -68,14 +73,16 @@ export class PostgresCardapioItemRepository {
             INSERT INTO app.produtos_cardapio (
                 uuid, tenant_id, produto_id, ordem, ativo, 
                 tempo_preparo_min, tempo_preparo_max,
+                exibir_tempo_preparo,
                 created_by, updated_by
-            ) VALUES ($1, $2, $3, $4, $5, ($6 || ' minutes')::interval, ($7 || ' minutes')::interval, $8, $9)
+            ) VALUES ($1, $2, $3, $4, $5, ($6 || ' minutes')::interval, ($7 || ' minutes')::interval, $8, $9, $10)
             RETURNING *
         `
         const values = [
             props.uuid, props.tenantId, props.produtoId,
             props.ordem, props.ativo, 
             props.tempoPreparo_min || null, props.tempoPreparo_max || null,
+            props.exibir_tempo_preparo ?? false,
             props.createdBy, props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
@@ -90,7 +97,8 @@ export class PostgresCardapioItemRepository {
                 ativo = $4,
                 tempo_preparo_min = ($5 || ' minutes')::interval,
                 tempo_preparo_max = ($6 || ' minutes')::interval,
-                updated_by = $7,
+                exibir_tempo_preparo = $7,
+                updated_by = $8,
                 updated_at = NOW()
             WHERE tenant_id = $1 AND uuid = $2
             RETURNING *
@@ -99,6 +107,7 @@ export class PostgresCardapioItemRepository {
             props.tenantId, props.uuid,
             props.ordem, props.ativo,
             props.tempoPreparo_min || null, props.tempoPreparo_max || null,
+            props.exibir_tempo_preparo ?? false,
             props.updatedBy
         ]
         const { rows } = await pool.query(query, values)
@@ -122,8 +131,8 @@ export class PostgresCardapioItemRepository {
             produtoId: row.produto_id,
             ordem: row.ordem,
             ativo: row.ativo,
-            tempoPreparo_min: row.tempo_preparo_min,
-            tempoPreparo_max: row.tempo_preparo_max,
+            tempoPreparo_min: row.tempo_preparo_min_raw ?? 0,
+            tempoPreparo_max: row.tempo_preparo_max_raw ?? 0,
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,
@@ -134,7 +143,8 @@ export class PostgresCardapioItemRepository {
             produtoPreco: row.produto_preco,
             produtoImagem: row.produto_imagem,
             categoriaCode: row.categoria_code,
-            categoriaNome: row.categoria_nome
+            categoriaNome: row.categoria_nome,
+            exibir_tempo_preparo: row.exibir_tempo_preparo ?? false
         }
     }
 }

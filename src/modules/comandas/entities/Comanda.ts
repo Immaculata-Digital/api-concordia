@@ -19,6 +19,8 @@ export interface ComandaItemProps {
 
     // Virtual
     produtoNome?: string
+    tempoPreparoMin?: number
+    tempoPreparoMax?: number
 }
 
 export interface ComandaProps {

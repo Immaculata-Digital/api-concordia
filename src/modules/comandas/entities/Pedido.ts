@@ -5,7 +5,7 @@ export interface PedidoProps {
     seqId?: number
     tenantId: string
     comandaId: string
-    status: 'NOVO' | 'EM_PREPARO' | 'PRONTO' | 'ENTREGUE' | 'PAGO'
+    status: 'NOVO' | 'EM_PREPARO' | 'PRONTO' | 'ENTREGUE' | 'PAGO' | 'CANCELADO'
     total: number
     createdAt: Date
     createdBy?: string
@@ -16,8 +16,11 @@ export interface PedidoProps {
     // Virtual
     mesaNumero?: string
     mesaId?: string
-    qtdItens?: number
     tempoAtendimento?: string
+    metas?: {
+        recebido_min: number
+        pronto_min: number
+    }
 }
 
 export type CreatePedidoProps = Omit<PedidoProps, 'uuid' | 'total' | 'status' | 'createdAt' | 'updatedAt' | 'deletedAt'>

@@ -22,6 +22,7 @@ export interface CardapioItemProps {
     produtoImagem?: string
     categoriaCode?: string
     categoriaNome?: string
+    exibir_tempo_preparo?: boolean
 }
 
 export type CreateCardapioItemProps = Omit<CardapioItemProps, 'uuid' | 'createdAt' | 'updatedAt' | 'deletedAt'>

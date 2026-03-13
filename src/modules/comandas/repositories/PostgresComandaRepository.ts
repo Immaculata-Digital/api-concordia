@@ -75,9 +75,12 @@ export class PostgresComandaRepository {
 
     async findItemsByPedido(tenantId: string, pedidoId: string): Promise<ComandaItemProps[]> {
         const query = `
-            SELECT ci.*, p.nome as produto_nome
+            SELECT ci.*, p.nome as produto_nome,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_min)/60)::integer as tempo_preparo_min,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_max)/60)::integer as tempo_preparo_max
             FROM app.comanda_itens ci
             JOIN app.produtos p ON p.uuid = ci.produto_id
+            LEFT JOIN app.produtos_cardapio cp ON cp.produto_id = p.uuid AND cp.tenant_id = ci.tenant_id
             WHERE ci.tenant_id = $1 AND ci.pedido_id = $2 AND ci.deleted_at IS NULL
             ORDER BY ci.created_at ASC
         `
@@ -99,7 +102,9 @@ export class PostgresComandaRepository {
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
-            produtoNome: row.produto_nome
+            produtoNome: row.produto_nome,
+            tempoPreparoMin: row.tempo_preparo_min,
+            tempoPreparoMax: row.tempo_preparo_max
         }))
     }
 
@@ -415,24 +420,78 @@ export class PostgresComandaRepository {
         }))
     }
 
-    async findPedidosKDS(tenantId: string): Promise<any[]> {
+    async findRestauranteMetas(tenantId: string): Promise<any> {
+        const { rows } = await pool.query(
+            `SELECT 
+                uuid, 
+                tenant_id, 
+                ROUND(EXTRACT(EPOCH FROM recebido_min)/60)::integer as recebido_min,
+                ROUND(EXTRACT(EPOCH FROM pronto_min)/60)::integer as pronto_min,
+                created_at,
+                updated_at
+            FROM app.restaurante_metas WHERE tenant_id = $1`,
+            [tenantId]
+        )
+        return rows[0] || null
+    }
+
+    async upsertRestauranteMetas(tenantId: string, data: any): Promise<void> {
+        const { recebido_min, pronto_min } = data
+        await pool.query(`
+            INSERT INTO app.restaurante_metas (tenant_id, recebido_min, pronto_min)
+            VALUES ($1, $2 * interval '1 minute', $3 * interval '1 minute')
+            ON CONFLICT (tenant_id) DO UPDATE SET
+                recebido_min = EXCLUDED.recebido_min,
+                pronto_min = EXCLUDED.pronto_min,
+                updated_at = NOW()
+        `, [tenantId, recebido_min, pronto_min])
+    }
+
+    async findPedidosKDS(tenantId: string, type?: string): Promise<any[]> {
+        let statusFilter = "p.status IN ('NOVO', 'EM_PREPARO', 'PRONTO', 'ENTREGUE')"
+        if (type === 'cozinheiro') {
+            statusFilter = "p.status IN ('NOVO', 'EM_PREPARO')"
+        } else if (type === 'garcom') {
+            statusFilter = "p.status = 'PRONTO'"
+        }
+
         const query = `
             SELECT 
                 p.*, 
-                m.numero as mesa_numero
+                m.numero as mesa_numero,
+                (SELECT JSON_BUILD_OBJECT(
+                    'recebido_min', ROUND(EXTRACT(EPOCH FROM rm.recebido_min)/60), 
+                    'pronto_min', ROUND(EXTRACT(EPOCH FROM rm.pronto_min)/60)
+                 ) FROM app.restaurante_metas rm WHERE rm.tenant_id = $1 LIMIT 1) as metas
             FROM app.pedidos p
             JOIN app.comandas c ON c.uuid = p.comanda_id
             JOIN app.mesas m ON m.uuid = c.mesa_id
             WHERE p.tenant_id = $1 
-              AND p.status IN ('NOVO', 'EM_PREPARO', 'PRONTO')
+              AND ${statusFilter}
               AND p.deleted_at IS NULL
-            ORDER BY p.created_at ASC
-        `
+            ORDER BY 
+                CASE 
+                    WHEN p.status = 'EM_PREPARO' THEN 1 
+                    WHEN p.status = 'NOVO' THEN 2 
+                    WHEN p.status = 'PRONTO' THEN 3
+                    ELSE 4 
+                END ASC,
+                p.created_at ASC
+        `;
         const { rows: pedidos } = await pool.query(query, [tenantId])
 
         const result = []
         for (const p of pedidos) {
             const items = await this.findItemsByPedido(tenantId, p.uuid)
+            // Calcula a meta dinâmica baseada no item mais demorado
+            const maxPrepTime = items.reduce((max: number, item: any) => {
+                const prepTime = item.tempoPreparoMax || 0
+                return Math.max(max, prepTime)
+            }, 0)
+
+            // Fallback: se não houver meta nos produtos, usa o padrão de 10min solicitado.
+            const pedidoPreparoMeta = maxPrepTime > 0 ? maxPrepTime : 10
+
             result.push({
                 uuid: p.uuid,
                 seqId: p.seq_id,
@@ -443,6 +502,11 @@ export class PostgresComandaRepository {
                 createdAt: p.created_at,
                 updatedAt: p.updated_at,
                 mesaNumero: p.mesa_numero,
+                metas: {
+                    recebido_min: p.metas?.recebido_min || 5, // Meta para entrar em produção
+                    preparo_min: pedidoPreparoMeta,         // Meta de preparo (produção ativa)
+                    pronto_min: p.metas?.pronto_min || 10   // Meta para ser despachado (após pronto)
+                },
                 items
             })
         }

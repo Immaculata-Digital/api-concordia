@@ -477,5 +477,70 @@
         "key": "erp:vitrine:listar",
         "name": "Acessar Vitrine",
         "description": "Permite visualizar o menu de Vitrine"
+    },
+    {
+        "key": "erp:restaurante:metas:editar",
+        "name": "Editar Metas do Restaurante",
+        "description": "Permite configurar os tempos ideais de atendimento e preparo"
+    },
+    {
+        "key": "erp:kds:status:todos:ler",
+        "name": "KDS: Visualizar Todas as Abas",
+        "description": "Permite visualizar todas as abas e cards do KDS independente do status"
+    },
+    {
+        "key": "erp:kds:status:todos:editar",
+        "name": "KDS: Gerenciar Todos os Status",
+        "description": "Permite alterar o status de qualquer card no KDS"
+    },
+    {
+        "key": "erp:kds:status:novo:ler",
+        "name": "KDS: Ler Pedidos Novos",
+        "description": "Permite visualizar pedidos com status NOVO no KDS"
+    },
+    {
+        "key": "erp:kds:status:novo:editar",
+        "name": "KDS: Gerenciar Pedidos Novos",
+        "description": "Permite alterar o status de pedidos NOVOS para EM_PREPARO"
+    },
+    {
+        "key": "erp:kds:status:em_preparo:ler",
+        "name": "KDS: Ler Pedidos em Preparo",
+        "description": "Permite visualizar pedidos EM_PREPARO no KDS"
+    },
+    {
+        "key": "erp:kds:status:em_preparo:editar",
+        "name": "KDS: Gerenciar Pedidos em Preparo",
+        "description": "Permite finalizar o preparo de pedidos"
+    },
+    {
+        "key": "erp:kds:status:pronto:ler",
+        "name": "KDS: Ler Pedidos Prontos",
+        "description": "Permite visualizar pedidos PRONTOS para entrega"
+    },
+    {
+        "key": "erp:kds:status:pronto:editar",
+        "name": "KDS: Gerenciar Pedidos Prontos",
+        "description": "Permite marcar pedidos PRONTOS como entregues"
+    },
+    {
+        "key": "erp:kds:status:atrasado:ler",
+        "name": "KDS: Ler Pedidos Atrasados",
+        "description": "Permite visualizar a aba de pedidos atrasados"
+    },
+    {
+        "key": "erp:kds:status:cancelado:ler",
+        "name": "KDS: Ler Pedidos Cancelados",
+        "description": "Permite visualizar pedidos cancelados na gestão do KDS"
+    },
+    {
+        "key": "erp:kds:status:entregue:ler",
+        "name": "KDS: Ler Pedidos Entregues",
+        "description": "Permite visualizar pedidos entregues/finalizados no KDS"
+    },
+    {
+        "key": "erp:kds:status:entregue:editar",
+        "name": "KDS: Gerenciar Pedidos Entregues",
+        "description": "Permite restaurar ou gerenciar pedidos que já foram entregues"
     }
 ]

@@ -23,6 +23,14 @@ export class PostgresBrandRepository implements IBrandRepository {
         return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null
     }
 
+    async getConfigByTenantSlug(slug: string): Promise<BrandConfig | null> {
+        const result = await pool.query(
+            'SELECT uuid as tenant_id, brand_settings as content, created_at, updated_at FROM app.tenants WHERE slug = $1',
+            [slug]
+        )
+        return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null
+    }
+
     async upsertConfig(tenantId: string, contentToMerge: Partial<BrandConfigContent>, userId: string): Promise<BrandConfig> {
         const result = await pool.query(
             `UPDATE app.tenants SET 

@@ -45,7 +45,12 @@ export async function convertImageToWebP(dataUri: string): Promise<ConvertedImag
         const rawBase64 = dataUri.substring(commaIndex + 1)
         const inputBuffer = Buffer.from(rawBase64, 'base64')
         const webpBuffer = await sharp(inputBuffer)
-            .webp({ quality: 85 })
+            .rotate()
+            .webp({ 
+                quality: 95,
+                effort: 6,
+                lossless: false
+            })
             .toBuffer()
 
         const webpBase64 = webpBuffer.toString('base64')

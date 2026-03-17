@@ -24,7 +24,7 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
         `SELECT DISTINCT unnest(g.features) as feature
          FROM app.access_groups g
          JOIN app.access_group_memberships m ON m.group_id = g.uuid
-         WHERE m.user_id = $1 AND m.tenant_id = $2 AND g.tenant_id = $2`,
+         WHERE m.user_id = $1 AND m.tenant_id = $2`,
         [userId, tenantId]
     )
     const groupFeatures = groupFeaturesResult.rows.map(row => row.feature)

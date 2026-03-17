@@ -42,8 +42,8 @@ export const updateConfigHandler = async (req: Request, res: Response) => {
         const userId = req.user!.uuid
         const { type } = req.query
 
-        if (!['logo', 'palette', 'typography'].includes(type as string)) {
-            return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|palette|typography' })
+        if (!['logo', 'palette', 'typography', 'social'].includes(type as string)) {
+            return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|palette|typography|social' })
         }
 
         const { tenantId: _, ...cleanData } = req.body

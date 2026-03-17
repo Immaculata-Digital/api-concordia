@@ -17,6 +17,7 @@ export interface PaletteConfig {
     primary?: string;
     secondary?: string;
     accent?: string;
+    system?: string;
     background_light?: string;
     background_dark?: string;
 }
@@ -26,10 +27,19 @@ export interface TypographyConfig {
     body?: string;
 }
 
+export interface SocialMediaConfig {
+    instagram?: string;
+    facebook?: string;
+    linkedin?: string;
+    youtube?: string;
+    x?: string;
+}
+
 export interface BrandConfigContent {
     logo?: LogoConfig
     palette?: PaletteConfig
     typography?: TypographyConfig
+    social?: SocialMediaConfig
 }
 
 export interface BrandConfig {

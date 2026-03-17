@@ -17,7 +17,9 @@ publicTenantRoutes.get('/', async (req, res) => {
             modules: t.modules,
             latitude: t.latitude,
             longitude: t.longitude,
-            plusCode: t.plusCode
+            plusCode: t.plusCode,
+            description: t.description,
+            fullAddress: (t as any).fullAddress
         }))
         return res.json(publicTenants)
     } catch (error) {

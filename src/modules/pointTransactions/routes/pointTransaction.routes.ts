@@ -10,6 +10,9 @@ export const pointTransactionRoutes = Router()
 const repository = new PostgresPointTransactionRepository()
 const clientRepository = new PostgresPluvytClientRepository()
 
+import { PostgresTenantRepository } from '../../tenants/repositories/PostgresTenantRepository'
+const tenantRepository = new PostgresTenantRepository()
+
 pointTransactionRoutes.get('/', async (req, res) => {
     const tenantId = req.user!.tenantId
     const { clientId } = req.query
@@ -25,8 +28,16 @@ pointTransactionRoutes.get('/:id', async (req, res) => {
 })
 
 pointTransactionRoutes.post('/', async (req, res) => {
-    const tenantId = req.user!.tenantId
-    const { clientId, type, points, origin, rewardItemId, lojaId, observation } = req.body
+    const storeTenantId = req.user!.tenantId
+    let operationTenantId = req.user!.tenantId
+    const { clientId, type, points, origin, rewardItemId, lojaId, observation, useDefaultTenant } = req.body
+    
+    if (useDefaultTenant === true) {
+        const immaculata = await tenantRepository.findBySlug('immaculata')
+        if (immaculata) {
+            operationTenantId = immaculata.uuid
+        }
+    }
     
     // Check permission for manual credit
     if (origin === 'MANUAL' && type === 'CREDITO') {
@@ -37,7 +48,7 @@ pointTransactionRoutes.post('/', async (req, res) => {
     }
 
     const ptPoints = Number(points)
-    const clientRecord = await clientRepository.findById(clientId, tenantId)
+    const clientRecord = await clientRepository.findById(clientId, operationTenantId)
 
     if (!clientRecord) {
         return res.status(404).json({ message: 'Cliente Pluvyt não encontrado' })
@@ -49,7 +60,7 @@ pointTransactionRoutes.post('/', async (req, res) => {
          FROM app.users u
          JOIN app.people p ON p.usuario_id = u.uuid
          WHERE p.uuid = $1 AND u.tenant_id = $2`,
-        [clientRecord.toJSON().personId, tenantId]
+        [clientRecord.toJSON().personId, operationTenantId]
     )
     if (userRes.rowCount && userRes.rowCount > 0) {
         const user = userRes.rows[0]
@@ -79,7 +90,7 @@ pointTransactionRoutes.post('/', async (req, res) => {
     await clientRepository.update(clientRecord)
 
     const transaction = PointTransaction.create({
-        tenantId,
+        tenantId: storeTenantId, // Record the store that credited the points
         clientId,
         type,
         points: ptPoints,

@@ -17,6 +17,7 @@ export interface TenantProps {
     longitude?: number | null
     plusCode?: string | null
     brand_settings?: any
+    description?: string | null
 }
 
 export type CreateTenantProps = Omit<TenantProps, 'uuid' | 'createdAt' | 'updatedAt'>

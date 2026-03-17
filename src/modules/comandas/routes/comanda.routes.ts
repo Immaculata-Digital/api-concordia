@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { PostgresComandaRepository } from '../repositories/PostgresComandaRepository'
 import { Comanda } from '../entities/Comanda'
 import { authenticate } from '../../../core/middlewares/authenticate'
+import { socketManager } from '../../../infra/websocket/SocketManager'
+
 
 export const comandaRoutes = Router()
 const repository = new PostgresComandaRepository()
@@ -45,6 +47,7 @@ comandaRoutes.patch('/restaurante/:id/status', authenticate, async (req, res) =>
     const tenantId = req.user!.tenantId
     const { status } = req.body
     await repository.updatePedidoStatus(tenantId, req.params.id as string, status, req.user!.uuid)
+    socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'status_pedido_atualizado', pedidoId: req.params.id })
     return res.json({ message: 'Status atualizado com sucesso' })
 })
 
@@ -75,6 +78,7 @@ comandaRoutes.post('/:id/itens', authenticate, async (req, res) => {
         tenantId,
         createdBy: req.user!.uuid
     })
+    socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'itens_comanda_adicionados', comandaId: req.params.id })
     const updated = await repository.findById(tenantId, req.params.id as string)
     return res.status(201).json(updated)
 })
@@ -83,6 +87,7 @@ comandaRoutes.patch('/:id/status', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId
     const { status } = req.body
     await repository.updateStatus(tenantId, req.params.id as string, status, req.user!.uuid)
+    socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'status_comanda_atualizado', comandaId: req.params.id })
     const updated = await repository.findById(tenantId, req.params.id as string)
     return res.json(updated)
 })

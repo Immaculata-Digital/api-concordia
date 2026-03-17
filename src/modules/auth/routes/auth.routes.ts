@@ -148,7 +148,7 @@ authRoutes.post('/login', async (req, res) => {
                 created_at as date,
                 CASE WHEN type = 'CREDITO' THEN 'credit' ELSE 'debit' END as type
              FROM app.point_transactions
-             WHERE client_id = (SELECT uuid FROM app.pluvyt_clients WHERE person_id = $1 LIMIT 1)
+             WHERE client_id IN (SELECT uuid FROM app.pluvyt_clients WHERE person_id = $1)
              ORDER BY created_at DESC
              LIMIT 10`,
             [extra.person_id]
@@ -626,7 +626,7 @@ authRoutes.get('/profile', async (req, res) => {
                 created_at as date,
                 CASE WHEN type = 'CREDITO' THEN 'credit' ELSE 'debit' END as type
              FROM app.point_transactions
-             WHERE client_id = (SELECT uuid FROM app.pluvyt_clients WHERE person_id = $1 LIMIT 1)
+             WHERE client_id IN (SELECT uuid FROM app.pluvyt_clients WHERE person_id = $1)
              ORDER BY created_at DESC
              LIMIT 50`,
             [extra.person_id]

@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import { PostgresPluvytClientRepository } from '../repositories/PostgresPluvytClientRepository'
 import { PluvytClient } from '../entities/PluvytClient'
+import { PostgresTenantRepository } from '../../tenants/repositories/PostgresTenantRepository'
 
 const pluvytClientRoutes = Router()
 const repository = new PostgresPluvytClientRepository()
+const tenantRepository = new PostgresTenantRepository()
 
 pluvytClientRoutes.get('/', async (req, res) => {
     try {
@@ -31,8 +33,16 @@ pluvytClientRoutes.get('/:id', async (req, res) => {
 
 pluvytClientRoutes.get('/by-cpf/:cpf', async (req, res) => {
     try {
-        const tenantId = req.user!.tenantId
+        let tenantId = req.user!.tenantId
         const { cpf } = req.params
+
+        if (req.query.useDefaultTenant === 'true') {
+            const immaculata = await tenantRepository.findBySlug('immaculata')
+            if (immaculata) {
+                tenantId = immaculata.uuid
+            }
+        }
+
         const client = await repository.findByCpf(cpf, tenantId)
         if (!client) return res.status(404).json({ message: 'Cliente não encontrado' })
         return res.json(client.toJSON())

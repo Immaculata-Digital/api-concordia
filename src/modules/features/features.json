@@ -156,37 +156,44 @@
     {
         "key": "erp:tenants:pluvyt:listar",
         "name": "Listar Estabelecimentos Pluvyt",
-        "description": "Visualize a listagem de estabelecimentos vinculados ao programa Pluvyt"
+        "description": "Visualize a listagem de estabelecimentos vinculados ao programa Pluvyt",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt-clients:listar",
         "name": "Listar Clientes Pluvyt",
-        "description": "Visualize a listagem de clientes do programa Pluvyt"
+        "description": "Visualize a listagem de clientes do programa Pluvyt",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt-clients:visualizar",
         "name": "Ver Detalhes do Cliente Pluvyt",
-        "description": "Veja o saldo e histórico do cliente"
+        "description": "Veja o saldo e histórico do cliente",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt-clients:criar",
         "name": "Categorizar Cliente Pluvyt",
-        "description": "Transforme uma pessoa em cliente Pluvyt"
+        "description": "Transforme uma pessoa em cliente Pluvyt",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt-clients:editar",
         "name": "Editar Cliente Pluvyt",
-        "description": "Altere saldo e dados do cliente"
+        "description": "Altere saldo e dados do cliente",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt-clients:excluir",
         "name": "Excluir Cliente Pluvyt",
-        "description": "Remover vínculo Pluvyt da pessoa"
+        "description": "Remover vínculo Pluvyt da pessoa",
+        "module": "pluvyt"
     },
     {
         "key": "erp:pluvyt:creditar-pontos",
         "name": "Creditar Pontos Pluvyt",
-        "description": "Permite realizar o crédito manual de pontos para clientes Pluvyt através do Valor da Compra"
+        "description": "Permite realizar o crédito manual de pontos para clientes Pluvyt através do Valor da Compra",
+        "module": "pluvyt"
     },
     {
         "key": "erp:produtos:listar",
@@ -216,77 +223,92 @@
     {
         "key": "erp:recompensas:listar",
         "name": "Listar Itens de Recompensa",
-        "description": "Visualize a listagem de itens de recompensa"
+        "description": "Visualize a listagem de itens de recompensa",
+        "module": "pluvyt"
     },
     {
         "key": "erp:recompensas:visualizar",
         "name": "Ver Detalhes da Recompensa",
-        "description": "Visualize detalhes de um item de recompensa"
+        "description": "Visualize detalhes de um item de recompensa",
+        "module": "pluvyt"
     },
     {
         "key": "erp:recompensas:criar",
         "name": "Criar Item de Recompensa",
-        "description": "Cadastrar novos itens de recompensa"
+        "description": "Cadastrar novos itens de recompensa",
+        "module": "pluvyt"
     },
     {
         "key": "erp:recompensas:editar",
         "name": "Editar Item de Recompensa",
-        "description": "Alterar dados das recompensas"
+        "description": "Alterar dados das recompensas",
+        "module": "pluvyt"
     },
     {
         "key": "erp:recompensas:excluir",
         "name": "Excluir Item de Recompensa",
-        "description": "Remover itens de recompensa do sistema"
+        "description": "Remover itens de recompensa do sistema",
+        "module": "pluvyt"
     },
     {
         "key": "erp:transacoes-pontos:listar",
         "name": "Listar Transações de Pontos",
-        "description": "Visualize o histórico de transações de pontos"
+        "description": "Visualize o histórico de transações de pontos",
+        "module": "pluvyt"
     },
     {
         "key": "erp:transacoes-pontos:visualizar",
         "name": "Ver Detalhes da Transação",
-        "description": "Visualize detalhes de uma movimentação de pontos"
+        "description": "Visualize detalhes de uma movimentação de pontos",
+        "module": "pluvyt"
     },
     {
         "key": "erp:transacoes-pontos:criar",
         "name": "Criar Lançamento de Pontos",
-        "description": "Realizar lançamentos manuais de débito ou crédito"
+        "description": "Realizar lançamentos manuais de débito ou crédito",
+        "module": "pluvyt"
     },
     {
         "key": "erp:transacoes-pontos:editar",
         "name": "Editar Transação de Pontos",
-        "description": "Alterar dados de uma transação existente"
+        "description": "Alterar dados de uma transação existente",
+        "module": "pluvyt"
     },
     {
         "key": "erp:transacoes-pontos:excluir",
         "name": "Excluir Transação de Pontos",
-        "description": "Remover registro de transação do sistema"
+        "description": "Remover registro de transação do sistema",
+        "module": "pluvyt"
     },
     {
         "key": "erp:cardapio:itens:listar",
         "name": "Listar Itens",
-        "description": "Ver itens do cardápio"
+        "description": "Ver itens do cardápio",
+        "module": "restaurante"
     },
     {
         "key": "erp:cardapio:itens:visualizar",
         "name": "Ver Item",
-        "description": "Detalhes do item do cardápio"
+        "description": "Detalhes do item do cardápio",
+        "module": "restaurante"
     },
     {
         "key": "erp:cardapio:itens:criar",
         "name": "Criar Item",
-        "description": "Criar itens do cardápio"
+        "description": "Criar itens do cardápio",
+        "module": "restaurante"
     },
     {
         "key": "erp:cardapio:itens:editar",
         "name": "Editar Item",
-        "description": "Editar itens do cardápio"
+        "description": "Editar itens do cardápio",
+        "module": "restaurante"
     },
     {
         "key": "erp:cardapio:itens:excluir",
         "name": "Excluir Item",
-        "description": "Excluir itens do cardápio"
+        "description": "Excluir itens do cardápio",
+        "module": "restaurante"
     },
     {
         "key": "erp:produtos:categorias:listar",
@@ -316,52 +338,62 @@
     {
         "key": "erp:mesas:listar",
         "name": "Listar Mesas",
-        "description": "Visualize a listagem de mesas"
+        "description": "Visualize a listagem de mesas",
+        "module": "restaurante"
     },
     {
         "key": "erp:mesas:visualizar",
         "name": "Ver Detalhes da Mesa",
-        "description": "Ver ficha completa da mesa"
+        "description": "Ver ficha completa da mesa",
+        "module": "restaurante"
     },
     {
         "key": "erp:mesas:criar",
         "name": "Criar Mesa",
-        "description": "Cadastrar novas mesas"
+        "description": "Cadastrar novas mesas",
+        "module": "restaurante"
     },
     {
         "key": "erp:mesas:editar",
         "name": "Editar Mesa",
-        "description": "Alterar dados das mesas"
+        "description": "Alterar dados das mesas",
+        "module": "restaurante"
     },
     {
         "key": "erp:mesas:excluir",
         "name": "Excluir Mesa",
-        "description": "Remover mesas"
+        "description": "Remover mesas",
+        "module": "restaurante"
     },
     {
         "key": "erp:comandas:listar",
         "name": "Listar Comandas",
-        "description": "Visualize a listagem de comandas abertas e fechadas"
+        "description": "Visualize a listagem de comandas abertas e fechadas",
+        "module": "restaurante"
     },
     {
         "key": "erp:comandas:visualizar",
         "name": "Ver Detalhes da Comanda",
-        "description": "Ver ficha completa e itens da comanda"
+        "description": "Ver ficha completa e itens da comanda",
+        "module": "restaurante"
     },
     {
         "key": "erp:comandas:criar",
         "name": "Abrir Comanda",
-        "description": "Abrir nova comanda para uma mesa"
+        "description": "Abrir nova comanda para uma mesa",
+        "module": "restaurante"
     },
     {
         "key": "erp:comandas:editar",
         "name": "Gerenciar Comanda",
-        "description": "Acrescentar itens ou alterar dados da comanda"
+        "description": "Acrescentar itens ou alterar dados da comanda",
+        "module": "restaurante"
     },
     {
         "key": "erp:comandas:excluir",
         "name": "Cancelar Comanda",
-        "description": "Remover ou cancelar uma comanda"
+        "description": "Remover ou cancelar uma comanda",
+        "module": "restaurante"
     },
     {
         "key": "erp:notificacoes:receber-alertas",
@@ -391,156 +423,181 @@
     {
         "key": "erp:identidade-visual:listar",
         "name": "Gerenciar Identidade Visual",
-        "description": "Permite configurar o logotipo, tipografia e cores da plataforma"
+        "description": "Permite configurar o logotipo, tipografia e cores da plataforma",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:listar",
         "name": "Listar Landing Pages",
-        "description": "Visualizar a lista de Landing Pages"
+        "description": "Visualizar a lista de Landing Pages",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:visualizar",
         "name": "Visualizar Landing Page",
-        "description": "Ver detalhes de uma Landing Page específica"
+        "description": "Ver detalhes de uma Landing Page específica",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:criar",
         "name": "Criar Landing Page",
-        "description": "Criar novas Landing Pages"
+        "description": "Criar novas Landing Pages",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:editar",
         "name": "Editar Landing Page",
-        "description": "Editar informações e conteúdo de Landing Pages"
+        "description": "Editar informações e conteúdo de Landing Pages",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:excluir",
         "name": "Excluir Landing Page",
-        "description": "Remover Landing Pages do sistema"
+        "description": "Remover Landing Pages do sistema",
+        "module": "site"
     },
     {
         "key": "erp:pessoas:ecommercelojas",
         "name": "Acessar Lojas (E-commerce)",
-        "description": "Permite acessar a tela de Pessoas na visualização de Lojas de E-commerce"
+        "description": "Permite acessar a tela de Pessoas na visualização de Lojas de E-commerce",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:ecommerce-produtos",
         "name": "Acessar Produtos (E-commerce)",
-        "description": "Permite acessar a tela de Produtos na visualização de E-commerce"
+        "description": "Permite acessar a tela de Produtos na visualização de E-commerce",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:lista:listar",
         "name": "Listar Listas de Produtos",
-        "description": "Visualizar a listagem de listas de produtos cadastradas"
+        "description": "Visualizar a listagem de listas de produtos cadastradas",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:lista:visualizar",
         "name": "Visualizar Lista de Produto",
-        "description": "Visualizar os detalhes e produtos de uma lista específica"
+        "description": "Visualizar os detalhes e produtos de uma lista específica",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:lista:criar",
         "name": "Criar Lista de Produto",
-        "description": "Criar novas listas de produtos"
+        "description": "Criar novas listas de produtos",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:lista:editar",
         "name": "Editar Lista de Produto",
-        "description": "Alterar dados de listas de produtos"
+        "description": "Alterar dados de listas de produtos",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:produtos:lista:excluir",
         "name": "Excluir Lista de Produto",
-        "description": "Remover listas de produtos do sistema"
+        "description": "Remover listas de produtos do sistema",
+        "module": "loja-virtual"
     },
     {
         "key": "erp:restaurante:historico:listar",
         "name": "Listar Histórico de Pedidos",
-        "description": "Permite visualizar o histórico completo de pedidos realizados"
+        "description": "Permite visualizar o histórico completo de pedidos realizados",
+        "module": "restaurante"
     },
     {
         "key": "erp:restaurante:historico:visualizar",
         "name": "Ver Detalhes do Pedido",
-        "description": "Permite visualizar os itens e status de um pedido específico"
+        "description": "Permite visualizar os itens e status de um pedido específico",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:operacional",
         "name": "KDS / Operacional",
-        "description": "Acesso ao painel de Cozinha (Kitchen Display System) para gestão de pedidos"
+        "description": "Acesso ao painel de Cozinha (Kitchen Display System) para gestão de pedidos",
+        "module": "restaurante"
     },
     {
         "key": "erp:restaurante:dashboard:visualizar",
         "name": "Visualizar Dashboard de Pedidos de Restaurante",
-        "description": "Permite visualizar o painel de indicadores e gráficos de pedidos"
-    },
-    {
-        "key": "erp:vitrine:listar",
-        "name": "Acessar Vitrine",
-        "description": "Permite visualizar o menu de Vitrine"
+        "description": "Permite visualizar o painel de indicadores e gráficos de pedidos",
+        "module": "restaurante"
     },
     {
         "key": "erp:restaurante:metas:editar",
         "name": "Editar Metas do Restaurante",
-        "description": "Permite configurar os tempos ideais de atendimento e preparo"
+        "description": "Permite configurar os tempos ideais de atendimento e preparo",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:todos:ler",
         "name": "KDS: Visualizar Todas as Abas",
-        "description": "Permite visualizar todas as abas e cards do KDS independente do status"
+        "description": "Permite visualizar todas as abas e cards do KDS independente do status",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:todos:editar",
         "name": "KDS: Gerenciar Todos os Status",
-        "description": "Permite alterar o status de qualquer card no KDS"
+        "description": "Permite alterar o status de qualquer card no KDS",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:novo:ler",
         "name": "KDS: Ler Pedidos Novos",
-        "description": "Permite visualizar pedidos com status NOVO no KDS"
+        "description": "Permite visualizar pedidos com status NOVO no KDS",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:novo:editar",
         "name": "KDS: Gerenciar Pedidos Novos",
-        "description": "Permite alterar o status de pedidos NOVOS para EM_PREPARO"
+        "description": "Permite alterar o status de pedidos NOVOS para EM_PREPARO",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:em_preparo:ler",
         "name": "KDS: Ler Pedidos em Preparo",
-        "description": "Permite visualizar pedidos EM_PREPARO no KDS"
+        "description": "Permite visualizar pedidos EM_PREPARO no KDS",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:em_preparo:editar",
         "name": "KDS: Gerenciar Pedidos em Preparo",
-        "description": "Permite finalizar o preparo de pedidos"
+        "description": "Permite finalizar o preparo de pedidos",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:pronto:ler",
         "name": "KDS: Ler Pedidos Prontos",
-        "description": "Permite visualizar pedidos PRONTOS para entrega"
+        "description": "Permite visualizar pedidos PRONTOS para entrega",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:pronto:editar",
         "name": "KDS: Gerenciar Pedidos Prontos",
-        "description": "Permite marcar pedidos PRONTOS como entregues"
+        "description": "Permite marcar pedidos PRONTOS como entregues",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:atrasado:ler",
         "name": "KDS: Ler Pedidos Atrasados",
-        "description": "Permite visualizar a aba de pedidos atrasados"
+        "description": "Permite visualizar a aba de pedidos atrasados",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:cancelado:ler",
         "name": "KDS: Ler Pedidos Cancelados",
-        "description": "Permite visualizar pedidos cancelados na gestão do KDS"
+        "description": "Permite visualizar pedidos cancelados na gestão do KDS",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:entregue:ler",
         "name": "KDS: Ler Pedidos Entregues",
-        "description": "Permite visualizar pedidos entregues/finalizados no KDS"
+        "description": "Permite visualizar pedidos entregues/finalizados no KDS",
+        "module": "restaurante"
     },
     {
         "key": "erp:kds:status:entregue:editar",
         "name": "KDS: Gerenciar Pedidos Entregues",
-        "description": "Permite restaurar ou gerenciar pedidos que já foram entregues"
+        "description": "Permite restaurar ou gerenciar pedidos que já foram entregues",
+        "module": "restaurante"
     }
 ]

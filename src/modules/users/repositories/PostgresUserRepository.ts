@@ -123,10 +123,20 @@ export class PostgresUserRepository implements IUserRepository {
     private async syncGroups(userUuid: string, tenantId: string, groupIds: string[] = []): Promise<void> {
         await pool.query('DELETE FROM app.access_group_memberships WHERE user_id = $1', [userUuid])
         for (const groupId of groupIds) {
-            await pool.query(
-                'INSERT INTO app.access_group_memberships (tenant_id, user_id, group_id) VALUES ($1, $2, $3)',
-                [tenantId, userUuid, groupId]
+            // Check if group belongs to tenant before inserting membership
+            const groupCheck = await pool.query(
+                'SELECT 1 FROM app.access_groups WHERE uuid = $1 AND tenant_id = $2',
+                [groupId, tenantId]
             )
+            
+            if (groupCheck.rowCount && groupCheck.rowCount > 0) {
+                await pool.query(
+                    'INSERT INTO app.access_group_memberships (tenant_id, user_id, group_id) VALUES ($1, $2, $3)',
+                    [tenantId, userUuid, groupId]
+                )
+            } else {
+                console.warn(`[UserRepository] Attempted to assign group ${groupId} to user ${userUuid} in tenant ${tenantId}, but group does not belong to tenant.`)
+            }
         }
     }
 }

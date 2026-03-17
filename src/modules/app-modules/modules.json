@@ -20,8 +20,8 @@
         "menuParent": "Loja Virtual"
     },
     {
-        "key": "vitrine",
-        "name": "Vitrine",
-        "menuParent": "Vitrine"
+        "key": "whatsapp",
+        "name": "WhatsApp",
+        "menuParent": "WhatsApp"
     }
 ]

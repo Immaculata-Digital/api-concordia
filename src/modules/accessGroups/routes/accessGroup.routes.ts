@@ -6,7 +6,7 @@ export const accessGroupRoutes = Router()
 accessGroupRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId
-        const result = await pool.query('SELECT * FROM app.access_groups')
+        const result = await pool.query('SELECT * FROM app.access_groups WHERE tenant_id = $1', [tenantId])
         // Mapear campos para compatibilidade com o front-end se necessário
         const groups = result.rows.map(row => ({
             id: row.uuid,

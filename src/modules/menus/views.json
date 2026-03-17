@@ -28,5 +28,14 @@
                 "slug": "clientes-pluvyt"
             }
         ]
+    },
+    {
+        "screen": "Lista de Produtos",
+        "views": [
+            {
+                "name": "Vitrine",
+                "slug": "loja-virtual-vitrine"
+            }
+        ]
     }
 ]

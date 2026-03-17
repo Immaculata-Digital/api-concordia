@@ -133,10 +133,10 @@
         "category": "Loja Virtual"
     },
     {
-        "key": "erp:vitrine:listar",
+        "key": "erp:produtos:lista:listar",
         "name": "Vitrine",
         "icon": "Storefront",
-        "url": "/vitrine",
-        "category": "Vitrine"
+        "url": "/lista-produtos?view=loja-virtual-vitrine",
+        "category": "Loja Virtual"
     }
 ]

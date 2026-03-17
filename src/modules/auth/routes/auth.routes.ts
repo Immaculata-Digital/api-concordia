@@ -24,7 +24,7 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
         `SELECT DISTINCT unnest(g.features) as feature
          FROM app.access_groups g
          JOIN app.access_group_memberships m ON m.group_id = g.uuid
-         WHERE m.user_id = $1 AND m.tenant_id = $2`,
+         WHERE m.user_id = $1 AND m.tenant_id = $2 AND g.tenant_id = $2`,
         [userId, tenantId]
     )
     const groupFeatures = groupFeaturesResult.rows.map(row => row.feature)
@@ -194,7 +194,8 @@ authRoutes.post('/login', async (req, res) => {
                 redemptions: []
             },
             menus: filteredMenus,
-            permissions
+            permissions,
+            modules: tenantModules
         })
     } catch (error: any) {
         console.error('[AUTH_ROUTES] Login error:', error)
@@ -238,9 +239,13 @@ authRoutes.post('/refresh-token', async (req, res) => {
 
         const newRefreshToken = generateRefreshToken(userRow.uuid)
 
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [userRow.tenant_id])
+        const tenantModules = tenantRes.rows[0]?.modules || []
+
         return res.json({
             accessToken: newAccessToken,
-            refreshToken: newRefreshToken
+            refreshToken: newRefreshToken,
+            modules: tenantModules
         })
 
     } catch (error) {
@@ -274,7 +279,10 @@ authRoutes.get('/me', async (req, res) => {
         if (!authHeader) return res.status(401).json({ message: 'No token' })
         const token = authHeader.split(' ')[1]
         const decoded = jwt.decode(token) as any
-        return res.json({ user: decoded, permissions: decoded?.permissions || [] })
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [decoded?.tenantId])
+        const tenantModules = tenantRes.rows[0]?.modules || []
+        
+        return res.json({ user: decoded, permissions: decoded?.permissions || [], modules: tenantModules })
     } catch (e) {
         return res.status(500).json({ error: 'Error' })
     }
@@ -624,6 +632,9 @@ authRoutes.get('/profile', async (req, res) => {
             [extra.person_id]
         )
 
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [user.tenant_id])
+        const tenantModules = tenantRes.rows[0]?.modules || []
+
         return res.json({
             id: user.uuid,
             personId: extra.person_id,
@@ -648,10 +659,11 @@ authRoutes.get('/profile', async (req, res) => {
                 longitude: extra.longitude,
                 plusCode: extra.plus_code
             } : null,
-            statement: statementRes.rows.map(row => ({
+            statement: statementRes.rows.map((row: any) => ({
                 ...row,
                 points: Number(row.points)
-            }))
+            })),
+            modules: tenantModules
         })
     } catch (err) {
         return res.status(401).json({ message: 'Token inválido ou expirado' })

@@ -69,17 +69,16 @@ accessGroupRoutes.put('/:id', async (req, res) => {
 
         const result = await pool.query(
             `UPDATE app.access_groups SET 
-                name = COALESCE($3, name),
-                code = COALESCE($4, code),
-                description = COALESCE($5, description),
-                features = COALESCE($6, features),
-                permissions = COALESCE($7, permissions),
-                updated_by = $8,
+                name = COALESCE($2, name),
+                code = COALESCE($3, code),
+                description = COALESCE($4, description),
+                features = COALESCE($5, features),
+                permissions = COALESCE($6, permissions),
+                updated_by = $7,
                 updated_at = NOW()
-             WHERE tenant_id = $1 AND uuid = $2
+             WHERE uuid = $1
              RETURNING *`,
             [
-                tenantId,
                 id,
                 name,
                 code,
@@ -113,8 +112,8 @@ accessGroupRoutes.delete('/:id', async (req, res) => {
         const { id } = req.params
 
         const result = await pool.query(
-            'DELETE FROM app.access_groups WHERE tenant_id = $1 AND uuid = $2',
-            [tenantId, id]
+            'DELETE FROM app.access_groups WHERE uuid = $1',
+            [id]
         )
 
         if (result.rowCount === 0) {

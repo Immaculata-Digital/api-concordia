@@ -28,6 +28,7 @@ import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/pr
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
 import { publicTenantRoutes } from '../modules/tenants/routes/public.routes'
 import { publicLandingPageRoutes } from '../modules/landing-pages/routes/public.routes'
+import { publicMesaRoutes } from '../modules/mesas/routes/public.routes'
 
 export const publicRoutes = Router()
 export const routes = Router()
@@ -43,6 +44,7 @@ publicRoutes.use('/public/people', publicPeopleRoutes)
 publicRoutes.use('/public/identidade-visual', publicBrandRoutes)
 publicRoutes.use('/public/tenants', publicTenantRoutes)
 publicRoutes.use('/public/landing-pages', publicLandingPageRoutes)
+publicRoutes.use('/public/mesas', publicMesaRoutes)
 publicRoutes.use('/recompensas', publicRecompensasRoutes)
 
 // Rotas protegidas

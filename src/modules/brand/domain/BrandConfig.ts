@@ -35,11 +35,30 @@ export interface SocialMediaConfig {
     x?: string;
 }
 
+export interface TenantInfoConfig {
+    name?: string;
+    document?: string;
+    address?: {
+        street?: string;
+        number?: string;
+        complement?: string;
+        neighborhood?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+    };
+    phone?: string;
+}
+
 export interface BrandConfigContent {
     logo?: LogoConfig
     palette?: PaletteConfig
     typography?: TypographyConfig
     social?: SocialMediaConfig
+    tenantInfo?: TenantInfoConfig
+    name?: string
+    description?: string
+    category?: string
 }
 
 export interface BrandConfig {

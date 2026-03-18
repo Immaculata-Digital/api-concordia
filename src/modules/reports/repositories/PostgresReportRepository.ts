@@ -7,14 +7,8 @@ export class PostgresReportRepository {
                 SELECT 
                     COALESCE(SUM(total), 0) as faturamento,
                     COALESCE(AVG(total), 0) as ticket_medio,
-                    COUNT(*) FILTER (WHERE status = 'PAGA') as comandas_pagas
-                FROM app.comandas 
-                WHERE tenant_id = $1 AND status = 'PAGA' 
-                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
-                  AND deleted_at IS NULL
-            ),
-            pedidos_hoje AS (
-                SELECT COUNT(*) as count FROM app.pedidos 
+                    COUNT(*) as pedidos_hoje
+                FROM app.pedidos 
                 WHERE tenant_id = $1 AND status != 'CANCELADO' 
                   AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
                   AND deleted_at IS NULL
@@ -26,31 +20,20 @@ export class PostgresReportRepository {
             stats_ontem AS (
                 SELECT 
                     COALESCE(SUM(total), 0) as faturamento,
-                    COUNT(*) as comandas_pagas
-                FROM app.comandas 
-                WHERE tenant_id = $1 AND status = 'PAGA' 
-                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
-                  AND deleted_at IS NULL
-            ),
-            pedidos_ontem AS (
-                SELECT COUNT(*) as count FROM app.pedidos 
+                    COALESCE(AVG(total), 0) as ticket_medio,
+                    COUNT(*) as pedidos_ontem
+                FROM app.pedidos 
                 WHERE tenant_id = $1 AND status != 'CANCELADO' 
                   AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
-                  AND deleted_at IS NULL
-            ),
-            ticket_ontem AS (
-                SELECT COALESCE(AVG(total), 0) as avg FROM app.comandas 
-                WHERE tenant_id = $1 AND status = 'PAGA' 
-                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
                   AND deleted_at IS NULL
             )
             SELECT 
                 (SELECT faturamento FROM stats_hoje) as faturamento_hoje,
                 (SELECT faturamento FROM stats_ontem) as faturamento_ontem,
-                (SELECT count FROM pedidos_hoje) as pedidos_hoje,
-                (SELECT count FROM pedidos_ontem) as pedidos_ontem,
+                (SELECT pedidos_hoje FROM stats_hoje) as pedidos_hoje,
+                (SELECT pedidos_ontem FROM stats_ontem) as pedidos_ontem,
                 (SELECT ticket_medio FROM stats_hoje) as ticket_medio_hoje,
-                (SELECT avg FROM ticket_ontem) as ticket_medio_ontem,
+                (SELECT ticket_medio FROM stats_ontem) as ticket_medio_ontem,
                 (SELECT count FROM mesas_ativas) as mesas_ativas
         `
         const { rows } = await pool.query(query, [tenantId])

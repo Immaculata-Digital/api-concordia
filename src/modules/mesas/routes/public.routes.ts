@@ -13,11 +13,5 @@ publicMesaRoutes.get('/', async (req, res) => {
     }
 
     const mesas = await repository.findAll(tenantId as string)
-    // Retornamos apenas o básico necessário para o cardápio
-    return res.json(mesas.map(m => ({
-        uuid: m.uuid,
-        numero: m.numero,
-        status: m.status,
-        capacidade: m.capacidade
-    })))
+    return res.json(mesas)
 })

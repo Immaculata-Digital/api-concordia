@@ -2,14 +2,31 @@ import { pool } from '../../../infra/database/pool'
 import { Mesa, MesaProps } from '../entities/Mesa'
 
 export class PostgresMesaRepository {
-    async findAll(tenantId: string): Promise<MesaProps[]> {
+    async findAll(tenantId: string): Promise<any[]> {
         const query = `
-            SELECT * FROM app.mesas 
-            WHERE tenant_id = $1 AND deleted_at IS NULL
-            ORDER BY numero ASC
+            SELECT m.*, c.cliente_nome as cliente_nome_ativo, c.whatsapp as whatsapp_ativo
+            FROM app.mesas m
+            LEFT JOIN app.comandas c ON c.mesa_id = m.uuid AND c.status = 'ABERTA' AND c.deleted_at IS NULL
+            WHERE m.tenant_id = $1 AND m.deleted_at IS NULL
+            ORDER BY m.numero ASC
         `
         const { rows } = await pool.query(query, [tenantId])
-        return rows.map(this.mapToProps)
+        return rows.map(this.mapToPublicProps)
+    }
+
+    private mapToPublicProps(row: any): any {
+        return {
+            uuid: row.uuid,
+            seqId: row.seq_id,
+            tenantId: row.tenant_id,
+            numero: row.numero,
+            capacidade: row.capacidade,
+            status: row.status,
+            activeClient: row.cliente_nome_ativo ? {
+                nome: row.cliente_nome_ativo,
+                whatsapp: row.whatsapp_ativo
+            } : null
+        }
     }
 
     async findById(tenantId: string, uuid: string): Promise<MesaProps | null> {

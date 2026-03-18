@@ -18,6 +18,7 @@ export interface TenantProps {
     plusCode?: string | null
     brand_settings?: any
     description?: string | null
+    pluvyt_points_per_spent?: number | null
 }
 
 export type CreateTenantProps = Omit<TenantProps, 'uuid' | 'createdAt' | 'updatedAt'>

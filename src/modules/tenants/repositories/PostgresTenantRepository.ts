@@ -18,7 +18,8 @@ export class PostgresTenantRepository implements ITenantRepository {
             logo: row.logo || null,
             category: row.category || 'Sem Categoria',
             brand_settings: row.brand_settings || null,
-            description: row.description || null
+            description: row.description || null,
+            pluvyt_points_per_spent: row.pluvyt_points_per_spent ? parseFloat(row.pluvyt_points_per_spent) : 10
         }
     }
 
@@ -69,6 +70,7 @@ export class PostgresTenantRepository implements ITenantRepository {
                 category: row.category || 'Sem Categoria',
                 brand_settings: row.brand_settings || null,
                 description: row.description || null,
+                pluvyt_points_per_spent: row.pluvyt_points_per_spent ? parseFloat(row.pluvyt_points_per_spent) : 10,
                 latitude: (row.latitude !== null && row.latitude !== undefined) ? parseFloat(row.latitude) : null,
                 longitude: (row.longitude !== null && row.longitude !== undefined) ? parseFloat(row.longitude) : null,
                 plusCode: row.plus_code,
@@ -91,12 +93,13 @@ export class PostgresTenantRepository implements ITenantRepository {
         const data = tenant.toJSON()
         const result = await pool.query(
             `INSERT INTO app.tenants (
-                uuid, name, slug, created_by, updated_by, created_at, updated_at, modules, logo, category, brand_settings, description
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                uuid, name, slug, created_by, updated_by, created_at, updated_at, modules, logo, category, brand_settings, description, pluvyt_points_per_spent
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *`,
             [
                 data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt, 
-                data.modules || [], data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, data.description || null
+                data.modules || [], data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, 
+                data.description || null, data.pluvyt_points_per_spent || 10
 
             ]
         )
@@ -108,12 +111,13 @@ export class PostgresTenantRepository implements ITenantRepository {
         const result = await pool.query(
             `UPDATE app.tenants SET
                 name = $2, slug = $3, updated_by = $4, modules = $5, logo = $6, category = $7, 
-                brand_settings = $8, description = $9, updated_at = NOW()
+                brand_settings = $8, description = $9, pluvyt_points_per_spent = $10, updated_at = NOW()
             WHERE uuid = $1
             RETURNING *`,
             [
                 data.uuid, data.name, data.slug, data.updatedBy, data.modules || [], 
-                data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, data.description || null
+                data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, 
+                data.description || null, data.pluvyt_points_per_spent || 10
 
             ]
         )

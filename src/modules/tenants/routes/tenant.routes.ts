@@ -48,7 +48,7 @@ tenantRoutes.get('/:id', async (req, res) => {
 
 tenantRoutes.post('/', async (req, res) => {
     try {
-        const { name, slug, modules, logo, category } = req.body
+        const { name, slug, modules, logo, category, pluvyt_points_per_spent } = req.body
 
         // Check if slug already exists
         const existing = await tenantRepository.findBySlug(slug)
@@ -63,7 +63,8 @@ tenantRoutes.post('/', async (req, res) => {
             updatedBy: req.user!.uuid,
             modules: modules || [],
             logo,
-            category
+            category,
+            pluvyt_points_per_spent
         })
 
         const created = await tenantRepository.create(tenant)

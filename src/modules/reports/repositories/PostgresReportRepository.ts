@@ -9,11 +9,15 @@ export class PostgresReportRepository {
                     COALESCE(AVG(total), 0) as ticket_medio,
                     COUNT(*) FILTER (WHERE status = 'PAGA') as comandas_pagas
                 FROM app.comandas 
-                WHERE tenant_id = $1 AND status = 'PAGA' AND fechada_em >= CURRENT_DATE AND deleted_at IS NULL
+                WHERE tenant_id = $1 AND status = 'PAGA' 
+                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+                  AND deleted_at IS NULL
             ),
             pedidos_hoje AS (
                 SELECT COUNT(*) as count FROM app.pedidos 
-                WHERE tenant_id = $1 AND status != 'CANCELADO' AND created_at >= CURRENT_DATE AND deleted_at IS NULL
+                WHERE tenant_id = $1 AND status != 'CANCELADO' 
+                  AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+                  AND deleted_at IS NULL
             ),
             mesas_ativas AS (
                 SELECT COUNT(*) as count FROM app.mesas 
@@ -25,22 +29,19 @@ export class PostgresReportRepository {
                     COUNT(*) as comandas_pagas
                 FROM app.comandas 
                 WHERE tenant_id = $1 AND status = 'PAGA' 
-                  AND fechada_em >= CURRENT_DATE - INTERVAL '1 day' 
-                  AND fechada_em < CURRENT_DATE 
+                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
                   AND deleted_at IS NULL
             ),
             pedidos_ontem AS (
                 SELECT COUNT(*) as count FROM app.pedidos 
                 WHERE tenant_id = $1 AND status != 'CANCELADO' 
-                  AND created_at >= CURRENT_DATE - INTERVAL '1 day' 
-                  AND created_at < CURRENT_DATE 
+                  AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
                   AND deleted_at IS NULL
             ),
             ticket_ontem AS (
                 SELECT COALESCE(AVG(total), 0) as avg FROM app.comandas 
                 WHERE tenant_id = $1 AND status = 'PAGA' 
-                  AND fechada_em >= CURRENT_DATE - INTERVAL '1 day' 
-                  AND fechada_em < CURRENT_DATE 
+                  AND (fechada_em AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date - INTERVAL '1 day'
                   AND deleted_at IS NULL
             )
             SELECT 
@@ -80,10 +81,12 @@ export class PostgresReportRepository {
     async getOrdersSalesPerHour(tenantId: string) {
         const query = `
             SELECT 
-                EXTRACT(HOUR FROM created_at) as hour, 
+                EXTRACT(HOUR FROM created_at AT TIME ZONE 'America/Sao_Paulo') as hour, 
                 COALESCE(SUM(total), 0) as total
             FROM app.pedidos
-            WHERE tenant_id = $1 AND status != 'CANCELADO' AND created_at >= CURRENT_DATE AND deleted_at IS NULL
+            WHERE tenant_id = $1 AND status != 'CANCELADO' 
+              AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+              AND deleted_at IS NULL
             GROUP BY hour 
             ORDER BY hour
         `
@@ -104,7 +107,9 @@ export class PostgresReportRepository {
         const query = `
             SELECT status, COUNT(*) as count
             FROM app.pedidos
-            WHERE tenant_id = $1 AND status != 'CANCELADO' AND created_at >= CURRENT_DATE AND deleted_at IS NULL
+            WHERE tenant_id = $1 AND status != 'CANCELADO' 
+              AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+              AND deleted_at IS NULL
             GROUP BY status
         `
         const { rows } = await pool.query(query, [tenantId])
@@ -112,7 +117,9 @@ export class PostgresReportRepository {
         const tempoQuery = `
             SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/60), 0) as avg_min
             FROM app.pedidos
-            WHERE tenant_id = $1 AND status IN ('PRONTO', 'ENTREGUE', 'PAGO') AND created_at >= CURRENT_DATE AND deleted_at IS NULL
+            WHERE tenant_id = $1 AND status IN ('PRONTO', 'ENTREGUE', 'PAGO') 
+              AND (created_at AT TIME ZONE 'America/Sao_Paulo')::date = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
+              AND deleted_at IS NULL
         `
         const { rows: tempoRows } = await pool.query(tempoQuery, [tenantId])
 

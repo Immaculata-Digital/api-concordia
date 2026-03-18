@@ -90,3 +90,14 @@ publicComandaRoutes.get('/meus-pedidos', async (req, res) => {
     const pedidos = await repository.findMyOpenPedidos(tenantId as string, whatsapp as string)
     return res.json(pedidos)
 })
+
+// Detalhes de um pedido (itens) - Público
+publicComandaRoutes.get('/:id/itens', async (req, res) => {
+    const { tenantId } = req.query
+    const { id } = req.params
+    if (!tenantId) {
+        return res.status(400).json({ message: 'tenantId é obrigatório' })
+    }
+    const itens = await repository.findItemsByPedido(tenantId as string, id)
+    return res.json(itens)
+})

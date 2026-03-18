@@ -36,6 +36,7 @@ ENV NODE_ENV=production
 ENV EVOLUTION_API_URL=https://api-evolution.concordiaerp.com
 ENV EVOLUTION_API_KEY=""
 ENV EVOLUTION_NOTIFICATIONS_INSTANCE="notificacoes"
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=""
 
 # Expor a porta que a aplicação vai rodar (internamente)
 EXPOSE 3001

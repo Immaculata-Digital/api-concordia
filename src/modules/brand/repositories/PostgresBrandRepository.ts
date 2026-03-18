@@ -9,7 +9,10 @@ export class PostgresBrandRepository implements IBrandRepository {
             tenantId: row.tenant_id,
             content: {
                 ...(row.content || {}),
-                social: row.social_media || {}
+                social: row.social_media || {},
+                description: row.description || '',
+                name: row.name || '',
+                category: row.category || ''
             },
             createdAt: row.created_at,
             createdBy: row.created_by,
@@ -20,7 +23,7 @@ export class PostgresBrandRepository implements IBrandRepository {
 
     async getConfigByTenantId(tenantId: string): Promise<BrandConfig | null> {
         const result = await pool.query(
-            'SELECT uuid as tenant_id, brand_settings as content, social_media, created_at, updated_at FROM app.tenants WHERE uuid = $1',
+            'SELECT uuid as tenant_id, brand_settings as content, social_media, description, name, category, created_at, updated_at FROM app.tenants WHERE uuid = $1',
             [tenantId]
         )
         return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null
@@ -28,7 +31,7 @@ export class PostgresBrandRepository implements IBrandRepository {
 
     async getConfigByTenantSlug(slug: string): Promise<BrandConfig | null> {
         const result = await pool.query(
-            'SELECT uuid as tenant_id, brand_settings as content, social_media, created_at, updated_at FROM app.tenants WHERE slug = $1',
+            'SELECT uuid as tenant_id, brand_settings as content, social_media, description, name, category, created_at, updated_at FROM app.tenants WHERE slug = $1',
             [slug]
         )
         return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null

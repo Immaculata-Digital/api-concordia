@@ -4,10 +4,22 @@ import { Mesa, MesaProps } from '../entities/Mesa'
 export class PostgresMesaRepository {
     async findAll(tenantId: string): Promise<any[]> {
         const query = `
-            SELECT m.*, c.cliente_nome as cliente_nome_ativo, c.whatsapp as whatsapp_ativo
+            SELECT 
+                m.*,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'nome', c.cliente_nome,
+                            'whatsapp', c.whatsapp,
+                            'comandaId', c.uuid
+                        )
+                    ) FILTER (WHERE c.uuid IS NOT NULL),
+                    '[]'::json
+                ) as active_clients
             FROM app.mesas m
             LEFT JOIN app.comandas c ON c.mesa_id = m.uuid AND c.status = 'ABERTA' AND c.deleted_at IS NULL
             WHERE m.tenant_id = $1 AND m.deleted_at IS NULL
+            GROUP BY m.uuid
             ORDER BY m.numero ASC
         `
         const { rows } = await pool.query(query, [tenantId])
@@ -22,10 +34,7 @@ export class PostgresMesaRepository {
             numero: row.numero,
             capacidade: row.capacidade,
             status: row.status,
-            activeClient: row.cliente_nome_ativo ? {
-                nome: row.cliente_nome_ativo,
-                whatsapp: row.whatsapp_ativo
-            } : null
+            activeClients: row.active_clients || []
         }
     }
 

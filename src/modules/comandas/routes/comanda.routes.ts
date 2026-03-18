@@ -48,6 +48,8 @@ comandaRoutes.patch('/restaurante/:id/status', authenticate, async (req, res) =>
     const { status } = req.body
     await repository.updatePedidoStatus(tenantId, req.params.id as string, status, req.user!.uuid)
     socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'status_pedido_atualizado', pedidoId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'status_pedido_atualizado', pedidoId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'status_pedido_atualizado', pedidoId: req.params.id })
     return res.json({ message: 'Status atualizado com sucesso' })
 })
 
@@ -67,6 +69,8 @@ comandaRoutes.post('/', authenticate, async (req, res) => {
         updatedBy: req.user!.uuid
     })
     const created = await repository.create(comanda)
+    socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'comanda_criada', comandaId: created.uuid })
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'comanda_criada', comandaId: created.uuid })
     return res.status(201).json(created)
 })
 
@@ -79,6 +83,8 @@ comandaRoutes.post('/:id/itens', authenticate, async (req, res) => {
         createdBy: req.user!.uuid
     })
     socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'itens_comanda_adicionados', comandaId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'itens_comanda_adicionados', comandaId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'itens_comanda_adicionados', comandaId: req.params.id })
     const updated = await repository.findById(tenantId, req.params.id as string)
     return res.status(201).json(updated)
 })
@@ -88,6 +94,8 @@ comandaRoutes.patch('/:id/status', authenticate, async (req, res) => {
     const { status } = req.body
     await repository.updateStatus(tenantId, req.params.id as string, status, req.user!.uuid)
     socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'status_comanda_atualizado', comandaId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'status_comanda_atualizado', comandaId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'status_comanda_atualizado', comandaId: req.params.id })
     const updated = await repository.findById(tenantId, req.params.id as string)
     return res.json(updated)
 })

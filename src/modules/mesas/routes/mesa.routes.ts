@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { PostgresMesaRepository } from '../repositories/PostgresMesaRepository'
 import { Mesa } from '../entities/Mesa'
 import { authenticate } from '../../../core/middlewares/authenticate'
+import { socketManager } from '../../../infra/websocket/SocketManager'
 
 export const mesaRoutes = Router()
 const repository = new PostgresMesaRepository()
@@ -29,6 +30,7 @@ mesaRoutes.post('/', authenticate, async (req, res) => {
     })
     try {
         const created = await repository.create(mesa)
+        socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'mesa_criada' })
         return res.status(201).json(created)
     } catch (error: any) {
         if (error.code === '23505') {
@@ -49,17 +51,21 @@ mesaRoutes.put('/:id', authenticate, async (req, res) => {
         updatedBy: req.user!.uuid
     })
     const updated = await repository.update(mesa)
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'mesa_atualizada', mesaId: req.params.id })
     return res.json(updated)
 })
 
 mesaRoutes.delete('/:id', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId
     await repository.delete(tenantId, req.params.id as string)
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'mesa_deletada', mesaId: req.params.id })
     return res.status(204).send()
 })
 
 mesaRoutes.post('/:id/fechar', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId
     await repository.closeTable(tenantId, req.params.id as string, req.user!.uuid)
+    socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'mesa_fechada', mesaId: req.params.id })
+    socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'mesa_fechada', mesaId: req.params.id })
     return res.json({ message: 'Mesa fechada com sucesso' })
 })

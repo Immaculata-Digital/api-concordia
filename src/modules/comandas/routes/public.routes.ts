@@ -69,6 +69,8 @@ publicComandaRoutes.post('/', async (req, res) => {
         console.log(`[Notification] Notificação criada: ${notification.uuid}. Emitindo via Socket...`)
         socketManager.emitToTenant(tenantId, 'nova_notificacao', notification)
         socketManager.emitToTenant(tenantId, 'atualizar_kds', { type: 'novo_pedido', pedidoId: createdPedido.uuid })
+        socketManager.emitToTenant(tenantId, 'atualizar_comandas', { type: 'novo_pedido', comandaId: comanda.uuid })
+        socketManager.emitToTenant(tenantId, 'atualizar_mesas', { type: 'novo_pedido', mesaId: mesaId })
     } catch (err) {
         console.error('[Notification] Erro ao disparar notificação:', err)
     }

@@ -50,27 +50,29 @@ userRoutes.post('/', async (req, res) => {
 
     const created = await userRepository.create(user)
 
-    // Enviar e-mail de boas-vindas com link para definir senha
-    try {
-        const token = crypto.randomBytes(32).toString('hex')
-        const expires = new Date()
-        expires.setHours(expires.getHours() + 48) // 48h para o primeiro acesso
+    // Enviar e-mail de boas-vindas com link para definir senha APENAS se a senha NÃO foi informada manualmente
+    if (!password) {
+        try {
+            const token = crypto.randomBytes(32).toString('hex')
+            const expires = new Date()
+            expires.setHours(expires.getHours() + 48) // 48h para o primeiro acesso
 
-        await pool.query(
-            'UPDATE app.users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE uuid = $3',
-            [token, expires, created.uuid]
-        )
+            await pool.query(
+                'UPDATE app.users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE uuid = $3',
+                [token, expires, created.uuid]
+            )
 
-        const smtpConfig = await getSystemSmtpConfig()
-        const origin = (req.headers.origin as string) || (req.headers.referer as string) || ''
+            const smtpConfig = await getSystemSmtpConfig()
+            const origin = (req.headers.origin as string) || (req.headers.referer as string) || ''
 
-        sendMail({
-            to: created.email,
-            subject: 'Bem-vindo ao Concordia ERP — Defina sua Senha',
-            html: getConcordiaPasswordResetTemplate(created.fullName.split(' ')[0], token, origin, 48)
-        }, smtpConfig)
-    } catch (error) {
-        console.error('[USER_ROUTES] Erro ao enviar e-mail de boas-vindas:', error)
+            sendMail({
+                to: created.email,
+                subject: 'Bem-vindo ao Concordia ERP — Defina sua Senha',
+                html: getConcordiaPasswordResetTemplate(created.fullName.split(' ')[0], token, origin, 48)
+            }, smtpConfig)
+        } catch (error) {
+            console.error('[USER_ROUTES] Erro ao enviar e-mail de boas-vindas:', error)
+        }
     }
 
     return res.status(201).json({ ...created, id: created.uuid })
@@ -82,8 +84,14 @@ userRoutes.put('/:id/basic', async (req, res) => {
     if (!existing) return res.status(404).json({ message: 'Usuário não encontrado' })
 
     const user = User.restore(existing)
-    const { fullName, login, email } = req.body
-    user.update({ fullName, login, email, updatedBy: req.user!.uuid })
+    const { fullName, login, email, password } = req.body
+    
+    const updateData: any = { fullName, login, email, updatedBy: req.user!.uuid }
+    if (password) {
+        updateData.password = await bcrypt.hash(password, 10)
+    }
+
+    user.update(updateData)
 
     const updated = await userRepository.update(user)
     return res.json({ ...updated, id: updated.uuid })

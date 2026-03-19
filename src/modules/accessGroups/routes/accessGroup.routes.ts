@@ -13,32 +13,31 @@ accessGroupRoutes.get('/', async (req, res) => {
             'SELECT code FROM app.access_groups g JOIN app.access_group_memberships m ON g.uuid = m.group_id WHERE m.user_id = $1',
             [userId]
         )
-        const isMaster = userGroupsRes.rows.some(r => r.code?.toUpperCase() === 'MASTERTENANT')
+        const codes = userGroupsRes.rows.map(r => r.code?.toUpperCase())
+        const isAdm = codes.includes('ADM')
+        const isMaster = codes.includes('MASTERTENANT')
 
-        // Buscar o tenant Immaculata para oferecer grupos templates globais
-        const masterTenantRes = await pool.query("SELECT uuid FROM app.tenants WHERE slug = 'immaculata' LIMIT 1")
-        const masterTenantId = masterTenantRes.rows[0]?.uuid
+        // Buscar módulos do tenant para filtrar grupos
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
+        const tenantModules = tenantRes.rows[0]?.modules || []
 
         let query = ''
         let params: any[] = []
 
-        if (isMaster) {
-            // Buscar módulos do tenant para filtrar grupos
-            const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
-            const tenantModules = tenantRes.rows[0]?.modules || []
-
-            // Se for Master, vê o próprio tenant + Immaculata (exceto ADM e filtrando por módulos)
-            query = `
-                SELECT * FROM app.access_groups 
-                WHERE (tenant_id = $1 OR tenant_id = $2) 
-                AND code != 'ADM' 
-                AND (modules IS NULL OR modules = '{}' OR modules && $3)
-            `
-            params = [tenantId, masterTenantId, tenantModules]
-        } else {
-            // Se não for master, vê apenas os grupos do próprio tenant
+        if (isAdm) {
+            // ADM vê apenas os grupos do próprio tenant (conforme pedido)
             query = 'SELECT * FROM app.access_groups WHERE tenant_id = $1'
             params = [tenantId]
+        } else {
+            // Usuário comum ou Master vê apenas os grupos DO PRÓPRIO TENANT
+            // E filtra pelos módulos ativos no tenant
+            query = `
+                SELECT * FROM app.access_groups 
+                WHERE (tenant_id = $1 ${isMaster ? "OR code = 'MASTERTENANT'" : ""})
+                AND code != 'ADM' 
+                AND (modules IS NULL OR modules = '{}' OR modules && $2)
+            `
+            params = [tenantId, tenantModules]
         }
 
         query += ' ORDER BY name ASC'

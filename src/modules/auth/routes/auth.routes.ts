@@ -118,9 +118,10 @@ authRoutes.post('/login', async (req, res) => {
         }
 
         const permissions = await getUserPermissions(user.uuid, user.tenantId)
-        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
-        const tenantModules = tenantRes.rows[0]?.modules || []
-
+        const tenantRes = await pool.query('SELECT slug, modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
+        const tenantData = tenantRes.rows[0] || { slug: 'app', modules: [] }
+        const tenantModules = tenantData.modules || []
+        const tenantSlug = tenantData.slug || 'app'
         const accessToken = generateAccessToken({
             uuid: user.uuid,
             tenantId: user.tenantId,
@@ -188,6 +189,7 @@ authRoutes.post('/login', async (req, res) => {
                 login: user.login,
                 email: user.email,
                 tenantId: user.tenantId,
+                tenantSlug,
                 emailVerified: !!user.emailVerifiedAt,
                 cpf: extra.cpf_cnpj,
                 phone: extra.phone,
@@ -258,13 +260,16 @@ authRoutes.post('/refresh-token', async (req, res) => {
 
         const newRefreshToken = generateRefreshToken(userRow.uuid)
 
-        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [userRow.tenant_id])
-        const tenantModules = tenantRes.rows[0]?.modules || []
+        const tenantRes = await pool.query('SELECT slug, modules FROM app.tenants WHERE uuid = $1', [userRow.tenant_id])
+        const tenantData = tenantRes.rows[0] || { slug: 'app', modules: [] }
+        const tenantModules = tenantData.modules || []
+        const tenantSlug = tenantData.slug || 'app'
 
         return res.json({
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
-            modules: tenantModules
+            modules: tenantModules,
+            tenantSlug
         })
 
     } catch (error) {
@@ -298,10 +303,17 @@ authRoutes.get('/me', async (req, res) => {
         if (!authHeader) return res.status(401).json({ message: 'No token' })
         const token = authHeader.split(' ')[1]
         const decoded = jwt.decode(token) as any
-        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [decoded?.tenantId])
-        const tenantModules = tenantRes.rows[0]?.modules || []
+        const tenantRes = await pool.query('SELECT slug, modules FROM app.tenants WHERE uuid = $1', [decoded?.tenantId])
+        const tenantData = tenantRes.rows[0] || { slug: 'app', modules: [] }
+        const tenantModules = tenantData.modules || []
+        const tenantSlug = tenantData.slug || 'app'
         
-        return res.json({ user: decoded, permissions: decoded?.permissions || [], modules: tenantModules })
+        return res.json({ 
+            user: { ...decoded, tenantSlug }, 
+            permissions: decoded?.permissions || [], 
+            modules: tenantModules,
+            tenantSlug 
+        })
     } catch (e) {
         return res.status(500).json({ error: 'Error' })
     }

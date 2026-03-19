@@ -129,7 +129,7 @@
         "key": "erp:produtos:ecommerce-produtos",
         "name": "Produtos",
         "icon": "Category",
-        "url": "/produtos?view=ecommerceprodutos",
+        "url": "/produtos?view=ecommerce-produtos",
         "category": "Loja Virtual"
     },
     {

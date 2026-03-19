@@ -125,6 +125,36 @@ export class PostgresProdutoComplementaryRepository {
         )
     }
 
+    async getDistinctChaves(tenantId: string): Promise<string[]> {
+        const { rows } = await pool.query(
+            'SELECT DISTINCT chave FROM app.produtos_ficha_tecnica WHERE tenant_id = $1 ORDER BY chave',
+            [tenantId]
+        )
+        return rows.map(r => r.chave)
+    }
+
+    async getDistinctValores(tenantId: string, chave: string): Promise<string[]> {
+        const { rows } = await pool.query(
+            'SELECT DISTINCT valor FROM app.produtos_ficha_tecnica WHERE tenant_id = $1 AND chave = $2 ORDER BY valor',
+            [tenantId, chave]
+        )
+        return rows.map(r => r.valor)
+    }
+
+    async deleteFichaTecnicaOption(tenantId: string, chave: string, valor?: string): Promise<void> {
+        if (valor) {
+            await pool.query(
+                'DELETE FROM app.produtos_ficha_tecnica WHERE tenant_id = $1 AND chave = $2 AND valor = $3',
+                [tenantId, chave, valor]
+            )
+        } else {
+            await pool.query(
+                'DELETE FROM app.produtos_ficha_tecnica WHERE tenant_id = $1 AND chave = $2',
+                [tenantId, chave]
+            )
+        }
+    }
+
     async getMedia(produtoId: string): Promise<any[]> {
         const { rows } = await pool.query('SELECT * FROM app.produtos_media WHERE produto_id = $1 ORDER BY ordem', [produtoId])
         return rows

@@ -119,7 +119,8 @@ export class PostgresReportRepository {
         })
 
         return {
-            preparando: (statusMap['NOVO'] || 0) + (statusMap['EM_PREPARO'] || 0),
+            recebidos: statusMap['NOVO'] || 0,
+            preparando: statusMap['EM_PREPARO'] || 0,
             prontos: statusMap['PRONTO'] || 0,
             finalizados: (statusMap['ENTREGUE'] || 0) + (statusMap['PAGO'] || 0),
             tempoMedioPreparo: Math.round(Number(tempoRows[0].avg_min))

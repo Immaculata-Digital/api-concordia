@@ -10,7 +10,8 @@ menuRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.user?.tenantId
         if (!tenantId) {
-            return res.json(menus)
+            // Robustez: se não há tenantId no token por algum motivo, retorna apenas core
+            return res.json(filterMenusByTenant(menus, []))
         }
 
         const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
@@ -20,9 +21,11 @@ menuRoutes.get('/', async (req, res) => {
         return res.json(filteredMenus)
     } catch (error) {
         console.error('[MENU_ROUTES] Error fetching filtered menus:', error)
-        return res.json(menus) // Fallback to all menus if error
+        // Fallback robust: retorna apenas os menus core (sem módulo) em caso de erro crítico
+        const coreMenus = filterMenusByTenant(menus, [])
+        return res.json(coreMenus) 
     }
-})
+});
 
 menuRoutes.get('/views', (req, res) => {
     return res.json(views)

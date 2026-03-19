@@ -23,5 +23,10 @@
         "key": "whatsapp",
         "name": "WhatsApp",
         "menuParent": "WhatsApp"
+    },
+    {
+        "key": "comunicacoes",
+        "name": "Comunicações",
+        "menuParent": "Comunicações"
     }
 ]

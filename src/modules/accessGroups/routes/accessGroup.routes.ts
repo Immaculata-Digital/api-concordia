@@ -6,8 +6,45 @@ export const accessGroupRoutes = Router()
 accessGroupRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId
-        const result = await pool.query('SELECT * FROM app.access_groups')
-        // Mapear campos para compatibilidade com o front-end se necessário
+        const userId = req.user!.uuid
+
+        // Verificar grupos do usuário logado
+        const userGroupsRes = await pool.query(
+            'SELECT code FROM app.access_groups g JOIN app.access_group_memberships m ON g.uuid = m.group_id WHERE m.user_id = $1',
+            [userId]
+        )
+        const isMaster = userGroupsRes.rows.some(r => r.code?.toUpperCase() === 'MASTERTENANT')
+
+        // Buscar o tenant Immaculata para oferecer grupos templates globais
+        const masterTenantRes = await pool.query("SELECT uuid FROM app.tenants WHERE slug = 'immaculata' LIMIT 1")
+        const masterTenantId = masterTenantRes.rows[0]?.uuid
+
+        let query = ''
+        let params: any[] = []
+
+        if (isMaster) {
+            // Buscar módulos do tenant para filtrar grupos
+            const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
+            const tenantModules = tenantRes.rows[0]?.modules || []
+
+            // Se for Master, vê o próprio tenant + Immaculata (exceto ADM e filtrando por módulos)
+            query = `
+                SELECT * FROM app.access_groups 
+                WHERE (tenant_id = $1 OR tenant_id = $2) 
+                AND code != 'ADM' 
+                AND (modules IS NULL OR modules = '{}' OR modules && $3)
+            `
+            params = [tenantId, masterTenantId, tenantModules]
+        } else {
+            // Se não for master, vê apenas os grupos do próprio tenant
+            query = 'SELECT * FROM app.access_groups WHERE tenant_id = $1'
+            params = [tenantId]
+        }
+
+        query += ' ORDER BY name ASC'
+
+        const result = await pool.query(query, params)
+        
         const groups = result.rows.map(row => ({
             id: row.uuid,
             uuid: row.uuid,
@@ -17,6 +54,7 @@ accessGroupRoutes.get('/', async (req, res) => {
             description: row.description,
             features: row.features || [],
             permissions: row.permissions || [],
+            modules: row.modules || [],
             createdAt: row.created_at,
             createdBy: row.created_by,
             updatedAt: row.updated_at,
@@ -32,11 +70,11 @@ accessGroupRoutes.get('/', async (req, res) => {
 accessGroupRoutes.post('/', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId
-        const { name, code, description, features, permissions } = req.body
+        const { name, code, description, features, permissions, modules } = req.body
 
         const result = await pool.query(
-            `INSERT INTO app.access_groups (tenant_id, name, code, description, features, permissions, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            `INSERT INTO app.access_groups (tenant_id, name, code, description, features, permissions, modules, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [
                 tenantId,
                 name,
@@ -44,6 +82,7 @@ accessGroupRoutes.post('/', async (req, res) => {
                 description,
                 features || [],
                 JSON.stringify(permissions || []),
+                modules || [],
                 req.user!.uuid
             ]
         )
@@ -53,7 +92,8 @@ accessGroupRoutes.post('/', async (req, res) => {
             id: row.uuid,
             uuid: row.uuid,
             ...row,
-            permissions: row.permissions
+            permissions: row.permissions,
+            modules: row.modules || []
         })
     } catch (error) {
         console.error('[ACCESS_GROUP_ROUTES] Error creating group:', error)
@@ -65,7 +105,7 @@ accessGroupRoutes.put('/:id', async (req, res) => {
     try {
         const tenantId = req.user!.tenantId
         const { id } = req.params
-        const { name, code, description, features, permissions } = req.body
+        const { name, code, description, features, permissions, modules } = req.body
 
         const result = await pool.query(
             `UPDATE app.access_groups SET 
@@ -74,7 +114,8 @@ accessGroupRoutes.put('/:id', async (req, res) => {
                 description = COALESCE($4, description),
                 features = COALESCE($5, features),
                 permissions = COALESCE($6, permissions),
-                updated_by = $7,
+                modules = COALESCE($7, modules),
+                updated_by = $8,
                 updated_at = NOW()
              WHERE uuid = $1
              RETURNING *`,
@@ -85,6 +126,7 @@ accessGroupRoutes.put('/:id', async (req, res) => {
                 description,
                 features,
                 permissions ? JSON.stringify(permissions) : null,
+                modules,
                 req.user!.uuid
             ]
         )
@@ -98,7 +140,8 @@ accessGroupRoutes.put('/:id', async (req, res) => {
             id: row.uuid,
             uuid: row.uuid,
             ...row,
-            permissions: row.permissions
+            permissions: row.permissions,
+            modules: row.modules || []
         })
     } catch (error) {
         console.error('[ACCESS_GROUP_ROUTES] Error updating group:', error)

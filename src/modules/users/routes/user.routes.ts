@@ -1,5 +1,9 @@
 import { Router } from 'express'
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
+import { pool } from '../../../infra/database/pool'
+import { sendMail, getSystemSmtpConfig } from '../../../infra/email/mailer'
+import { getPasswordResetTemplate, getConcordiaPasswordResetTemplate } from '../../../infra/email/templates'
 import { PostgresUserRepository } from '../repositories/PostgresUserRepository'
 import { User } from '../entities/User'
 
@@ -45,6 +49,30 @@ userRoutes.post('/', async (req, res) => {
     })
 
     const created = await userRepository.create(user)
+
+    // Enviar e-mail de boas-vindas com link para definir senha
+    try {
+        const token = crypto.randomBytes(32).toString('hex')
+        const expires = new Date()
+        expires.setHours(expires.getHours() + 48) // 48h para o primeiro acesso
+
+        await pool.query(
+            'UPDATE app.users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE uuid = $3',
+            [token, expires, created.uuid]
+        )
+
+        const smtpConfig = await getSystemSmtpConfig()
+        const origin = (req.headers.origin as string) || (req.headers.referer as string) || ''
+
+        sendMail({
+            to: created.email,
+            subject: 'Bem-vindo ao Concordia ERP — Defina sua Senha',
+            html: getConcordiaPasswordResetTemplate(created.fullName.split(' ')[0], token, origin, 48)
+        }, smtpConfig)
+    } catch (error) {
+        console.error('[USER_ROUTES] Erro ao enviar e-mail de boas-vindas:', error)
+    }
+
     return res.status(201).json({ ...created, id: created.uuid })
 })
 
@@ -100,6 +128,37 @@ userRoutes.put('/:id', async (req, res) => {
 
     const updated = await userRepository.update(user)
     return res.json({ ...updated, id: updated.uuid })
+})
+
+userRoutes.post('/:id/reset-password', async (req, res) => {
+    try {
+        const tenantId = req.user!.tenantId
+        const user = await userRepository.findById(tenantId, req.params.id)
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado' })
+
+        const token = crypto.randomBytes(32).toString('hex')
+        const expires = new Date()
+        expires.setHours(expires.getHours() + 1)
+
+        await pool.query(
+            'UPDATE app.users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE uuid = $3',
+            [token, expires, user.uuid]
+        )
+
+        const smtpConfig = await getSystemSmtpConfig()
+        const origin = (req.headers.origin as string) || (req.headers.referer as string)
+
+        sendMail({
+            to: user.email,
+            subject: 'Recuperação de Senha — Concordia ERP',
+            html: getConcordiaPasswordResetTemplate(user.fullName.split(' ')[0], token, origin)
+        }, smtpConfig)
+
+        return res.json({ message: 'E-mail de recuperação enviado com sucesso.' })
+    } catch (error) {
+        console.error('[USER_ROUTES] Reset password error:', error)
+        return res.status(500).json({ message: 'Erro ao enviar e-mail de recuperação' })
+    }
 })
 
 userRoutes.delete('/:id', async (req, res) => {

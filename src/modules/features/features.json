@@ -600,5 +600,75 @@
         "name": "[Restaurante] KDS Gerenciar Pedidos Entregues",
         "description": "[Restaurante] Permite restaurar ou gerenciar pedidos que já foram entregues",
         "module": "restaurante"
+    },
+    {
+        "key": "erp:remetentes-smtp:listar",
+        "name": "[Comunicações] Listar Remetentes SMTP",
+        "description": "[Comunicações] Permite visualizar a listagem de remetentes de e-mail",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:remetentes-smtp:visualizar",
+        "name": "[Comunicações] Visualizar Detalhes Remetente",
+        "description": "[Comunicações] Permite visualizar os detalhes de um remetente SMTP",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:remetentes-smtp:criar",
+        "name": "[Comunicações] Criar Remetente",
+        "description": "[Comunicações] Permite cadastrar novos remetentes SMTP",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:remetentes-smtp:editar",
+        "name": "[Comunicações] Editar Remetente",
+        "description": "[Comunicações] Permite alterar dados de remetentes existentes",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:remetentes-smtp:excluir",
+        "name": "[Comunicações] Excluir Remetente",
+        "description": "[Comunicações] Permite remover remetentes SMTP",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:campanhas-disparo:listar",
+        "name": "[Comunicações] Listar Campanhas de Disparo",
+        "description": "[Comunicações] Permite visualizar a listagem de campanhas de e-mail",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:campanhas-disparo:visualizar",
+        "name": "[Comunicações] Visualizar Detalhes Campanha",
+        "description": "[Comunicações] Permite visualizar os detalhes de uma campanha",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:campanhas-disparo:criar",
+        "name": "[Comunicações] Criar Campanha",
+        "description": "[Comunicações] Permite criar novas campanhas de disparo",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:campanhas-disparo:editar",
+        "name": "[Comunicações] Editar Campanha",
+        "description": "[Comunicações] Permite alterar campanhas existentes",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:campanhas-disparo:excluir",
+        "name": "[Comunicações] Excluir Campanha",
+        "description": "[Comunicações] Permite remover campanhas do sistema",
+        "module": "comunicacoes"
+    },
+    {
+        "key": "erp:config:grupos-acesso:visualizar",
+        "name": "[Config] Grupos de Acesso - Visualizar Menu",
+        "description": "[Config] Permite visualizar o card de Grupos de Acesso nas configurações"
+    },
+    {
+        "key": "erp:config:identidade-visual:visualizar",
+        "name": "[Config] Identidade Visual - Visualizar Menu",
+        "description": "[Config] Permite visualizar o card de Identidade Visual nas configurações"
     }
 ]

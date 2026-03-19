@@ -62,8 +62,16 @@ export function getEmailVerificationTemplate(nome: string, token: string): strin
     `;
 }
 
-export function getPasswordResetTemplate(nome: string, token: string): string {
-    const url = `${BASE_URL}/esqueci-senha?token=${token}`;
+export function getPasswordResetTemplate(nome: string, token: string, baseUrl?: string): string {
+    let domain = env.pluvytWebUrl || 'https://clube.pluvyt.com.br';
+    if (baseUrl) {
+        try {
+            domain = new URL(baseUrl).origin;
+        } catch (e) {
+            domain = baseUrl;
+        }
+    }
+    const url = `${domain}/esqueci-senha?token=${token}`;
     
     return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #111827; background-color: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 8px;">
@@ -89,3 +97,57 @@ export function getPasswordResetTemplate(nome: string, token: string): string {
     `;
 }
 
+const CONCORDIA_PREHEADER = `
+    <div style="text-align: center; padding: 32px 24px; background-color: #1e293b; border-radius: 8px 8px 0 0;">
+        <h1 style="color: #ffffff; margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px;">Concordia ERP</h1>
+    </div>
+`
+
+const CONCORDIA_FOOTER = `
+    <div style="text-align: center; padding: 20px; background-color: #F8FAFC; border-radius: 0 0 8px 8px; border-top: 1px solid #E2E8F0;">
+        <p style="margin: 0; font-size: 12px; color: #64748b;">
+            © ${new Date().getFullYear()} Concordia — Gestão Inteligente
+        </p>
+        <p style="margin: 4px 0 0; font-size: 11px; color: #94a3b8;">
+            Este e-mail foi enviado automaticamente pelo sistema Concordia ERP.
+        </p>
+    </div>
+`
+
+export function getConcordiaPasswordResetTemplate(nome: string, token: string, baseUrl?: string, expiresInHours: number = 1): string {
+    let domain = env.pluvytWebUrl?.replace('clube.pluvyt.com.br', 'app.concordiaerp.com') || 'https://app.concordiaerp.com';
+    
+    if (baseUrl) {
+        try {
+            domain = new URL(baseUrl).origin;
+        } catch (e) {
+            domain = baseUrl;
+        }
+    }
+
+    const url = `${domain}/account/set-password?token=${token}`;
+    
+    return `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+        ${CONCORDIA_PREHEADER}
+        <div style="padding: 40px 32px;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 22px;">Definição de Senha</h2>
+            <p style="font-size: 16px; line-height: 1.5;">Olá, <strong>${nome}</strong>!</p>
+            <p style="font-size: 16px; line-height: 1.5;">Recebemos uma solicitação para configurar ou redefinir a senha de acesso ao seu painel no <strong>Concordia ERP</strong>.</p>
+            <p style="font-size: 16px; line-height: 1.5;">Clique no botão abaixo para prosseguir com a configuração:</p>
+            
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="${url}" style="background-color: #2563eb; color: white; padding: 16px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">
+                    Configurar Senha de Acesso
+                </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #64748b; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 24px;">
+                ⚠️ Este link é válido por <strong>${expiresInHours} ${expiresInHours === 1 ? 'hora' : 'horas'}</strong>.<br>
+                Caso não tenha solicitado esta ação, você pode ignorar este e-mail com segurança. Sua senha atual (se existir) permanecerá a mesma.
+            </p>
+        </div>
+        ${CONCORDIA_FOOTER}
+    </div>
+    `;
+}

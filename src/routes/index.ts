@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { authenticate } from '../core/middlewares/authenticate'
 import { userRoutes } from '../modules/users/routes/user.routes'
 import { authRoutes } from '../modules/auth/routes/auth.routes'
+import { remetenteRoutes } from '../modules/remetentes/routes/remetente.routes'
+import { comunicacaoRoutes } from '../modules/comunicacoes/routes/comunicacao.routes'
 import { menuRoutes } from '../modules/menus/routes/menu.routes'
 import { featureRoutes } from '../modules/features/routes/feature.routes'
 import { appModuleRoutes } from '../modules/app-modules/routes/app-modules.routes'
@@ -71,3 +73,5 @@ routes.use('/landing-pages', landingPageRoutes)
 routes.use('/product-lists', productListRoutes)
 routes.use('/reports', reportRoutes)
 routes.use('/notifications', notificationRoutes)
+routes.use('/remetentes', remetenteRoutes)
+routes.use('/comunicacoes', comunicacaoRoutes)

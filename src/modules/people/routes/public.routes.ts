@@ -105,9 +105,9 @@ publicPeopleRoutes.post('/cadastro-parceiro', async (req, res) => {
             )
         }
 
-        // Associate Person to Tenant and enable all modules
+        // Associate Person to Tenant
         await client.query(
-            "UPDATE app.tenants SET pessoa_id = $1, modules = ARRAY['pluvyt', 'restaurante', 'site', 'loja-virtual', 'vitrine'] WHERE uuid = $2",
+            "UPDATE app.tenants SET pessoa_id = $1 WHERE uuid = $2",
             [personId, tenantId]
         )
 

@@ -3,23 +3,29 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import { sendWhatsAppMessage } from '../../../infra/whatsapp/evolution-api'
-import { comparePassword } from '../../../utils/passwordCipher'
+import { comparePassword, decryptPassword } from '../../../utils/passwordCipher'
 import { PostgresUserRepository } from '../../users/repositories/PostgresUserRepository'
 import { PostgresPluvytClientRepository } from '../../pluvyt-clients/repositories/PostgresPluvytClientRepository'
 import { PluvytClient } from '../../pluvyt-clients/entities/PluvytClient'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../../infra/auth/jwt'
 import menus from '../../menus/menus.json'
 import { pool } from '../../../infra/database/pool'
-import { sendMail } from '../../../infra/email/mailer'
-import { getEmailVerificationTemplate, getPasswordResetTemplate } from '../../../infra/email/templates'
+import { sendMail, SmtpConfig, getSystemSmtpConfig } from '../../../infra/email/mailer'
+import { getEmailVerificationTemplate, getPasswordResetTemplate, getConcordiaPasswordResetTemplate } from '../../../infra/email/templates'
 import { filterMenusByTenant } from '../../menus/utils/menuUtils'
+import features from '../../features/features.json'
 
 export const authRoutes = Router()
+
 const userRepository = new PostgresUserRepository()
 const pluvytClientRepository = new PostgresPluvytClientRepository()
 
 async function getUserPermissions(userId: string, tenantId: string): Promise<string[]> {
-    // 1. Get features from groups
+    // 1. Get tenant modules
+    const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
+    const tenantModules: string[] = tenantRes.rows[0]?.modules || []
+
+    // 2. Get features from groups
     const groupFeaturesResult = await pool.query(
         `SELECT DISTINCT unnest(g.features) as feature
          FROM app.access_groups g
@@ -29,7 +35,7 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
     )
     const groupFeatures = groupFeaturesResult.rows.map(row => row.feature)
 
-    // 2. Get user specific features
+    // 3. Get user specific features
     const userResult = await pool.query(
         'SELECT allow_features, denied_features FROM app.users WHERE uuid = $1',
         [userId]
@@ -38,11 +44,24 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
     const allowFeatures: string[] = userRow?.allow_features || []
     const deniedFeatures: string[] = userRow?.denied_features || []
 
-    // 3. Merge: (Group + Allow) - Denied
+    // 4. Merge: (Group + Allow) - Denied
     const allFeatures = new Set([...groupFeatures, ...allowFeatures])
     deniedFeatures.forEach(f => allFeatures.delete(f))
 
-    return Array.from(allFeatures)
+    // 5. Final Filter: Filter by tenant modules
+    // If a feature in features.json has a 'module', the tenant MUST have that module.
+    // Core features (no module defined) are always allowed.
+    const filteredPermissions = Array.from(allFeatures).filter(permissionKey => {
+        const featureDef = (features as any[]).find(f => f.key === permissionKey)
+        
+        // If feature has no module defined, it is a core feature
+        if (!featureDef?.module) return true
+
+        // If it has a module defined, check if tenant has it
+        return tenantModules.includes(featureDef.module)
+    })
+
+    return filteredPermissions
 }
 
 authRoutes.post('/login', async (req, res) => {
@@ -99,6 +118,8 @@ authRoutes.post('/login', async (req, res) => {
         }
 
         const permissions = await getUserPermissions(user.uuid, user.tenantId)
+        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
+        const tenantModules = tenantRes.rows[0]?.modules || []
 
         const accessToken = generateAccessToken({
             uuid: user.uuid,
@@ -155,8 +176,6 @@ authRoutes.post('/login', async (req, res) => {
         )
 
 
-        const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
-        const tenantModules = tenantRes.rows[0]?.modules || []
         const filteredMenus = filterMenusByTenant(menus, tenantModules)
 
         return res.json({
@@ -562,11 +581,13 @@ authRoutes.post('/resend-verification', async (req, res) => {
             [token, expires, user.uuid]
         )
 
+        const smtpConfig = await getSystemSmtpConfig()
+
         sendMail({
             to: email,
             subject: '✅ Confirme seu e-mail — Clube Pluvyt',
             html: getEmailVerificationTemplate(user.full_name.split(' ')[0], token)
-        })
+        }, smtpConfig)
 
         return res.json({ message: 'E-mail de verificação reenviado.' })
     } catch (e) {
@@ -787,12 +808,32 @@ authRoutes.put('/profile', async (req, res) => {
 // --- ESQUECI MINHA SENHA ---
 
 authRoutes.post('/password/reset-request', async (req, res) => {
-    const { email } = req.body
+    const { email, tenantId } = req.body
     if (!email) return res.status(400).json({ message: 'E-mail obrigatório' })
 
     try {
-        const userRes = await pool.query('SELECT uuid, full_name, password_reset_expires_at FROM app.users WHERE email = $1', [email])
-        if (userRes.rowCount === 0) {
+        const origin = (req.headers.origin as string) || (req.headers.referer as string) || ''
+        const isPluvyt = origin.includes('pluvyt') || origin.includes('localhost:3000')
+        let effectiveTenantId = tenantId
+
+        // Se for Pluvyt e não passou tenantId, busca o tenant 'pluvyt'
+        if (isPluvyt && !effectiveTenantId) {
+            const pluvytTenant = await pool.query("SELECT uuid FROM app.tenants WHERE slug = 'pluvyt' LIMIT 1")
+            if (pluvytTenant.rowCount && pluvytTenant.rowCount > 0) {
+                effectiveTenantId = pluvytTenant.rows[0].uuid
+            }
+        }
+
+        let query = 'SELECT uuid, full_name, password_reset_expires_at FROM app.users WHERE email = $1'
+        const params = [email]
+
+        if (effectiveTenantId) {
+            query += ' AND tenant_id = $2'
+            params.push(effectiveTenantId)
+        }
+
+        const userRes = await pool.query(query, params)
+        if (!userRes.rowCount || userRes.rowCount === 0) {
             // Retorna OK de qualquer forma p/ não vazar infos
             return res.json({ message: 'Se o e-mail existir, um link de recuperação foi enviado.' })
         }
@@ -815,11 +856,18 @@ authRoutes.post('/password/reset-request', async (req, res) => {
             [token, expires, user.uuid]
         )
 
+        const smtpConfig = await getSystemSmtpConfig()
+        
+        const subject = isPluvyt ? 'Recuperação de Senha — Clube Pluvyt' : 'Recuperação de Senha — Concordia ERP'
+        const template = isPluvyt 
+            ? getPasswordResetTemplate(user.full_name.split(' ')[0], token, origin)
+            : getConcordiaPasswordResetTemplate(user.full_name.split(' ')[0], token, origin)
+
         sendMail({
             to: email,
-            subject: 'Recuperação de Senha — Clube Pluvyt',
-            html: getPasswordResetTemplate(user.full_name.split(' ')[0], token)
-        })
+            subject,
+            html: template
+        }, smtpConfig)
 
         return res.json({ message: 'Se o e-mail existir, um link de recuperação foi enviado.' })
     } catch (e) {

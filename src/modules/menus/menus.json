@@ -138,5 +138,19 @@
         "icon": "Storefront",
         "url": "/lista-produtos?view=loja-virtual-vitrine",
         "category": "Loja Virtual"
+    },
+    {
+        "key": "erp:remetentes-smtp:listar",
+        "name": "Remetentes",
+        "icon": "ForwardToInbox",
+        "url": "/comunicacoes/remetentes",
+        "category": "Comunicações"
+    },
+    {
+        "key": "erp:campanhas-disparo:listar",
+        "name": "Disparos",
+        "icon": "Campaign",
+        "url": "/comunicacoes/comunicacoes",
+        "category": "Comunicações"
     }
 ]

@@ -117,9 +117,9 @@ peopleRoutes.get('/', async (req, res) => {
             LEFT JOIN app.tenants t ON t.uuid = p.tenant_id
             LEFT JOIN app.users u ON u.uuid = p.usuario_id
             LEFT JOIN app.pluvyt_clients pc ON pc.person_id = p.uuid
-            WHERE p.tenant_id = $1
+            WHERE p.tenant_id = $1 AND (p.usuario_id IS NULL OR p.usuario_id != $2)
         `
-        const params: any[] = [tenantId]
+        const params: any[] = [tenantId, req.user!.uuid]
 
         if (search) {
             params.push(`%${search}%`)
@@ -136,8 +136,8 @@ peopleRoutes.get('/', async (req, res) => {
         const result = await pool.query(query, params)
 
         // Also fetch total count
-        let countQuery = `SELECT COUNT(*) FROM app.people WHERE tenant_id = $1`
-        const countParams: any[] = [tenantId]
+        let countQuery = `SELECT COUNT(*) FROM app.people WHERE tenant_id = $1 AND (usuario_id IS NULL OR usuario_id != $2)`
+        const countParams: any[] = [tenantId, req.user!.uuid]
 
         if (search) {
             countParams.push(`%${search}%`)

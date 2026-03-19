@@ -15,7 +15,15 @@ publicProdutoCategoriaRoutes.get('/', async (req, res) => {
         }
 
         const categories = await repository.findAll(tenantId as string)
-        return res.json(categories)
+        return res.json(categories.map(c => ({
+            uuid: c.uuid,
+            nome: c.name,
+            codigo: c.code,
+            imagem: c.image_url,
+            descricao: c.description,
+            ordem: c.sort,
+            enabled: c.enabled
+        })))
     } catch (error) {
         console.error('Error fetching public categories:', error)
         return res.status(500).json({ message: 'Erro ao listar categorias' })

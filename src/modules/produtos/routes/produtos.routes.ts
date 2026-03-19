@@ -176,6 +176,20 @@ produtosRoutes.post('/:id/recompensa', async (req, res) => {
 })
 
 // Ficha Técnica
+produtosRoutes.delete('/ficha-tecnica/opcoes', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        const { chave, valor } = req.query
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        if (!chave) return res.status(401).json({ message: 'Chave is required' })
+        
+        await complementaryRepository.deleteFichaTecnicaOption(tenantId, chave as string, valor as string)
+        return res.status(204).send()
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao excluir opção da ficha técnica' })
+    }
+})
+
 produtosRoutes.post('/:id/ficha-tecnica', async (req, res) => {
     try {
         const tenantId = req.body.tenantId || req.user!.tenantId
@@ -202,6 +216,30 @@ produtosRoutes.put('/ficha-tecnica/:itemId', async (req, res) => {
         return res.json({ message: 'Item de ficha técnica atualizado' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao atualizar item de ficha técnica' })
+    }
+})
+
+produtosRoutes.get('/ficha-tecnica/chaves', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        const chaves = await complementaryRepository.getDistinctChaves(tenantId)
+        return res.json(chaves)
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao buscar chaves da ficha técnica' })
+    }
+})
+
+produtosRoutes.get('/ficha-tecnica/valores', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        const { chave } = req.query
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        if (!chave) return res.status(400).json({ message: 'Chave is required' })
+        const valores = await complementaryRepository.getDistinctValores(tenantId, chave as string)
+        return res.json(valores)
+    } catch (error) {
+        return res.status(500).json({ message: 'Erro ao buscar valores da ficha técnica' })
     }
 })
 

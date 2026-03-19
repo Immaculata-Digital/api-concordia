@@ -424,7 +424,8 @@
     {
         "key": "erp:identidade-visual:listar",
         "name": "[Site] Gerenciar Identidade Visual",
-        "description": "[Site] Permite configurar o logotipo, tipografia e cores da plataforma"
+        "description": "[Site] Permite configurar o logotipo, tipografia e cores da plataforma",
+        "module": "site"
     },
     {
         "key": "erp:landing-pages:listar",

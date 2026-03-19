@@ -12,6 +12,7 @@ services:
       - NODE_ENV=production
       - CRYPTO_SECRET=${CRYPTO_SECRET}
       - PORT=3001
+      - CRYPTO_SECRET=${CRYPTO_SECRET}
       - DB_HOST=${DB_HOST_HOMOLOG}
       - DB_PORT=${DB_PORT_HOMOLOG}
       - DB_USER=${DB_USER_HOMOLOG}

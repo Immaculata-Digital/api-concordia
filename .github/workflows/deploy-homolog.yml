@@ -69,6 +69,7 @@ jobs:
             --name ${IMAGE_NAME}-homolog \
             --restart unless-stopped \
             -p 5337:3001 \
+            -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_HOST='${{ secrets.DB_HOST_HOMOLOG }}' \
             -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_PORT='${{ secrets.DB_PORT_HOMOLOG }}' \

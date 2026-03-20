@@ -36,7 +36,14 @@ export const getConfigHandler = async (req: Request, res: Response) => {
             })
         }
 
-        return res.json(config)
+        return res.json({
+            name: config.name,
+            cor_principal: config.cor_principal,
+            logo: {
+                principal: config.logo?.principal,
+                favicon: config.logo?.favicon
+            }
+        });
     } catch (error) {
         console.error('Error fetching brand config:', error)
         return res.status(500).json({ message: 'Erro interno ao buscar configuração de marca' })

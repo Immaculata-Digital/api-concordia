@@ -26,6 +26,22 @@ export class PostgresMesaRepository {
         return rows.map(this.mapToPublicProps)
     }
 
+    async getActiveClients(tenantId: string, mesaUuid: string): Promise<any[]> {
+        const query = `
+            SELECT
+                c.cliente_nome as nome,
+                c.whatsapp,
+                c.uuid as "comandaId"
+            FROM app.comandas c
+            WHERE c.tenant_id = $1
+              AND c.mesa_id = $2
+              AND c.status = 'ABERTA'
+              AND c.deleted_at IS NULL
+        `
+        const { rows } = await pool.query(query, [tenantId, mesaUuid])
+        return rows
+    }
+
     private mapToPublicProps(row: any): any {
         return {
             uuid: row.uuid,

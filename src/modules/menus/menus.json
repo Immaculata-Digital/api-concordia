@@ -7,7 +7,7 @@
         "category": "Cadastros"
     },
     {
-        "key": "erp:produtos:categorias:listar",
+        "key": "erp:menus:cadastro:categorias",
         "name": "Categ. Produtos",
         "icon": "Category",
         "url": "/produtos/categorias",

@@ -685,5 +685,15 @@
         "key": "erp:menus:cadastro:produtos",
         "name": "[Menu] Cadastro - Produtos",
         "description": "Permite visualizar o menu de Produtos no grupo de Cadastros"
+    },
+    {
+        "key": "erp:menus:cadastro",
+        "name": "[Menu] Cadastros",
+        "description": "[Menu] Permite visualizar a seção de Cadastros no menu lateral"
+    },
+    {
+        "key": "erp:menus:cadastro:categorias",
+        "name": "[Menu] Cadastros - Categ. Produtos",
+        "description": "[Menu] Permite visualizar o menu de Categorias de Produtos em Cadastros"
     }
 ]

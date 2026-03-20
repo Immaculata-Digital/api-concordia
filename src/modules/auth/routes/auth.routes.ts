@@ -64,6 +64,17 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
     return filteredPermissions
 }
 
+async function getUserGroups(userId: string, tenantId: string): Promise<string[]> {
+    const groupCodesResult = await pool.query(
+        `SELECT g.code
+         FROM app.access_groups g
+         JOIN app.access_group_memberships m ON m.group_id = g.uuid
+         WHERE m.user_id = $1 AND m.tenant_id = $2`,
+        [userId, tenantId]
+    )
+    return groupCodesResult.rows.map(row => row.code)
+}
+
 authRoutes.post('/login', async (req, res) => {
     try {
         const { loginOrEmail, password } = req.body
@@ -118,6 +129,7 @@ authRoutes.post('/login', async (req, res) => {
         }
 
         const permissions = await getUserPermissions(user.uuid, user.tenantId)
+        const groups = await getUserGroups(user.uuid, user.tenantId)
         const tenantRes = await pool.query('SELECT slug, modules FROM app.tenants WHERE uuid = $1', [user.tenantId])
         const tenantData = tenantRes.rows[0] || { slug: 'app', modules: [] }
         const tenantModules = tenantData.modules || []
@@ -127,7 +139,8 @@ authRoutes.post('/login', async (req, res) => {
             tenantId: user.tenantId,
             login: user.login,
             email: user.email,
-            permissions
+            permissions,
+            groups
         })
 
         const refreshToken = generateRefreshToken(user.uuid)
@@ -190,6 +203,7 @@ authRoutes.post('/login', async (req, res) => {
                 email: user.email,
                 tenantId: user.tenantId,
                 tenantSlug,
+                groups,
                 emailVerified: !!user.emailVerifiedAt,
                 cpf: extra.cpf_cnpj,
                 phone: extra.phone,
@@ -249,13 +263,15 @@ authRoutes.post('/refresh-token', async (req, res) => {
         }
 
         const permissions = await getUserPermissions(userRow.uuid, userRow.tenant_id)
+        const groups = await getUserGroups(userRow.uuid, userRow.tenant_id)
 
         const newAccessToken = generateAccessToken({
             uuid: userRow.uuid,
             tenantId: userRow.tenant_id,
             login: userRow.login,
             email: userRow.email,
-            permissions
+            permissions,
+            groups
         })
 
         const newRefreshToken = generateRefreshToken(userRow.uuid)
@@ -269,7 +285,8 @@ authRoutes.post('/refresh-token', async (req, res) => {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             modules: tenantModules,
-            tenantSlug
+            tenantSlug,
+            groups
         })
 
     } catch (error) {

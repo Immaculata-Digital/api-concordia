@@ -76,6 +76,15 @@ export class PostgresCardapioItemRepository {
                 exibir_tempo_preparo,
                 created_by, updated_by
             ) VALUES ($1, $2, $3, $4, $5, ($6 || ' minutes')::interval, ($7 || ' minutes')::interval, $8, $9, $10)
+            ON CONFLICT (tenant_id, produto_id) DO UPDATE SET
+                ordem = EXCLUDED.ordem,
+                ativo = EXCLUDED.ativo,
+                tempo_preparo_min = EXCLUDED.tempo_preparo_min,
+                tempo_preparo_max = EXCLUDED.tempo_preparo_max,
+                exibir_tempo_preparo = EXCLUDED.exibir_tempo_preparo,
+                updated_by = EXCLUDED.updated_by,
+                updated_at = NOW(),
+                deleted_at = NULL
             RETURNING *
         `
         const values = [

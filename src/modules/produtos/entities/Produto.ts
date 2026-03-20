@@ -33,6 +33,7 @@ export interface ProdutoProps {
         preco_promocional?: number
     }
     cardapio?: {
+        uuid?: string
         ordem: number
         ativo: boolean
         tempoPreparo_min?: number
@@ -40,6 +41,7 @@ export interface ProdutoProps {
         exibir_tempo_preparo?: boolean
     }
     recompensa?: {
+        uuid?: string
         qtd_pontos_resgate: number
         voucher_digital: boolean
     }

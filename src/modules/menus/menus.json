@@ -1,6 +1,6 @@
 [
     {
-        "key": "erp:pessoas:listar",
+        "key": "erp:menus:cadastro:pessoas",
         "name": "Pessoas",
         "icon": "Person",
         "url": "/peoples",
@@ -21,7 +21,7 @@
         "category": "Cadastros"
     },
     {
-        "key": "erp:produtos:listar",
+        "key": "erp:menus:cadastro:produtos",
         "name": "Produtos",
         "icon": "LocalOffer",
         "url": "/produtos",

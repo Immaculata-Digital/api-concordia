@@ -675,5 +675,15 @@
         "key": "erp:config:tenants:visualizar",
         "name": "[Config] Tenants - Visualizar Menu",
         "description": "[Config] Permite visualizar o card de Tenants nas configurações"
+    },
+    {
+        "key": "erp:menus:cadastro:pessoas",
+        "name": "[Menu] Cadastro - Pessoas",
+        "description": "Permite visualizar o menu de Pessoas no grupo de Cadastros"
+    },
+    {
+        "key": "erp:menus:cadastro:produtos",
+        "name": "[Menu] Cadastro - Produtos",
+        "description": "Permite visualizar o menu de Produtos no grupo de Cadastros"
     }
 ]

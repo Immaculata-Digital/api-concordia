@@ -670,5 +670,10 @@
         "key": "erp:config:identidade-visual:visualizar",
         "name": "[Config] Identidade Visual - Visualizar Menu",
         "description": "[Config] Permite visualizar o card de Identidade Visual nas configurações"
+    },
+    {
+        "key": "erp:config:tenants:visualizar",
+        "name": "[Config] Tenants - Visualizar Menu",
+        "description": "[Config] Permite visualizar o card de Tenants nas configurações"
     }
 ]

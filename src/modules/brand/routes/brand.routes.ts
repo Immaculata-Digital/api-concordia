@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { PostgresBrandRepository } from '../repositories/PostgresBrandRepository'
-import { BrandConfigContent } from '../domain/BrandConfig'
+import { Brand } from '../entities/Brand'
 
 export const brandRoutes = Router()
 const repository = new PostgresBrandRepository()
@@ -23,13 +23,20 @@ export const getConfigHandler = async (req: Request, res: Response) => {
         
         if (!config) {
             return res.json({
-                logo: {},
-                palette: {},
-                typography: {}
+                logo: { principal: '', favicon: '' },
+                cor_principal: '',
+                social: {
+                    facebook: '',
+                    instagram: '',
+                    x: '',
+                    linkedin: '',
+                    youtube: '',
+                    threads: ''
+                }
             })
         }
 
-        return res.json(config.content)
+        return res.json(config)
     } catch (error) {
         console.error('Error fetching brand config:', error)
         return res.status(500).json({ message: 'Erro interno ao buscar configuração de marca' })
@@ -42,19 +49,34 @@ export const updateConfigHandler = async (req: Request, res: Response) => {
         const userId = req.user!.uuid
         const { type } = req.query
 
-        if (!['logo', 'palette', 'typography', 'social'].includes(type as string)) {
-            return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|palette|typography|social' })
+        if (!['logo', 'cor', 'social'].includes(type as string)) {
+            return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|cor|social' })
         }
 
         const { tenantId: _, ...cleanData } = req.body
 
-        const contentToMerge: Partial<BrandConfigContent> = {
-            [type as string]: cleanData
+        let contentToMerge: Partial<Brand> = {}
+
+        if (type === 'logo') {
+            contentToMerge = {
+                logo: {
+                    principal: cleanData.principal || cleanData.logo?.principal,
+                    favicon: cleanData.favicon || cleanData.logo?.favicon
+                }
+            }
+        } else if (type === 'cor') {
+            contentToMerge = {
+                cor_principal: cleanData.cor_principal || cleanData.cor
+            }
+        } else if (type === 'social') {
+            contentToMerge = {
+                social: cleanData
+            }
         }
 
         const updatedConfig = await repository.upsertConfig(tenantId, contentToMerge, userId)
 
-        return res.json(updatedConfig.content)
+        return res.json(updatedConfig)
     } catch (error) {
         console.error('Error updating brand config:', error)
         return res.status(500).json({ message: 'Erro interno ao atualizar configuração de marca' })

@@ -1,7 +1,7 @@
-import { BrandConfig, BrandConfigContent } from '../domain/BrandConfig'
+import { Brand } from '../entities/Brand'
 
 export interface IBrandRepository {
-    getConfigByTenantId(tenantId: string): Promise<BrandConfig | null>
-    getConfigByTenantSlug(slug: string): Promise<BrandConfig | null>
-    upsertConfig(tenantId: string, content: Partial<BrandConfigContent>, userId: string): Promise<BrandConfig>
+    getConfigByTenantId(tenantId: string): Promise<Brand | null>
+    getConfigByTenantSlug(slug: string): Promise<Brand | null>
+    upsertConfig(tenantId: string, content: Partial<Brand>, userId: string): Promise<Brand>
 }

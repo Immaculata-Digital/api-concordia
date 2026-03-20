@@ -22,6 +22,7 @@ export class PostgresProdutoRepository {
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
             LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
+            LEFT JOIN app.produtos_recompensas r ON p.uuid = r.produto_id AND p.tenant_id = r.tenant_id
             WHERE p.deleted_at IS NULL
         `
         const values: any[] = []
@@ -89,6 +90,7 @@ export class PostgresProdutoRepository {
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
             LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
+            LEFT JOIN app.produtos_recompensas r ON p.uuid = r.produto_id AND p.tenant_id = r.tenant_id
             WHERE p.uuid = $1 AND p.deleted_at IS NULL
         `
         const { rows } = await pool.query(query, [uuid])
@@ -196,12 +198,18 @@ export class PostgresProdutoRepository {
                 preco_promocional: row.produto_preco_promocional || 0
             },
             cardapio: {
+                uuid: row.cardapio_uuid,
                 ordem: row.cardapio_ordem || 0,
                 ativo: row.cardapio_ativo ?? true,
                 tempoPreparo_min: row.tempo_preparo_min_raw ?? 0,
                 tempoPreparo_max: row.tempo_preparo_max_raw ?? 0,
                 exibir_tempo_preparo: row.exibir_tempo_preparo ?? false
-            }
+            },
+            recompensa: row.recompensa_uuid ? {
+                uuid: row.recompensa_uuid,
+                qtd_pontos_resgate: row.recompensa_pontos || 0,
+                voucher_digital: row.recompensa_voucher ?? false
+            } : undefined
         }
     }
 }

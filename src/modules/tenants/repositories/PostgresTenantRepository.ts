@@ -4,6 +4,12 @@ import { ITenantRepository } from './ITenantRepository'
 
 export class PostgresTenantRepository implements ITenantRepository {
     private async mapRowToProps(row: any): Promise<TenantProps> {
+        let brand_settings = row.brand_settings || null;
+        if (brand_settings) {
+            const { palette, typography, ...clean } = brand_settings;
+            brand_settings = clean;
+        }
+
         return {
             uuid: row.uuid,
             seqId: row.seq_id,
@@ -17,7 +23,7 @@ export class PostgresTenantRepository implements ITenantRepository {
             pessoaId: row.pessoa_id || null,
             logo: row.logo || null,
             category: row.category || 'Sem Categoria',
-            brand_settings: row.brand_settings || null,
+            brand_settings,
             description: row.description || null,
             pluvyt_points_per_spent: row.pluvyt_points_per_spent ? parseFloat(row.pluvyt_points_per_spent) : 10
         }
@@ -68,7 +74,11 @@ export class PostgresTenantRepository implements ITenantRepository {
                 pessoaId: row.pessoa_id || null,
                 logo: row.logo || null,
                 category: row.category || 'Sem Categoria',
-                brand_settings: row.brand_settings || null,
+                brand_settings: (() => {
+                    if (!row.brand_settings) return null;
+                    const { palette, typography, ...clean } = row.brand_settings;
+                    return clean;
+                })(),
                 description: row.description || null,
                 pluvyt_points_per_spent: row.pluvyt_points_per_spent ? parseFloat(row.pluvyt_points_per_spent) : 10,
                 latitude: (row.latitude !== null && row.latitude !== undefined) ? parseFloat(row.latitude) : null,

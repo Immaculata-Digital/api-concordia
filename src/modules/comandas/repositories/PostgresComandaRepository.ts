@@ -365,6 +365,8 @@ export class PostgresComandaRepository {
             SELECT 
                 p.*, 
                 m.numero as mesa_numero,
+                c.cliente_nome,
+                c.seq_id as comanda_seq_id,
                 (SELECT COUNT(*) FROM app.comanda_itens ci WHERE ci.pedido_id = p.uuid AND ci.deleted_at IS NULL) as qtd_itens,
                 CASE 
                     WHEN p.status IN ('ENTREGUE', 'PAGO', 'CANCELADO') THEN 
@@ -389,6 +391,8 @@ export class PostgresComandaRepository {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             mesaNumero: row.mesa_numero,
+            clienteNome: row.cliente_nome,
+            comandaSeqId: row.comanda_seq_id,
             qtdItens: Number(row.qtd_itens),
             tempoAtendimento: `${Math.floor(Number(row.tempo_minutos))} min`
         }))
@@ -398,7 +402,8 @@ export class PostgresComandaRepository {
         const query = `
             SELECT 
                 p.*, 
-                m.numero as mesa_numero
+                m.numero as mesa_numero,
+                c.seq_id as comanda_seq_id
             FROM app.pedidos p
             JOIN app.comandas c ON c.uuid = p.comanda_id
             JOIN app.mesas m ON m.uuid = c.mesa_id
@@ -413,6 +418,7 @@ export class PostgresComandaRepository {
         return rows.map(row => ({
             uuid: row.uuid,
             seqId: row.seq_id,
+            comandaSeqId: row.comanda_seq_id,
             status: row.status,
             total: Number(row.total),
             createdAt: row.created_at,
@@ -459,6 +465,7 @@ export class PostgresComandaRepository {
             SELECT 
                 p.*, 
                 m.numero as mesa_numero,
+                c.cliente_nome,
                 (SELECT JSON_BUILD_OBJECT(
                     'recebido_min', ROUND(EXTRACT(EPOCH FROM rm.recebido_min)/60), 
                     'pronto_min', ROUND(EXTRACT(EPOCH FROM rm.pronto_min)/60)
@@ -502,6 +509,7 @@ export class PostgresComandaRepository {
                 createdAt: p.created_at,
                 updatedAt: p.updated_at,
                 mesaNumero: p.mesa_numero,
+                clienteNome: p.cliente_nome,
                 metas: {
                     recebido_min: p.metas?.recebido_min || 5, // Meta para entrar em produção
                     preparo_min: pedidoPreparoMeta,         // Meta de preparo (produção ativa)

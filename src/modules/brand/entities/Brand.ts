@@ -1,4 +1,5 @@
 export interface Brand {
+  name?: string;
   logo: {
     principal: string;
     favicon: string;

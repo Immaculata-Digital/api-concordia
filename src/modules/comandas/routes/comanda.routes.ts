@@ -23,6 +23,13 @@ comandaRoutes.get('/restaurante/historico', authenticate, async (req, res) => {
     const pedidos = await repository.findPedidosHistorico(tenantId)
     return res.json(pedidos)
 })
+ 
+comandaRoutes.get('/restaurante/pedidos/:id/itens', authenticate, async (req, res) => {
+    const tenantId = req.user!.tenantId
+    const { id } = req.params
+    const itens = await repository.findItemsByPedido(tenantId, id as string)
+    return res.json(itens)
+})
 
 comandaRoutes.get('/restaurante/metas', authenticate, async (req, res) => {
     const tenantId = req.user!.tenantId

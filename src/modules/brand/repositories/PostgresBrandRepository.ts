@@ -7,6 +7,7 @@ export class PostgresBrandRepository implements IBrandRepository {
         const settings = row.brand_settings || {};
         
         return {
+            name: row.name,
             logo: {
                 principal: settings.logo?.principal || '',
                 favicon: settings.logo?.favicon || '',
@@ -25,7 +26,7 @@ export class PostgresBrandRepository implements IBrandRepository {
 
     async getConfigByTenantId(tenantId: string): Promise<Brand | null> {
         const result = await pool.query(
-            `SELECT brand_settings FROM app.tenants WHERE uuid = $1 LIMIT 1`,
+            `SELECT name, brand_settings FROM app.tenants WHERE uuid = $1 LIMIT 1`,
             [tenantId]
         )
         return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null
@@ -33,7 +34,7 @@ export class PostgresBrandRepository implements IBrandRepository {
 
     async getConfigByTenantSlug(slug: string): Promise<Brand | null> {
         const result = await pool.query(
-            `SELECT brand_settings FROM app.tenants WHERE slug = $1 LIMIT 1`,
+            `SELECT name, brand_settings FROM app.tenants WHERE slug = $1 LIMIT 1`,
             [slug]
         )
         return result.rows[0] ? this.mapRowToDomain(result.rows[0]) : null
@@ -47,7 +48,7 @@ export class PostgresBrandRepository implements IBrandRepository {
                 updated_by = $3,
                 updated_at = NOW()
             WHERE uuid = $1
-            RETURNING brand_settings
+            RETURNING name, brand_settings
         `;
         
         const params = [tenantId, JSON.stringify(contentToMerge), userId];

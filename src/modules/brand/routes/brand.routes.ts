@@ -36,7 +36,14 @@ export const getConfigHandler = async (req: Request, res: Response) => {
             })
         }
 
-        return res.json(config)
+        return res.json({
+            name: config.name,
+            cor_principal: config.cor_principal,
+            logo: {
+                principal: config.logo?.principal,
+                favicon: config.logo?.favicon
+            }
+        });
     } catch (error) {
         console.error('Error fetching brand config:', error)
         return res.status(500).json({ message: 'Erro interno ao buscar configuração de marca' })
@@ -49,28 +56,65 @@ export const updateConfigHandler = async (req: Request, res: Response) => {
         const userId = req.user!.uuid
         const { type } = req.query
 
-        if (!['logo', 'cor', 'social'].includes(type as string)) {
+        if (type && !['logo', 'cor', 'social'].includes(type as string)) {
             return res.status(400).json({ message: 'Tipo de configuração inválido. Use type=logo|cor|social' })
         }
 
         const { tenantId: _, ...cleanData } = req.body
 
+        // Busca a configuração atual para realizar o merge aninhado (jsonb do Postgres por padrão faz merge apenas no nível raiz)
+        const currentConfig = await repository.getConfigByTenantId(tenantId)
+
         let contentToMerge: Partial<Brand> = {}
 
-        if (type === 'logo') {
+        if (!type) {
+            // Bulk update - merge aninhado manual
+            if (cleanData.logo || cleanData.principal || cleanData.favicon) {
+                contentToMerge.logo = {
+                    principal: cleanData.principal ?? cleanData.logo?.principal ?? currentConfig?.logo?.principal ?? '',
+                    favicon: cleanData.favicon ?? cleanData.logo?.favicon ?? currentConfig?.logo?.favicon ?? ''
+                }
+            }
+
+            if (cleanData.cor_principal || cleanData.cor) {
+                contentToMerge.cor_principal = cleanData.cor_principal ?? cleanData.cor ?? currentConfig?.cor_principal ?? ''
+            }
+
+            if (cleanData.social) {
+                contentToMerge.social = {
+                    ...(currentConfig?.social || {}),
+                    ...cleanData.social
+                } as any
+            }
+            
+            // Fallback: se nenhum campo foi mapeado ainda, mas há dados (ex: estrutura vinda do frontend já correta)
+            // mas que precisa de merge para não apagar sub-objetos
+            if (Object.keys(contentToMerge).length === 0) {
+                if (cleanData.logo) {
+                    contentToMerge.logo = { ...(currentConfig?.logo || {}), ...cleanData.logo } as any;
+                }
+                if (cleanData.cor_principal) contentToMerge.cor_principal = cleanData.cor_principal;
+                if (cleanData.social) {
+                    contentToMerge.social = { ...(currentConfig?.social || {}), ...cleanData.social } as any;
+                }
+            }
+        } else if (type === 'logo') {
             contentToMerge = {
                 logo: {
-                    principal: cleanData.principal || cleanData.logo?.principal,
-                    favicon: cleanData.favicon || cleanData.logo?.favicon
+                    principal: cleanData.principal ?? cleanData.logo?.principal ?? currentConfig?.logo?.principal ?? '',
+                    favicon: cleanData.favicon ?? cleanData.logo?.favicon ?? currentConfig?.logo?.favicon ?? ''
                 }
             }
         } else if (type === 'cor') {
             contentToMerge = {
-                cor_principal: cleanData.cor_principal || cleanData.cor
+                cor_principal: cleanData.cor_principal ?? cleanData.cor ?? currentConfig?.cor_principal ?? ''
             }
         } else if (type === 'social') {
             contentToMerge = {
-                social: cleanData
+                social: {
+                    ...(currentConfig?.social || {}),
+                    ...(cleanData.social || cleanData)
+                } as any
             }
         }
 

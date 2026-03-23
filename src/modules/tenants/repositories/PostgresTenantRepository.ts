@@ -22,7 +22,7 @@ export class PostgresTenantRepository implements ITenantRepository {
             modules: row.modules || [],
             pessoaId: row.pessoa_id || null,
             logo: row.logo || null,
-            category: row.category || 'Sem Categoria',
+            category: row.category || null,
             brand_settings,
             description: row.description || null,
             pluvyt_points_per_spent: row.pluvyt_points_per_spent ? parseFloat(row.pluvyt_points_per_spent) : 10
@@ -73,7 +73,7 @@ export class PostgresTenantRepository implements ITenantRepository {
                 modules: row.modules || [],
                 pessoaId: row.pessoa_id || null,
                 logo: row.logo || null,
-                category: row.category || 'Sem Categoria',
+                category: row.category || null,
                 brand_settings: (() => {
                     if (!row.brand_settings) return null;
                     const { palette, typography, ...clean } = row.brand_settings;
@@ -108,7 +108,7 @@ export class PostgresTenantRepository implements ITenantRepository {
             RETURNING *`,
             [
                 data.uuid, data.name, data.slug, data.createdBy, data.updatedBy, data.createdAt, data.updatedAt, 
-                data.modules || [], data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, 
+                data.modules || [], data.logo || null, data.category || null, data.brand_settings || null, 
                 data.description || null, data.pluvyt_points_per_spent || 10
 
             ]
@@ -126,7 +126,7 @@ export class PostgresTenantRepository implements ITenantRepository {
             RETURNING *`,
             [
                 data.uuid, data.name, data.slug, data.updatedBy, data.modules || [], 
-                data.logo || null, data.category || 'Sem Categoria', data.brand_settings || null, 
+                data.logo || null, data.category || null, data.brand_settings || null, 
                 data.description || null, data.pluvyt_points_per_spent || 10
 
             ]

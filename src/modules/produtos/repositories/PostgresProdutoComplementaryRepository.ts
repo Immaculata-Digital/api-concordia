@@ -252,7 +252,7 @@ export class PostgresProdutoComplementaryRepository {
                 `INSERT INTO app.produtos_recompensas (
                     uuid, tenant_id, produto_id, qtd_pontos_resgate, voucher_digital, created_by, updated_by
                 ) VALUES ($1, $2, $3, $4, $5, $6, $6)`,
-                [require('crypto').randomUUID(), tenantId, produtoId, data.qtd_pontos_resgate, data.voucher_digital, userId]
+                [require('../../../utils/uuid').generateUUID(), tenantId, produtoId, data.qtd_pontos_resgate, data.voucher_digital, userId]
             )
         }
     }

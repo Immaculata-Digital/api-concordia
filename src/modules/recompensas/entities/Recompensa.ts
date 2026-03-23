@@ -1,5 +1,5 @@
 
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface RecompensaProps {
     uuid: string
@@ -40,7 +40,7 @@ export class Recompensa {
         const timestamp = new Date()
         return new Recompensa({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

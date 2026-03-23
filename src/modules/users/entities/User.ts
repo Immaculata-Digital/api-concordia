@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface UserProps {
     uuid: string
@@ -30,7 +30,7 @@ export class User {
         const timestamp = new Date()
         return new User({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             allowFeatures: data.allowFeatures ?? [],
             deniedFeatures: data.deniedFeatures ?? [],
             groupIds: data.groupIds ?? [],

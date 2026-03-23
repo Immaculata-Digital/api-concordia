@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface MesaProps {
     uuid: string
@@ -25,7 +25,7 @@ export class Mesa {
         const timestamp = new Date()
         return new Mesa({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

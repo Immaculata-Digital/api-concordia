@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface ProdutoProps {
     uuid: string
@@ -68,7 +68,7 @@ export class Produto {
         const timestamp = new Date()
         return new Produto({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

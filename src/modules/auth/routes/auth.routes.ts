@@ -2,6 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 import { sendWhatsAppMessage } from '../../../infra/whatsapp/evolution-api'
 import { comparePassword, decryptPassword } from '../../../utils/passwordCipher'
 import { PostgresUserRepository } from '../../users/repositories/PostgresUserRepository'
@@ -384,7 +385,7 @@ authRoutes.post('/register/pluvyt', async (req, res) => {
         const expires = new Date()
         expires.setHours(expires.getHours() + 48) // 48h para ativar
 
-        const userId = crypto.randomUUID()
+        const userId = generateUUID()
         await client.query(
             `INSERT INTO app.users (
                 uuid, tenant_id, full_name, login, email, password, 
@@ -395,7 +396,7 @@ authRoutes.post('/register/pluvyt', async (req, res) => {
         )
 
         // 3. Criar Pessoa
-        const personId = crypto.randomUUID()
+        const personId = generateUUID()
         await client.query(
             `INSERT INTO app.people (uuid, tenant_id, name, cpf_cnpj, usuario_id, created_by, updated_by, views) 
              VALUES ($1, $2, $3, $4, $5, $5, $5, $6)`,

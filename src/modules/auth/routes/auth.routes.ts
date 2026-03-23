@@ -9,12 +9,10 @@ import { PostgresUserRepository } from '../../users/repositories/PostgresUserRep
 import { PostgresPluvytClientRepository } from '../../pluvyt-clients/repositories/PostgresPluvytClientRepository'
 import { PluvytClient } from '../../pluvyt-clients/entities/PluvytClient'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../../infra/auth/jwt'
-import menus from '../../menus/menus.json'
 import { pool } from '../../../infra/database/pool'
 import { sendMail, SmtpConfig, getSystemSmtpConfig } from '../../../infra/email/mailer'
 import { getEmailVerificationTemplate, getPasswordResetTemplate, getConcordiaPasswordResetTemplate } from '../../../infra/email/templates'
 import { filterMenusByTenant } from '../../menus/utils/menuUtils'
-import features from '../../features/features.json'
 
 export const authRoutes = Router()
 
@@ -50,17 +48,27 @@ async function getUserPermissions(userId: string, tenantId: string): Promise<str
     deniedFeatures.forEach(f => allFeatures.delete(f))
 
     // 5. Final Filter: Filter by tenant modules
-    // If a feature in features.json has a 'module', the tenant MUST have that module.
+    // If a feature has a 'module', the tenant MUST have that module.
     // Core features (no module defined) are always allowed.
-    const filteredPermissions = Array.from(allFeatures).filter(permissionKey => {
-        const featureDef = (features as any[]).find(f => f.key === permissionKey)
-        
-        // If feature has no module defined, it is a core feature
-        if (!featureDef?.module) return true
+    const featuresArray = Array.from(allFeatures);
+    if (featuresArray.length === 0) return [];
+    
+    // Buscar módulos das features no banco
+    const featuresRes = await pool.query(
+        'SELECT key, module FROM app.features WHERE key = ANY($1::text[])', 
+        [featuresArray]
+    );
 
-        // If it has a module defined, check if tenant has it
-        return tenantModules.includes(featureDef.module)
-    })
+    const featureModuleMap = featuresRes.rows.reduce((acc, row) => {
+        acc[row.key] = row.module;
+        return acc;
+    }, {} as Record<string, string>);
+
+    const filteredPermissions = featuresArray.filter(permissionKey => {
+        const module = featureModuleMap[permissionKey];
+        if (!module) return true;
+        return tenantModules.includes(module);
+    });
 
     return filteredPermissions
 }
@@ -190,8 +198,9 @@ authRoutes.post('/login', async (req, res) => {
             [extra.person_id]
         )
 
-
-        const filteredMenus = filterMenusByTenant(menus, tenantModules)
+        const menusRes = await pool.query('SELECT key, name, icon, url, category, order_index, parent_key as "parentKey", module FROM app.menus ORDER BY order_index ASC')
+        const allMenus = menusRes.rows
+        const filteredMenus = filterMenusByTenant(allMenus, tenantModules)
 
         return res.json({
             accessToken,

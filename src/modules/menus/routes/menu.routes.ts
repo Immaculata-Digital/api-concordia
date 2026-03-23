@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import menus from '../menus.json'
 import views from '../views.json'
 import { filterMenusByTenant } from '../utils/menuUtils'
 import { pool } from '../../../infra/database/pool'
@@ -8,22 +7,23 @@ export const menuRoutes = Router()
 
 menuRoutes.get('/', async (req, res) => {
     try {
+        const menusRes = await pool.query('SELECT key, name, icon, url, category, order_index, parent_key as "parentKey", module FROM app.menus ORDER BY order_index ASC')
+        const allMenus = menusRes.rows
+
         const tenantId = req.user?.tenantId
         if (!tenantId) {
             // Robustez: se não há tenantId no token por algum motivo, retorna apenas core
-            return res.json(filterMenusByTenant(menus, []))
+            return res.json(filterMenusByTenant(allMenus, []))
         }
 
         const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
         const tenantModules = tenantRes.rows[0]?.modules || []
 
-        const filteredMenus = filterMenusByTenant(menus, tenantModules)
+        const filteredMenus = filterMenusByTenant(allMenus, tenantModules)
         return res.json(filteredMenus)
     } catch (error) {
         console.error('[MENU_ROUTES] Error fetching filtered menus:', error)
-        // Fallback robust: retorna apenas os menus core (sem módulo) em caso de erro crítico
-        const coreMenus = filterMenusByTenant(menus, [])
-        return res.json(coreMenus) 
+        return res.status(500).json([]) 
     }
 });
 

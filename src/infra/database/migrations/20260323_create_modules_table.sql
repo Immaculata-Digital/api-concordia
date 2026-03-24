@@ -19,7 +19,7 @@ INSERT INTO app.modules (key, name, menu_parent, order_index) VALUES
 ('pluvyt', 'PLUVYT', 'PLUVYT', 1),
 ('restaurante', 'Restaurante', 'Restaurante', 2),
 ('site', 'Site', 'Site', 3),
-('loja-virtual', 'Loja Virtual', 'Loja Virtual', 4),
+('vitrine', 'Vitrine', 'Vitrine', 4),
 ('whatsapp', 'WhatsApp', 'WhatsApp', 5),
 ('comunicacoes', 'Comunicações', 'Comunicações', 6)
 ON CONFLICT (key) DO UPDATE SET 

@@ -12,7 +12,7 @@ ALTER TABLE app.menus ADD COLUMN IF NOT EXISTS parent_key TEXT;
 -- 'PLUVYT' -> 'pluvyt'
 -- 'Restaurante' -> 'restaurante'
 -- 'Site' -> 'site'
--- 'Loja Virtual' -> 'loja-virtual'
+-- 'Loja Virtual' -> 'vitrine' (Mapeado como 'Vitrine')
 -- 'WhatsApp' -> 'whatsapp'
 -- 'Comunicações' -> 'comunicacoes'
 -- 'Cadastros' -> NULL
@@ -45,10 +45,10 @@ BEGIN
     UPDATE app.menus SET order_index = 16, module = 'site' WHERE key = 'erp:identidade-visual:listar';
     UPDATE app.menus SET order_index = 17, module = 'site' WHERE key = 'erp:landing-pages:listar';
 
-    -- Loja Virtual
-    UPDATE app.menus SET order_index = 18, module = 'loja-virtual' WHERE key = 'erp:pessoas:ecommercelojas';
-    UPDATE app.menus SET order_index = 19, module = 'loja-virtual' WHERE key = 'erp:produtos:ecommerce-produtos';
-    UPDATE app.menus SET order_index = 20, module = 'loja-virtual' WHERE key = 'erp:produtos:lista:listar' AND category = 'Loja Virtual';
+    -- Vitrine
+    UPDATE app.menus SET order_index = 18, module = 'vitrine' WHERE key = 'erp:pessoas:ecommercelojas';
+    UPDATE app.menus SET order_index = 19, module = 'vitrine' WHERE key = 'erp:produtos:ecommerce-produtos';
+    UPDATE app.menus SET order_index = 20, module = 'vitrine' WHERE key = 'erp:produtos:lista:listar' AND category = 'Vitrine';
 
     -- Comunicações
     UPDATE app.menus SET order_index = 21, module = 'comunicacoes' WHERE key = 'erp:remetentes-smtp:listar';

@@ -72,9 +72,9 @@ produtosRoutes.get('/:id', async (req, res) => {
 
 produtosRoutes.post('/', async (req, res) => {
     try {
-        const { tenant_id, nome, unidade, ...rest } = req.body
+        const { nome, unidade, ...rest } = req.body
         const produto = Produto.create({
-            tenantId: tenant_id,
+            tenantId: req.user!.tenantId,
             nome,
             unidade,
             ...rest,
@@ -127,7 +127,7 @@ produtosRoutes.delete('/:id', async (req, res) => {
 
 produtosRoutes.post('/:id/fiscal', async (req, res) => {
     try {
-        await complementaryRepository.upsertFiscal(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertFiscal(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados fiscais atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados fiscais' })
@@ -136,7 +136,7 @@ produtosRoutes.post('/:id/fiscal', async (req, res) => {
 
 produtosRoutes.post('/:id/logistica', async (req, res) => {
     try {
-        await complementaryRepository.upsertLogistica(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertLogistica(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados de logística atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados de logística' })
@@ -145,7 +145,7 @@ produtosRoutes.post('/:id/logistica', async (req, res) => {
 
 produtosRoutes.post('/:id/precos', async (req, res) => {
     try {
-        await complementaryRepository.upsertPrecos(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertPrecos(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Preços atualizados' })
     } catch (error: any) {
         console.error('Error saving prices:', error)
@@ -159,7 +159,7 @@ produtosRoutes.post('/:id/precos', async (req, res) => {
 
 produtosRoutes.post('/:id/seo', async (req, res) => {
     try {
-        await complementaryRepository.upsertSeo(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertSeo(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'SEO atualizado' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar SEO' })
@@ -168,7 +168,7 @@ produtosRoutes.post('/:id/seo', async (req, res) => {
 
 produtosRoutes.post('/:id/recompensa', async (req, res) => {
     try {
-        await complementaryRepository.upsertRecompensa(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertRecompensa(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados de recompensa atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados de recompensa' })

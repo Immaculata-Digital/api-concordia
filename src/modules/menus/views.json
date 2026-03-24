@@ -11,8 +11,8 @@
                 "slug": "itens-de-recompensa"
             },
             {
-                "name": "E-commerce",
-                "slug": "ecommerce-produtos"
+                "name": "Produtos Vitrine",
+                "slug": "vitrine"
             }
         ]
     },
@@ -20,8 +20,8 @@
         "screen": "Pessoas",
         "views": [
             {
-                "name": "Lojas (E-commerce)",
-                "slug": "ecommercelojas"
+                "name": "Lojas",
+                "slug": "vitrine"
             },
             {
                 "name": "Clientes Pluvyt",
@@ -34,7 +34,7 @@
         "views": [
             {
                 "name": "Vitrine",
-                "slug": "vitrine-vitrine"
+                "slug": "vitrine"
             }
         ]
     }

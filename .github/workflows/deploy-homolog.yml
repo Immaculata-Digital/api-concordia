@@ -71,7 +71,6 @@ jobs:
             -p 5337:3001 \
             -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_HOST='${{ secrets.DB_HOST_HOMOLOG }}' \
-            -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_PORT='${{ secrets.DB_PORT_HOMOLOG }}' \
             -e DB_NAME='${{ secrets.DB_NAME_HOMOLOG }}' \
             -e DB_USER='${{ secrets.DB_USER_HOMOLOG }}' \

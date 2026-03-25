@@ -69,7 +69,7 @@ jobs:
             --name ${IMAGE_NAME}-main \
             --restart unless-stopped \
             -p 3337:3001 \
-            -e CRYPTO_SECRET='{{ secrets.CRYPTO_SECRET }}' \
+            -e CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}' \
             -e DB_HOST='${{ secrets.DB_HOST_MAIN }}' \
             -e DB_PORT='${{ secrets.DB_PORT_MAIN }}' \
             -e DB_NAME='${{ secrets.DB_NAME_MAIN }}' \

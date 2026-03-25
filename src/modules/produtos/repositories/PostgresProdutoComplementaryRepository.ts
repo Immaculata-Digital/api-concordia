@@ -72,11 +72,13 @@ export class PostgresProdutoComplementaryRepository {
                 created_by, updated_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
             ON CONFLICT (produto_id) DO UPDATE SET
-                preco = EXCLUDED.preco, preco_promocional = EXCLUDED.preco_promocional,
-                preco_custo = EXCLUDED.preco_custo, valor_max = EXCLUDED.valor_max,
+                preco = COALESCE(EXCLUDED.preco, app.produtos_precos.preco),
+                preco_promocional = EXCLUDED.preco_promocional,
+                preco_custo = COALESCE(EXCLUDED.preco_custo, app.produtos_precos.preco_custo),
+                valor_max = COALESCE(EXCLUDED.valor_max, app.produtos_precos.valor_max),
                 updated_by = EXCLUDED.updated_by, updated_at = NOW()
         `
-        const values = [tenantId, produtoId, data.preco, data.preco_promocional, data.preco_custo, data.valor_max, userId]
+        const values = [tenantId, produtoId, data.preco ?? null, data.preco_promocional ?? null, data.preco_custo ?? null, data.valor_max ?? null, userId]
         await pool.query(query, values)
     }
 

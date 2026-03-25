@@ -8,7 +8,7 @@ export const app = express()
 
 app.use(helmet())
 app.use(cors())
-app.use(express.json({ limit: '100mb' }))
+app.use(express.json({ limit: '200mb' }))
 
 // Converte automaticamente todas as imagens raster (base64) para WebP em todo POST/PUT/PATCH
 app.use(convertImagesMiddleware)

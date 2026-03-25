@@ -9,3 +9,6 @@ yarn-error.log*
 .idea
 .vscode
 build
+
+# Sync env files
+.env.sync*

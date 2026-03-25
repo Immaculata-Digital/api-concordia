@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { PostgresTenantRepository } from '../repositories/PostgresTenantRepository'
 
-export const publicTenantRoutes = Router()
+export const publicTenantRoutes = Router({ mergeParams: true })
 const tenantRepository = new PostgresTenantRepository()
 
 publicTenantRoutes.get('/', async (req, res) => {

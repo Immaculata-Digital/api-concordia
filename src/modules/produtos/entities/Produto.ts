@@ -27,6 +27,7 @@ export interface ProdutoProps {
     deletedAt?: Date
     image_url?: string
     image_base64?: string
+    images?: Array<{ url?: string; arquivo?: string }>
     precos?: {
         preco: number
         preco_custo?: number
@@ -53,6 +54,10 @@ export interface ProdutoProps {
     fichaTecnica?: any[]
     tempoPreparo_min?: string
     tempoPreparo_max?: string
+    seo?: {
+        slug: string
+    }
+    variants?: any[]
 }
 
 export type CreateProdutoProps = Omit<ProdutoProps, 'uuid' | 'createdAt' | 'updatedAt'>

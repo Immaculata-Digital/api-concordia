@@ -1,18 +1,25 @@
 import { Router } from 'express'
 import { PostgresProductListRepository } from '../repositories/PostgresProductListRepository'
+import { PostgresTenantRepository } from '../../tenants/repositories/PostgresTenantRepository'
 
-export const publicProductListRoutes = Router()
+export const publicProductListRoutes = Router({ mergeParams: true })
 const repository = new PostgresProductListRepository()
+const tenantRepository = new PostgresTenantRepository()
 
 publicProductListRoutes.get('/:id', async (req, res) => {
     try {
-        const { id } = req.params
-        const tenantId = req.query.tenantId as string
-
-        if (!tenantId) {
-            return res.status(400).json({ message: 'tenantId is required' })
+        const { id, tenantSlug } = req.params as any
+ 
+        if (!tenantSlug) {
+            return res.status(400).json({ message: 'tenantSlug é obrigatório' })
         }
 
+        const tenant = await tenantRepository.findBySlug(tenantSlug)
+        if (!tenant) {
+            return res.status(404).json({ message: 'Tenant não encontrado pelo slug' })
+        }
+
+        const tenantId = tenant.uuid!
         const list = await repository.findById(id, tenantId)
         if (!list) {
             return res.status(404).json({ message: 'Lista não encontrada' })

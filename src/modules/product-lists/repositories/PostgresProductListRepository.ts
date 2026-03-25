@@ -20,13 +20,28 @@ export class PostgresProductListRepository {
         return result.rows[0]
     }
 
-    async findAll(tenantId: string): Promise<ProductListProps[]> {
-        const query = `
-            SELECT * FROM app.product_lists
-            WHERE tenant_id = $1 AND deleted_at IS NULL
-            ORDER BY created_at DESC
+    async findAll(tenantId: string, view?: string): Promise<ProductListProps[]> {
+        let query = `
+            SELECT pl.* FROM app.product_lists pl
+            WHERE pl.tenant_id = $1 AND pl.deleted_at IS NULL
         `
-        const result = await pool.query(query, [tenantId])
+        const values: any[] = [tenantId]
+
+        if (view) {
+            query += `
+                AND EXISTS (
+                    SELECT 1 FROM app.produtos p
+                    WHERE p.uuid = ANY(pl.product_uuids)
+                    AND $2 = ANY(p.views)
+                    AND p.deleted_at IS NULL
+                )
+            `
+            values.push(view)
+        }
+
+        query += ` ORDER BY pl.created_at DESC`
+        
+        const result = await pool.query(query, values)
         return result.rows
     }
 

@@ -51,6 +51,7 @@ produtosRoutes.get('/:id', async (req, res) => {
         const kit = await complementaryRepository.getKit(req.params.id)
         const variacoes = await complementaryRepository.getVariacoes(req.params.id)
         const recompensa = await complementaryRepository.getRecompensa(req.params.id)
+        const relacaoPai = await complementaryRepository.getRelacaoPai(req.params.id)
 
         return res.json({
             ...produto,
@@ -62,7 +63,8 @@ produtosRoutes.get('/:id', async (req, res) => {
             media,
             kit,
             variacoes,
-            recompensa
+            recompensa,
+            relacaoPai
         })
     } catch (error) {
         console.error('Error getting product:', error)
@@ -230,6 +232,35 @@ produtosRoutes.get('/ficha-tecnica/chaves', async (req, res) => {
     }
 })
 
+produtosRoutes.delete('/ficha-tecnica/chaves/:chave', async (req, res) => {
+    try {
+        const tenantId = req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        
+        await complementaryRepository.deleteGlobalFichaTecnicaChave(tenantId, req.params.chave)
+        return res.status(204).send()
+    } catch (error) {
+        console.error('Error deleting global key:', error)
+        return res.status(500).json({ message: 'Erro ao excluir chave global da ficha técnica' })
+    }
+})
+
+produtosRoutes.put('/ficha-tecnica/chaves/:oldChave', async (req, res) => {
+    try {
+        const tenantId = req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        
+        const { newChave } = req.body
+        if (!newChave) return res.status(400).json({ message: 'Nova chave é obrigatória' })
+
+        await complementaryRepository.renameGlobalFichaTecnicaChave(tenantId, req.params.oldChave, newChave)
+        return res.json({ message: 'Chave global atualizada com sucesso' })
+    } catch (error) {
+        console.error('Error renaming global key:', error)
+        return res.status(500).json({ message: 'Erro ao renomear chave global' })
+    }
+})
+
 produtosRoutes.get('/ficha-tecnica/valores', async (req, res) => {
     try {
         const tenantId = (req.query.tenantId as string) || req.user?.tenantId
@@ -350,9 +381,11 @@ produtosRoutes.put('/kit/:itemId', async (req, res) => {
 // Variacoes
 produtosRoutes.post('/:id/variacoes', async (req, res) => {
     try {
-        await complementaryRepository.addVariacao(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
-        return res.status(201).json({ message: 'Variação adicionada' })
+        const tenantId = req.body.tenantId || req.user!.tenantId
+        const variacao = await complementaryRepository.addVariacao(req.params.id, tenantId, req.body, req.user!.uuid)
+        return res.status(201).json(variacao)
     } catch (error) {
+        console.error('Error adding variation:', error)
         return res.status(500).json({ message: 'Erro ao adicionar variação' })
     }
 })

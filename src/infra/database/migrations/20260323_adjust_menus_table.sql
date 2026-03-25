@@ -25,7 +25,7 @@ BEGIN
     UPDATE app.menus SET order_index = 2, module = 'cadastros' WHERE key = 'erp:menus:cadastro:categorias';
     UPDATE app.menus SET order_index = 3, module = 'cadastros' WHERE key = 'erp:pessoas:tipos-relacionamento:listar';
     UPDATE app.menus SET order_index = 4, module = 'cadastros' WHERE key = 'erp:menus:cadastro:produtos';
-    UPDATE app.menus SET order_index = 5, module = 'cadastros' WHERE key = 'erp:produtos:lista:listar';
+    UPDATE app.menus SET order_index = 5, module = 'cadastros' WHERE key = 'erp:produtos:lista-produtos:vitrine';
 
     -- PLUVYT
     UPDATE app.menus SET order_index = 6, module = 'pluvyt' WHERE key = 'erp:pluvyt-clients:listar';
@@ -46,9 +46,9 @@ BEGIN
     UPDATE app.menus SET order_index = 17, module = 'site' WHERE key = 'erp:landing-pages:listar';
 
     -- Vitrine
-    UPDATE app.menus SET order_index = 18, module = 'vitrine' WHERE key = 'erp:pessoas:ecommercelojas';
-    UPDATE app.menus SET order_index = 19, module = 'vitrine' WHERE key = 'erp:produtos:ecommerce-produtos';
-    UPDATE app.menus SET order_index = 20, module = 'vitrine' WHERE key = 'erp:produtos:lista:listar' AND category = 'Vitrine';
+    UPDATE app.menus SET order_index = 18, module = 'vitrine' WHERE key = 'erp:pessoas:vitrine';
+    UPDATE app.menus SET order_index = 19, module = 'vitrine' WHERE key = 'erp:produtos:vitrine';
+    UPDATE app.menus SET order_index = 20, module = 'vitrine' WHERE key = 'erp:produtos:lista-produtos:vitrine' AND category = 'Vitrine';
 
     -- Comunicações
     UPDATE app.menus SET order_index = 21, module = 'comunicacoes' WHERE key = 'erp:remetentes-smtp:listar';

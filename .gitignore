@@ -9,6 +9,7 @@ yarn-error.log*
 .idea
 .vscode
 build
+.env.sync*
 20260324214500_sync_db.sql
 app_features_data.sql
 app_features_ddl.sql

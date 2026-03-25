@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface ComandaItemProps {
     uuid: string
@@ -54,7 +54,7 @@ export class Comanda {
         const timestamp = new Date()
         return new Comanda({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             status: 'ABERTA',
             total: 0,
             abertaEm: timestamp,

@@ -1,15 +1,16 @@
 import { Router } from 'express'
-import features from '../features.json'
-
 import { pool } from '../../../infra/database/pool'
 
 export const featureRoutes = Router()
 
 featureRoutes.get('/', async (req, res) => {
     try {
+        const featuresRes = await pool.query('SELECT key, name, description, module FROM app.features')
+        const allFeatures = featuresRes.rows
+
         const tenantId = req.user?.tenantId
         if (!tenantId) {
-            return res.json(features)
+            return res.json(allFeatures)
         }
 
         const tenantRes = await pool.query('SELECT modules FROM app.tenants WHERE uuid = $1', [tenantId])
@@ -23,7 +24,7 @@ featureRoutes.get('/', async (req, res) => {
         const isAdmin = userGroupsRes.rows.some(r => r.code?.toUpperCase() === 'ADM')
         const userPermissions = req.user?.permissions || []
 
-        const filteredFeatures = (features as any[]).filter(f => {
+        const filteredFeatures = allFeatures.filter(f => {
             // 1. Filtro de Módulo do Tenant
             const hasModule = !f.module || tenantModules.includes(f.module)
             if (!hasModule) return false
@@ -40,6 +41,6 @@ featureRoutes.get('/', async (req, res) => {
         return res.json(filteredFeatures)
     } catch (error) {
         console.error('[FEATURE_ROUTES] Error fetching filtered features:', error)
-        return res.json(features) // Fallback to all features if error
+        return res.status(500).json([]) // Fallback robusto
     }
 })

@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface PedidoProps {
     uuid: string
@@ -32,7 +32,7 @@ export class Pedido {
         const timestamp = new Date()
         return new Pedido({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             status: 'NOVO',
             total: 0,
             createdAt: timestamp,

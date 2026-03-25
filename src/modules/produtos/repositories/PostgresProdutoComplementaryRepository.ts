@@ -155,6 +155,36 @@ export class PostgresProdutoComplementaryRepository {
         }
     }
 
+    async renameGlobalFichaTecnicaChave(tenantId: string, oldChave: string, newChave: string): Promise<void> {
+        // Rename key in ficha_tecnica
+        await pool.query(
+            'UPDATE app.produtos_ficha_tecnica SET chave = $1 WHERE tenant_id = $2 AND chave = $3',
+            [newChave, tenantId, oldChave]
+        )
+
+        // Rename key inside the grade JSONB of variations
+        // (grade - 'oldChave') || jsonb_build_object('newChave', grade->>'oldChave')
+        await pool.query(`
+            UPDATE app.produtos_variacoes 
+            SET grade = (grade - $1) || jsonb_build_object($2::text, grade->>$1)
+            WHERE tenant_id = $3 AND grade ? $1
+        `, [oldChave, newChave, tenantId])
+    }
+
+    async deleteGlobalFichaTecnicaChave(tenantId: string, chave: string): Promise<void> {
+        // Delete all ficha_tecnica entries with this key for the tenant
+        await pool.query(
+            'DELETE FROM app.produtos_ficha_tecnica WHERE tenant_id = $1 AND chave = $2',
+            [tenantId, chave]
+        )
+
+        // Delete all variations that use this key
+        await pool.query(
+            'DELETE FROM app.produtos_variacoes WHERE tenant_id = $1 AND grade ? $2',
+            [tenantId, chave]
+        )
+    }
+
     async getMedia(produtoId: string): Promise<any[]> {
         const { rows } = await pool.query('SELECT * FROM app.produtos_media WHERE produto_id = $1 ORDER BY ordem', [produtoId])
         return rows
@@ -208,19 +238,31 @@ export class PostgresProdutoComplementaryRepository {
 
     async getVariacoes(produtoPaiId: string): Promise<any[]> {
         const { rows } = await pool.query(`
-            SELECT v.*, p.nome as produto_nome, p.codigo as produto_codigo 
+            SELECT 
+                v.*, 
+                p.nome as produto_nome, 
+                p.codigo as sku,
+                pr.preco as preco,
+                COALESCE(
+                    (SELECT url FROM app.produtos_media WHERE produto_id = p.uuid AND tipo_code = 'imagem' ORDER BY ordem LIMIT 1),
+                    (SELECT url FROM app.produtos_media WHERE produto_id = v.produto_pai_id AND tipo_code = 'imagem' ORDER BY ordem LIMIT 1)
+                ) as imagem_url
             FROM app.produtos_variacoes v
             JOIN app.produtos p ON p.uuid = v.produto_filho_id
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
             WHERE v.produto_pai_id = $1
+            ORDER BY v.created_at ASC
         `, [produtoPaiId])
         return rows
     }
 
-    async addVariacao(produtoPaiId: string, tenantId: string, data: any, userId: string): Promise<void> {
-        await pool.query(
-            'INSERT INTO app.produtos_variacoes (tenant_id, produto_pai_id, produto_filho_id, grade, created_by, updated_by) VALUES ($1, $2, $3, $4, $5, $5)',
-            [tenantId, produtoPaiId, data.produto_filho_id, JSON.stringify(data.grade), userId]
+    async addVariacao(produtoPaiId: string, tenantId: string, data: any, userId: string): Promise<any> {
+        const { generateUUID } = require('../../../utils/uuid')
+        const { rows } = await pool.query(
+            'INSERT INTO app.produtos_variacoes (uuid, tenant_id, produto_pai_id, produto_filho_id, grade, created_by, updated_by) VALUES ($1, $2, $3, $4, $5, $6, $6) RETURNING *',
+            [generateUUID(), tenantId, produtoPaiId, data.produto_filho_id, JSON.stringify(data.grade), userId]
         )
+        return rows[0]
     }
 
     async deleteVariacao(uuid: string): Promise<void> {
@@ -252,8 +294,20 @@ export class PostgresProdutoComplementaryRepository {
                 `INSERT INTO app.produtos_recompensas (
                     uuid, tenant_id, produto_id, qtd_pontos_resgate, voucher_digital, created_by, updated_by
                 ) VALUES ($1, $2, $3, $4, $5, $6, $6)`,
-                [require('crypto').randomUUID(), tenantId, produtoId, data.qtd_pontos_resgate, data.voucher_digital, userId]
+                [require('../../../utils/uuid').generateUUID(), tenantId, produtoId, data.qtd_pontos_resgate, data.voucher_digital, userId]
             )
         }
+    }
+
+    async getRelacaoPai(produtoFilhoId: string): Promise<any> {
+        const { rows } = await pool.query(`
+            SELECT v.*, p.nome as pai_nome, p.codigo as pai_codigo, 
+                   json_build_object('preco', pr.preco, 'preco_promocional', pr.preco_promocional) as pai_precos
+            FROM app.produtos_variacoes v
+            JOIN app.produtos p ON p.uuid = v.produto_pai_id
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+            WHERE v.produto_filho_id = $1
+        `, [produtoFilhoId])
+        return rows[0] || null
     }
 }

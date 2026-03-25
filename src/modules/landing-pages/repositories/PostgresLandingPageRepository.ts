@@ -1,5 +1,5 @@
 import { pool } from '../../../infra/database/pool'
-import { LandingPage } from '../domain/LandingPage'
+import { LandingPage } from '../entities/LandingPage'
 
 export class PostgresLandingPageRepository {
     private mapRowToDomain(row: any): LandingPage {

@@ -1,5 +1,5 @@
 import { pool } from '../../../infra/database/pool'
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface ProdutoCategoriaProps {
     uuid: string
@@ -40,7 +40,7 @@ export class PostgresProdutoCategoriaRepository {
     }
 
     async create(data: Partial<ProdutoCategoriaProps> & { tenantId: string }): Promise<ProdutoCategoriaProps> {
-        const uuid = randomUUID()
+        const uuid = generateUUID()
         const query = `
             INSERT INTO app.produtos_categoria_category_enum (
                 uuid, code, tenant_id, name, description, icon, image_url, parent_uuid, sort, enabled

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../../../infra/database/pool'
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 import bcrypt from 'bcrypt'
 
 export const publicPeopleRoutes = Router()
@@ -50,7 +50,7 @@ publicPeopleRoutes.post('/cadastro-parceiro', async (req, res) => {
         await client.query('BEGIN')
 
         const passwordHash = await bcrypt.hash(senha, 10)
-        const userId = randomUUID()
+        const userId = generateUUID()
         await client.query(
             `INSERT INTO app.users (uuid, tenant_id, full_name, login, email, password, created_by, updated_by)
              VALUES ($1, $2, $3, $4, $5, $6, $1, $1)`,
@@ -73,7 +73,7 @@ publicPeopleRoutes.post('/cadastro-parceiro', async (req, res) => {
         const normalizedCpfCnpj = cpfCnpj.replace(/\D/g, '')
 
         // Create Person based on tenant name
-        const personId = randomUUID()
+        const personId = generateUUID()
         await client.query(
             `INSERT INTO app.people (uuid, tenant_id, name, cpf_cnpj, usuario_id, created_at, updated_at) 
              VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,

@@ -20,13 +20,28 @@ export class PostgresProductListRepository {
         return result.rows[0]
     }
 
-    async findAll(tenantId: string): Promise<ProductListProps[]> {
-        const query = `
-            SELECT * FROM app.product_lists
-            WHERE tenant_id = $1 AND deleted_at IS NULL
-            ORDER BY created_at DESC
+    async findAll(tenantId: string, view?: string): Promise<ProductListProps[]> {
+        let query = `
+            SELECT pl.* FROM app.product_lists pl
+            WHERE pl.tenant_id = $1 AND pl.deleted_at IS NULL
         `
-        const result = await pool.query(query, [tenantId])
+        const values: any[] = [tenantId]
+
+        if (view) {
+            query += `
+                AND EXISTS (
+                    SELECT 1 FROM app.produtos p
+                    WHERE p.uuid = ANY(pl.product_uuids)
+                    AND $2 = ANY(p.views)
+                    AND p.deleted_at IS NULL
+                )
+            `
+            values.push(view)
+        }
+
+        query += ` ORDER BY pl.created_at DESC`
+        
+        const result = await pool.query(query, values)
         return result.rows
     }
 
@@ -63,7 +78,6 @@ export class PostgresProductListRepository {
         await pool.query(query, [uuid, tenantId])
     }
 
-    // Retorna detalhes completos dos produtos pertencentes a uma lista
     async getDetailedProducts(productUuids: string[], tenantId: string): Promise<any[]> {
         if (!productUuids || productUuids.length === 0) return []
         
@@ -71,21 +85,29 @@ export class PostgresProductListRepository {
             SELECT 
                 p.uuid, 
                 p.nome, 
-                cat.name as categoria_nome, 
-                m.url as image_url, 
-                m.arquivo as image_base64,
+                p.codigo as sku,
+                (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
+                COALESCE(
+                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                     FROM app.produtos_media m
+                     WHERE m.produto_id = p.uuid),
+                    '[]'
+                ) as images,
+                (SELECT url FROM app.produtos_media WHERE produto_id = p.uuid ORDER BY ordem ASC LIMIT 1) as image_url,
+                COALESCE(
+                    (SELECT json_agg(json_build_object(
+                         'uuid', v_p.uuid,
+                         'nome', v_p.nome,
+                         'sku', v_p.codigo
+                     ))
+                     FROM app.produtos_variacoes v
+                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
+                     WHERE v.produto_pai_id = p.uuid AND v_p.deleted_at IS NULL),
+                    '[]'
+                ) as variants,
                 pr.preco
             FROM app.produtos p
-            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
-            LEFT JOIN LATERAL (
-                SELECT url, arquivo 
-                FROM app.produtos_media 
-                WHERE produto_id = p.uuid 
-                AND deleted_at IS NULL
-                ORDER BY ordem ASC 
-                LIMIT 1
-            ) m ON true
             WHERE p.uuid = ANY($1) 
             AND p.tenant_id = $2 
             AND p.deleted_at IS NULL

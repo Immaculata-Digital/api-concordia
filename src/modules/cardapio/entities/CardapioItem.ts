@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface CardapioItemProps {
     uuid: string
@@ -38,7 +38,7 @@ export class CardapioItem {
         const timestamp = new Date()
         return new CardapioItem({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

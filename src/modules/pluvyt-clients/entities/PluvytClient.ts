@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface PluvytClientProps {
     uuid: string
@@ -26,7 +26,7 @@ export class PluvytClient {
         const timestamp = new Date()
         return new PluvytClient({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

@@ -17,7 +17,8 @@ export class PostgresProdutoRepository {
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
-                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
+                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
@@ -85,7 +86,8 @@ export class PostgresProdutoRepository {
                    (SELECT COALESCE(m.arquivo, m.url) 
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
-                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
+                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
@@ -192,6 +194,10 @@ export class PostgresProdutoRepository {
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
             image_url: row.main_image_url || row.image_url,
+            seo: row.seo_slug ? {
+                slug: row.seo_slug
+            } : undefined,
+            variants: row.variants || [],
             precos: {
                 preco: row.produto_preco || 0,
                 preco_custo: row.produto_preco_custo || 0,
@@ -211,5 +217,187 @@ export class PostgresProdutoRepository {
                 voucher_digital: row.recompensa_voucher ?? false
             } : undefined
         }
+    }
+
+    async getProductsByPublicCategory(categoryCode: string, tenantId: string, page: number = 1, limit: number = 20, filters?: Record<string, string>): Promise<any[]> {
+        const offset = (page - 1) * limit
+        let query = `
+            SELECT 
+                p.uuid, 
+                p.nome, 
+                cat.name as categoria_nome, 
+                p.codigo as sku,
+                (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
+                COALESCE(
+                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                     FROM app.produtos_media m
+                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
+                    '[]'
+                ) as images,
+                (SELECT url FROM app.produtos_media WHERE produto_id = p.uuid AND tipo_code = 'imagem' ORDER BY ordem ASC LIMIT 1) as image_url,
+                (SELECT arquivo FROM app.produtos_media WHERE produto_id = p.uuid AND tipo_code = 'imagem' ORDER BY ordem ASC LIMIT 1) as image_base64,
+                COALESCE(
+                    (SELECT json_agg(json_build_object(
+                         'uuid', v_p.uuid,
+                         'nome', v_p.nome,
+                         'sku', v_p.codigo,
+                         'images', (
+                             SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                             FROM app.produtos_media m
+                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
+                         )
+                     ))
+                     FROM app.produtos_variacoes v
+                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
+                     WHERE v.produto_pai_id = p.uuid AND v_p.deleted_at IS NULL),
+                    '[]'
+                ) as variants,
+                pr.preco
+            FROM app.produtos p
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+        `
+
+        let whereClause = `
+            WHERE ($1 = 'todas' OR cat.code = $1)
+            AND p.tenant_id = $2 
+            AND p.deleted_at IS NULL
+            AND 'vitrine' = ANY(p.views)
+        `;
+
+        const params: any[] = [categoryCode, tenantId, limit, offset];
+        let paramIndex = 5;
+
+        if (filters && Object.keys(filters).length > 0) {
+            Object.entries(filters).forEach(([key, value]) => {
+                whereClause += `
+                    AND EXISTS (
+                        SELECT 1 FROM app.produtos_ficha_tecnica ft 
+                        WHERE ft.produto_id = p.uuid 
+                        AND ft.chave = $${paramIndex} 
+                        AND ft.valor = $${paramIndex + 1}
+                    )
+                `;
+                params.push(key, value);
+                paramIndex += 2;
+            });
+        }
+
+        query += whereClause + `
+            ORDER BY p.created_at DESC
+            LIMIT $3 OFFSET $4
+        `;
+
+        const result = await pool.query(query, params)
+        return result.rows
+    }
+
+    async getCategoryFilters(categoryCode: string, tenantId: string, filters?: Record<string, string>): Promise<any[]> {
+        const params: any[] = [tenantId];
+        let filterConditions = '';
+        
+        if (filters && Object.keys(filters).length > 0) {
+            Object.entries(filters).forEach(([chave, valor]) => {
+                if (!valor) return;
+                params.push(chave);
+                const pChave = `$${params.length}`;
+                params.push(valor);
+                const pValor = `$${params.length}`;
+                filterConditions += `
+                AND EXISTS (
+                    SELECT 1 FROM app.produtos_ficha_tecnica sub_ft 
+                    WHERE sub_ft.produto_id = p.uuid 
+                    AND sub_ft.chave = ${pChave} 
+                    AND sub_ft.valor = ${pValor}
+                )`;
+            });
+        }
+
+        const categoryCodeParam = `$${params.length + 1}`;
+        params.push(categoryCode);
+
+        const query = `
+            SELECT 
+                ft.chave, 
+                json_agg(DISTINCT ft.valor) as valores
+            FROM app.produtos_ficha_tecnica ft
+            JOIN app.produtos p ON p.uuid = ft.produto_id
+            WHERE (${categoryCodeParam} = 'todas' OR p.categoria_code = ${categoryCodeParam})
+            AND p.tenant_id = $1
+            AND p.deleted_at IS NULL
+            ${filterConditions}
+            GROUP BY ft.chave
+            ORDER BY ft.chave
+        `;
+        
+        const { rows } = await pool.query(query, params);
+        return rows;
+    }
+
+    async findBySlugOrId(idOrSlug: string, tenantId: string): Promise<any | null> {
+        const query = `
+            SELECT 
+                p.uuid,
+                p.nome,
+                p.codigo as sku,
+                p.unidade,
+                p.marca,
+                COALESCE(p.descricao, (SELECT p2.descricao FROM app.produtos p2 JOIN app.produtos_variacoes v2 ON v2.produto_pai_id = p2.uuid WHERE v2.produto_filho_id = p.uuid LIMIT 1)) as descricao,
+                COALESCE(p.descricao_complementar, (SELECT p2.descricao_complementar FROM app.produtos p2 JOIN app.produtos_variacoes v2 ON v2.produto_pai_id = p2.uuid WHERE v2.produto_filho_id = p.uuid LIMIT 1)) as descricao_complementar,
+                p.garantia,
+                p.categoria_code,
+                cat.name as categoria_nome,
+                -- SEO Slug
+                (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
+                -- Images
+                COALESCE(
+                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                     FROM app.produtos_media m
+                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
+                    '[]'
+                ) as images,
+                -- Ficha Técnica
+                COALESCE(
+                    (SELECT json_agg(json_build_object('chave', ft.chave, 'valor', ft.valor) ORDER BY ft.chave ASC)
+                     FROM app.produtos_ficha_tecnica ft
+                     WHERE ft.produto_id = p.uuid),
+                    '[]'
+                ) as ficha_tecnica,
+                -- Variantes (Busca tanto se este for o pai quanto se este for o filho)
+                COALESCE(
+                    (SELECT json_agg(json_build_object(
+                         'uuid', v_p.uuid,
+                         'nome', v_p.nome,
+                         'sku', v_p.codigo,
+                         'images', (
+                             SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                             FROM app.produtos_media m
+                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
+                         ),
+                          'atributos', (
+                              SELECT json_agg(json_build_object('chave', key, 'valor', value))
+                              FROM jsonb_each_text(v.grade)
+                          )
+                     ))
+                     FROM app.produtos_variacoes v
+                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
+                     WHERE v.produto_pai_id = (
+                        -- Se p for filho, pega o pai dele. Se for pai, usa o próprio p.
+                        SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
+                     ) AND v_p.deleted_at IS NULL),
+                    '[]'
+                ) as variants
+            FROM app.produtos p
+            LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
+            WHERE p.tenant_id = $2 
+            AND p.deleted_at IS NULL
+            AND (
+                p.uuid::text = $1 
+                OR p.uuid IN (SELECT produto_id FROM app.produtos_seo WHERE slug = $1 AND tenant_id = $2)
+            )
+            LIMIT 1
+        `
+        const { rows } = await pool.query(query, [idOrSlug, tenantId])
+        return rows[0] || null
     }
 }

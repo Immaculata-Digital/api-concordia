@@ -8,7 +8,8 @@ const repository = new PostgresProductListRepository()
 productListRoutes.get('/', async (req, res) => {
     try {
         const tenantId = req.query.tenantId as string || req.user!.tenantId
-        const lists = await repository.findAll(tenantId)
+        const view = req.query.view as string
+        const lists = await repository.findAll(tenantId, view)
         return res.json(lists)
     } catch (error) {
         console.error('Error listing product lists:', error)

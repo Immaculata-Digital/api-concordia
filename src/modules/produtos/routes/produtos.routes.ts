@@ -51,6 +51,7 @@ produtosRoutes.get('/:id', async (req, res) => {
         const kit = await complementaryRepository.getKit(req.params.id)
         const variacoes = await complementaryRepository.getVariacoes(req.params.id)
         const recompensa = await complementaryRepository.getRecompensa(req.params.id)
+        const relacaoPai = await complementaryRepository.getRelacaoPai(req.params.id)
 
         return res.json({
             ...produto,
@@ -62,7 +63,8 @@ produtosRoutes.get('/:id', async (req, res) => {
             media,
             kit,
             variacoes,
-            recompensa
+            recompensa,
+            relacaoPai
         })
     } catch (error) {
         console.error('Error getting product:', error)
@@ -72,9 +74,9 @@ produtosRoutes.get('/:id', async (req, res) => {
 
 produtosRoutes.post('/', async (req, res) => {
     try {
-        const { tenant_id, nome, unidade, ...rest } = req.body
+        const { nome, unidade, ...rest } = req.body
         const produto = Produto.create({
-            tenantId: tenant_id,
+            tenantId: req.user!.tenantId,
             nome,
             unidade,
             ...rest,
@@ -127,7 +129,7 @@ produtosRoutes.delete('/:id', async (req, res) => {
 
 produtosRoutes.post('/:id/fiscal', async (req, res) => {
     try {
-        await complementaryRepository.upsertFiscal(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertFiscal(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados fiscais atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados fiscais' })
@@ -136,7 +138,7 @@ produtosRoutes.post('/:id/fiscal', async (req, res) => {
 
 produtosRoutes.post('/:id/logistica', async (req, res) => {
     try {
-        await complementaryRepository.upsertLogistica(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertLogistica(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados de logística atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados de logística' })
@@ -145,7 +147,7 @@ produtosRoutes.post('/:id/logistica', async (req, res) => {
 
 produtosRoutes.post('/:id/precos', async (req, res) => {
     try {
-        await complementaryRepository.upsertPrecos(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertPrecos(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Preços atualizados' })
     } catch (error: any) {
         console.error('Error saving prices:', error)
@@ -159,7 +161,7 @@ produtosRoutes.post('/:id/precos', async (req, res) => {
 
 produtosRoutes.post('/:id/seo', async (req, res) => {
     try {
-        await complementaryRepository.upsertSeo(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertSeo(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'SEO atualizado' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar SEO' })
@@ -168,7 +170,7 @@ produtosRoutes.post('/:id/seo', async (req, res) => {
 
 produtosRoutes.post('/:id/recompensa', async (req, res) => {
     try {
-        await complementaryRepository.upsertRecompensa(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
+        await complementaryRepository.upsertRecompensa(req.params.id, req.user!.tenantId, req.body, req.user!.uuid)
         return res.json({ message: 'Dados de recompensa atualizados' })
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao salvar dados de recompensa' })
@@ -227,6 +229,35 @@ produtosRoutes.get('/ficha-tecnica/chaves', async (req, res) => {
         return res.json(chaves)
     } catch (error) {
         return res.status(500).json({ message: 'Erro ao buscar chaves da ficha técnica' })
+    }
+})
+
+produtosRoutes.delete('/ficha-tecnica/chaves/:chave', async (req, res) => {
+    try {
+        const tenantId = req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        
+        await complementaryRepository.deleteGlobalFichaTecnicaChave(tenantId, req.params.chave)
+        return res.status(204).send()
+    } catch (error) {
+        console.error('Error deleting global key:', error)
+        return res.status(500).json({ message: 'Erro ao excluir chave global da ficha técnica' })
+    }
+})
+
+produtosRoutes.put('/ficha-tecnica/chaves/:oldChave', async (req, res) => {
+    try {
+        const tenantId = req.user?.tenantId
+        if (!tenantId) return res.status(400).json({ message: 'Tenant ID is required' })
+        
+        const { newChave } = req.body
+        if (!newChave) return res.status(400).json({ message: 'Nova chave é obrigatória' })
+
+        await complementaryRepository.renameGlobalFichaTecnicaChave(tenantId, req.params.oldChave, newChave)
+        return res.json({ message: 'Chave global atualizada com sucesso' })
+    } catch (error) {
+        console.error('Error renaming global key:', error)
+        return res.status(500).json({ message: 'Erro ao renomear chave global' })
     }
 })
 
@@ -350,9 +381,11 @@ produtosRoutes.put('/kit/:itemId', async (req, res) => {
 // Variacoes
 produtosRoutes.post('/:id/variacoes', async (req, res) => {
     try {
-        await complementaryRepository.addVariacao(req.params.id, req.body.tenantId, req.body, req.user!.uuid)
-        return res.status(201).json({ message: 'Variação adicionada' })
+        const tenantId = req.body.tenantId || req.user!.tenantId
+        const variacao = await complementaryRepository.addVariacao(req.params.id, tenantId, req.body, req.user!.uuid)
+        return res.status(201).json(variacao)
     } catch (error) {
+        console.error('Error adding variation:', error)
         return res.status(500).json({ message: 'Erro ao adicionar variação' })
     }
 })

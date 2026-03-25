@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { generateUUID } from '../../../utils/uuid'
 
 export interface PointTransactionProps {
     uuid: string
@@ -31,7 +31,7 @@ export class PointTransaction {
         const timestamp = new Date()
         return new PointTransaction({
             ...data,
-            uuid: randomUUID(),
+            uuid: generateUUID(),
             createdAt: timestamp,
             updatedAt: timestamp,
         })

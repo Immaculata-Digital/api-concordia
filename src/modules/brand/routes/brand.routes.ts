@@ -42,7 +42,8 @@ export const getConfigHandler = async (req: Request, res: Response) => {
             logo: {
                 principal: config.logo?.principal,
                 favicon: config.logo?.favicon
-            }
+            },
+            social: config.social
         });
     } catch (error) {
         console.error('Error fetching brand config:', error)

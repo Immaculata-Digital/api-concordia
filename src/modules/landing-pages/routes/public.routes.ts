@@ -52,7 +52,8 @@ export const publicIdentidadeVisualHandler = async (req: any, res: any) => {
                     COALESCE(ta.neighborhood, pa.neighborhood) as neighborhood,
                     COALESCE(ta.city, pa.city) as city,
                     COALESCE(ta.state, pa.state) as state,
-                    COALESCE(ta.postal_code, pa.postal_code) as postal_code
+                    COALESCE(ta.postal_code, pa.postal_code) as postal_code,
+                    t.brand_settings->'social' as brand_social
                 FROM app.tenants t
                 LEFT JOIN app.people p ON p.uuid = t.pessoa_id
                 LEFT JOIN app.tenant_addresses ta ON ta.tenant_id = t.uuid
@@ -68,8 +69,12 @@ export const publicIdentidadeVisualHandler = async (req: any, res: any) => {
                     email: r.email,
                     phone: r.phone,
                     social: {
-                        instagram: r.instagram,
-                        facebook: r.facebook
+                        instagram: r.brand_social?.instagram || r.instagram,
+                        facebook: r.brand_social?.facebook || r.facebook,
+                        x: r.brand_social?.x,
+                        linkedin: r.brand_social?.linkedin,
+                        youtube: r.brand_social?.youtube,
+                        threads: r.brand_social?.threads
                     },
                     address: {
                         street: r.street,

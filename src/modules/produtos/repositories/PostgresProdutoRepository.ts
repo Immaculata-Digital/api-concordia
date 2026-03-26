@@ -57,7 +57,7 @@ export class PostgresProdutoRepository {
 
         if (search) {
             const searchTerm = `%${search}%`
-            query += ` AND (unaccent(p.nome) ILIKE unaccent($${idx}) OR p.codigo ILIKE $${idx} OR unaccent(cat.name) ILIKE unaccent($${idx}))`
+            query += ` AND (p.nome ILIKE $${idx} OR p.codigo ILIKE $${idx} OR cat.name ILIKE $${idx})`
             values.push(searchTerm)
             idx++
         }

@@ -204,7 +204,7 @@ export class PostgresProdutoRepository {
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
-            image_url: row.image_url,
+            image_url: row.categoria_imagem || row.image_url,
             main_image_url: row.main_image_url,
             seo: row.seo_slug ? {
                 slug: row.seo_slug
@@ -238,6 +238,7 @@ export class PostgresProdutoRepository {
                 p.uuid, 
                 p.nome, 
                 cat.name as categoria_nome, 
+                cat.image_url as categoria_imagem,
                 p.codigo as sku,
                 (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
                 COALESCE(
@@ -249,33 +250,33 @@ export class PostgresProdutoRepository {
                 (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
-                         'uuid', v_p.uuid,
-                         'nome', v_p.nome,
-                         'sku', v_p.codigo,
+                         'uuid', p_variant.uuid,
+                         'nome', p_variant.nome,
+                         'sku', p_variant.codigo,
                          'images', (
                              SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                              FROM app.produtos_media m
-                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
+                             WHERE m.produto_id = p_variant.uuid AND m.tipo_code = 'imagem'
                          ),
                           'main_image_url', (
                              SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m 
-                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' 
+                             WHERE m.produto_id = p_variant.uuid AND m.tipo_code = 'imagem' 
                              ORDER BY m.ordem ASC LIMIT 1
                           ),
                           'atributos', (
                               SELECT json_agg(json_build_object('chave', key, 'valor', value))
                               FROM app.produtos_variacoes v_sub
                               CROSS JOIN LATERAL jsonb_each_text(v_sub.grade)
-                              WHERE v_sub.produto_filho_id = v_p.uuid
+                              WHERE v_sub.produto_filho_id = p_variant.uuid
                           )
                      ))
-                     FROM app.produtos v_p
-                     WHERE v_p.uuid IN (
+                     FROM app.produtos p_variant
+                     WHERE p_variant.uuid IN (
                          SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
                          UNION
                          SELECT produto_filho_id FROM app.produtos_variacoes 
                          WHERE produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
-                     ) AND v_p.deleted_at IS NULL),
+                     ) AND p_variant.deleted_at IS NULL),
                     '[]'
                 ) as variants,
                 pr.preco,
@@ -378,6 +379,7 @@ export class PostgresProdutoRepository {
                 p.garantia,
                 p.categoria_code,
                 cat.name as categoria_nome,
+                cat.image_url as categoria_imagem,
                 -- SEO Slug
                 (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
                 COALESCE(
@@ -397,33 +399,33 @@ export class PostgresProdutoRepository {
                 -- Variantes (Busca tanto se este for o pai quanto se este for o filho)
                 COALESCE(
                     (SELECT json_agg(json_build_object(
-                         'uuid', v_p.uuid,
-                         'nome', v_p.nome,
-                         'sku', v_p.codigo,
+                         'uuid', p_variant.uuid,
+                         'nome', p_variant.nome,
+                         'sku', p_variant.codigo,
                          'images', (
                              SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                              FROM app.produtos_media m
-                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
+                             WHERE m.produto_id = p_variant.uuid AND m.tipo_code = 'imagem'
                          ),
                           'main_image_url', (
                              SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m 
-                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' 
+                             WHERE m.produto_id = p_variant.uuid AND m.tipo_code = 'imagem' 
                              ORDER BY m.ordem ASC LIMIT 1
                           ),
                           'atributos', (
                                SELECT json_agg(json_build_object('chave', key, 'valor', value))
                                FROM app.produtos_variacoes v_sub
                                CROSS JOIN LATERAL jsonb_each_text(v_sub.grade)
-                               WHERE v_sub.produto_filho_id = v_p.uuid
+                               WHERE v_sub.produto_filho_id = p_variant.uuid
                            )
                      ))
-                     FROM app.produtos v_p
-                     WHERE v_p.uuid IN (
+                     FROM app.produtos p_variant
+                     WHERE p_variant.uuid IN (
                          SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
                          UNION
                          SELECT produto_filho_id FROM app.produtos_variacoes 
                          WHERE produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
-                     ) AND v_p.deleted_at IS NULL),
+                     ) AND p_variant.deleted_at IS NULL),
                     '[]'
                 ) as variants
             FROM app.produtos p

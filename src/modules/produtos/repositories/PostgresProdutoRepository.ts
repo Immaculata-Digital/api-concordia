@@ -269,15 +269,13 @@ export class PostgresProdutoRepository {
                               WHERE v_sub.produto_filho_id = v_p.uuid
                           )
                      ))
-                     FROM (
-                         SELECT p_all.* FROM app.produtos p_all
-                         WHERE p_all.uuid = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     FROM app.produtos v_p
+                     WHERE v_p.uuid IN (
+                         SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
                          UNION
-                         SELECT p_all.* FROM app.produtos p_all
-                         JOIN app.produtos_variacoes v_all ON v_all.produto_filho_id = p_all.uuid
-                         WHERE v_all.produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
-                     ) v_p
-                     WHERE v_p.deleted_at IS NULL),
+                         SELECT produto_filho_id FROM app.produtos_variacoes 
+                         WHERE produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     ) AND v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants,
                 pr.preco,
@@ -419,15 +417,13 @@ export class PostgresProdutoRepository {
                                WHERE v_sub.produto_filho_id = v_p.uuid
                            )
                      ))
-                     FROM (
-                         SELECT p_all.* FROM app.produtos p_all
-                         WHERE p_all.uuid = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     FROM app.produtos v_p
+                     WHERE v_p.uuid IN (
+                         SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
                          UNION
-                         SELECT p_child.* FROM app.produtos p_child
-                         JOIN app.produtos_variacoes v_child ON v_child.produto_filho_id = p_child.uuid
-                         WHERE v_child.produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
-                     ) v_p
-                     WHERE v_p.deleted_at IS NULL),
+                         SELECT produto_filho_id FROM app.produtos_variacoes 
+                         WHERE produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     ) AND v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants
             FROM app.produtos p

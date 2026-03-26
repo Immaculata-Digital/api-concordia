@@ -276,7 +276,7 @@ export class PostgresProdutoRepository {
         `
 
         let whereClause = `
-            WHERE ($1 = 'todas' OR cat.code = $1)
+            WHERE ($1 = 'todas' OR p.categoria_code = $1)
             AND p.tenant_id = $2 
             AND p.deleted_at IS NULL
             AND 'vitrine' = ANY(p.views)

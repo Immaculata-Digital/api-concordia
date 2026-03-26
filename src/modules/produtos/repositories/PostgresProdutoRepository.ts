@@ -25,6 +25,10 @@ export class PostgresProdutoRepository {
             LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
             LEFT JOIN app.produtos_recompensas r ON p.uuid = r.produto_id AND p.tenant_id = r.tenant_id
             WHERE p.deleted_at IS NULL
+            -- Excluir produtos pai (orquestradores de variantes)
+            AND NOT EXISTS (
+                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_pai_id = p.uuid
+            )
         `
         const values: any[] = []
         let idx = 1
@@ -276,6 +280,10 @@ export class PostgresProdutoRepository {
             AND p.tenant_id = $2 
             AND p.deleted_at IS NULL
             AND 'vitrine' = ANY(p.views)
+            -- Excluir produtos pai (orquestradores de variantes)
+            AND NOT EXISTS (
+                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_pai_id = p.uuid
+            )
         `;
 
         const params: any[] = [categoryCode, tenantId, limit, offset];

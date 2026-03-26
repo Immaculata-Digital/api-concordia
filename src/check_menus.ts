@@ -7,7 +7,7 @@ async function checkMenus() {
         fs.writeFileSync('./check_menus.json', JSON.stringify(res.rows, null, 2))
         console.log('Menus checked')
     } catch (err) {
-        fs.writeFileSync('./check_menus_error.txt', err.toString())
+        fs.writeFileSync('./check_menus_error.txt', String(err))
     } finally {
         await pool.end()
     }

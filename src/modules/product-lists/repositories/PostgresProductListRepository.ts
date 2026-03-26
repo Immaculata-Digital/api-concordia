@@ -86,28 +86,29 @@ export class PostgresProductListRepository {
                 p.uuid, 
                 p.nome, 
                 p.codigo as sku,
+                cat.name as categoria_nome,
                 (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
                 COALESCE(
-                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                    (SELECT array_agg(COALESCE(m.url, m.arquivo) ORDER BY m.ordem ASC)
                      FROM app.produtos_media m
                      WHERE m.produto_id = p.uuid),
-                    '[]'
+                    '{}'
                 ) as images,
-                (SELECT url FROM app.produtos_media WHERE produto_id = p.uuid ORDER BY ordem ASC LIMIT 1) as image_url,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
                          'uuid', v_p.uuid,
                          'nome', v_p.nome,
                          'sku', v_p.codigo
                      ))
-                     FROM app.produtos_variacoes v
-                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
+                     FROM app.produtos v_p
+                     JOIN app.produtos_variacoes v ON v.produto_filho_id = v_p.uuid
                      WHERE v.produto_pai_id = p.uuid AND v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants,
                 pr.preco
             FROM app.produtos p
-            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+            LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid AND p.tenant_id = pr.tenant_id
             WHERE p.uuid = ANY($1) 
             AND p.tenant_id = $2 
             AND p.deleted_at IS NULL

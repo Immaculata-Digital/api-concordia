@@ -26,6 +26,7 @@ export interface ProdutoProps {
     updatedBy?: string
     deletedAt?: Date
     image_url?: string
+    main_image_url?: string
     image_base64?: string
     images?: Array<{ url?: string; arquivo?: string }>
     precos?: {

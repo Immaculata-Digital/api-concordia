@@ -2,7 +2,7 @@ import { pool } from '../../../infra/database/pool'
 import { Produto, ProdutoProps } from '../entities/Produto'
 
 export class PostgresProdutoRepository {
-    async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string): Promise<ProdutoProps[]> {
+    async findAll(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string, search?: string): Promise<ProdutoProps[]> {
         let query = `
             SELECT p.*, 
                    cat.name as categoria_nome,
@@ -52,6 +52,13 @@ export class PostgresProdutoRepository {
         if (categoria_code) {
             query += ` AND p.categoria_code = $${idx}`
             values.push(categoria_code)
+            idx++
+        }
+
+        if (search) {
+            const searchTerm = `%${search}%`
+            query += ` AND (unaccent(p.nome) ILIKE unaccent($${idx}) OR p.codigo ILIKE $${idx} OR unaccent(cat.name) ILIKE unaccent($${idx}))`
+            values.push(searchTerm)
             idx++
         }
 
@@ -193,7 +200,8 @@ export class PostgresProdutoRepository {
             updatedAt: row.updated_at,
             updatedBy: row.updated_by,
             deletedAt: row.deleted_at,
-            image_url: row.main_image_url || row.image_url,
+            image_url: row.image_url,
+            main_image_url: row.main_image_url,
             seo: row.seo_slug ? {
                 slug: row.seo_slug
             } : undefined,
@@ -234,8 +242,7 @@ export class PostgresProdutoRepository {
                      WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
                     '[]'
                 ) as images,
-                (SELECT url FROM app.produtos_media WHERE produto_id = p.uuid AND tipo_code = 'imagem' ORDER BY ordem ASC LIMIT 1) as image_url,
-                (SELECT arquivo FROM app.produtos_media WHERE produto_id = p.uuid AND tipo_code = 'imagem' ORDER BY ordem ASC LIMIT 1) as image_base64,
+                (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
                          'uuid', v_p.uuid,
@@ -245,6 +252,10 @@ export class PostgresProdutoRepository {
                              SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                              FROM app.produtos_media m
                              WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
+                         ),
+                         'main_image_url', COALESCE(
+                             (SELECT m.url FROM app.produtos_media m WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1),
+                             v_p.image_url
                          )
                      ))
                      FROM app.produtos_variacoes v
@@ -252,7 +263,8 @@ export class PostgresProdutoRepository {
                      WHERE v.produto_pai_id = p.uuid AND v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants,
-                pr.preco
+                pr.preco,
+                pr.preco_promocional
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
@@ -349,13 +361,13 @@ export class PostgresProdutoRepository {
                 cat.name as categoria_nome,
                 -- SEO Slug
                 (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
-                -- Images
                 COALESCE(
                     (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                      FROM app.produtos_media m
                      WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
                     '[]'
                 ) as images,
+                (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
                 -- Ficha Técnica
                 COALESCE(
                     (SELECT json_agg(json_build_object('chave', ft.chave, 'valor', ft.valor) ORDER BY ft.chave ASC)

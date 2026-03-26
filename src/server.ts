@@ -11,3 +11,5 @@ socketManager.initialize(server)
 server.listen(port, () => {
     console.log(`[Server] API Concordia rodando na porta ${port}`)
 })
+
+

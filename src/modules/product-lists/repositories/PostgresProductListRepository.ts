@@ -91,9 +91,13 @@ export class PostgresProductListRepository {
                 COALESCE(
                     (SELECT array_agg(COALESCE(m.url, m.arquivo) ORDER BY m.ordem ASC)
                      FROM app.produtos_media m
-                     WHERE m.produto_id = p.uuid),
+                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
                     '{}'
                 ) as images,
+                (SELECT COALESCE(m.arquivo, m.url) 
+                 FROM app.produtos_media m 
+                 WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                 ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
                          'uuid', v_p.uuid,

@@ -1,29 +1,16 @@
-import { createServer } from 'http'
-import { app } from './app'
-import { env } from './config/env'
-import { socketManager } from './infra/websocket/SocketManager'
 import { pool } from './infra/database/pool'
 import fs from 'fs'
-
-const port = env.port
-const server = createServer(app)
-
-socketManager.initialize(server)
 
 async function checkMenus() {
     try {
         const res = await pool.query("SELECT key, name, icon FROM app.menus WHERE name ILIKE '%landing%' OR key ILIKE '%landing%'")
         fs.writeFileSync('./check_menus.json', JSON.stringify(res.rows, null, 2))
-        console.log('[DB] Menus checked')
+        console.log('Menus checked')
     } catch (err) {
         fs.writeFileSync('./check_menus_error.txt', err.toString())
+    } finally {
+        await pool.end()
     }
 }
+
 checkMenus()
-
-server.listen(port, () => {
-    console.log(`[Server] API Concordia rodando na porta ${port}`)
-})
-
-
-

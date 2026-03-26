@@ -89,10 +89,10 @@ export class PostgresProductListRepository {
                 cat.name as categoria_nome,
                 (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
                 COALESCE(
-                    (SELECT array_agg(COALESCE(m.url, m.arquivo) ORDER BY m.ordem ASC)
+                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                      FROM app.produtos_media m
                      WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
-                    '{}'
+                    '[]'
                 ) as images,
                 (SELECT COALESCE(m.arquivo, m.url) 
                  FROM app.produtos_media m 

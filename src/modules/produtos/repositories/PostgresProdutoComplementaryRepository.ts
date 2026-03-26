@@ -61,7 +61,19 @@ export class PostgresProdutoComplementaryRepository {
     }
 
     async getPrecos(produtoId: string): Promise<any> {
-        const { rows } = await pool.query('SELECT * FROM app.produtos_precos WHERE produto_id = $1', [produtoId])
+        let { rows } = await pool.query('SELECT * FROM app.produtos_precos WHERE produto_id = $1', [produtoId])
+        
+        // Fallback to parent price if it's a variation and has no price
+        if (rows.length === 0 || !rows[0].preco) {
+            const relacaoPai = await this.getRelacaoPai(produtoId)
+            if (relacaoPai && relacaoPai.produto_pai_id) {
+                const parentPrecos = await pool.query('SELECT * FROM app.produtos_precos WHERE produto_id = $1', [relacaoPai.produto_pai_id])
+                if (parentPrecos.rows.length > 0) {
+                    return parentPrecos.rows[0]
+                }
+            }
+        }
+
         return rows[0] || null
     }
 

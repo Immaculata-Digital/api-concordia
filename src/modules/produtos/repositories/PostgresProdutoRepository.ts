@@ -25,10 +25,6 @@ export class PostgresProdutoRepository {
             LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
             LEFT JOIN app.produtos_recompensas r ON p.uuid = r.produto_id AND p.tenant_id = r.tenant_id
             WHERE p.deleted_at IS NULL
-            -- Excluir produtos pai (orquestradores de variantes)
-            AND NOT EXISTS (
-                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_pai_id = p.uuid
-            )
         `
         const values: any[] = []
         let idx = 1
@@ -65,6 +61,78 @@ export class PostgresProdutoRepository {
             values.push(searchTerm)
             idx++
         }
+
+        query += ` ORDER BY p.created_at DESC`
+
+        if (limit) {
+            query += ` LIMIT $${idx}`
+            values.push(limit)
+            idx++
+        }
+
+        if (offset) {
+            query += ` OFFSET $${idx}`
+            values.push(offset)
+            idx++
+        }
+
+        const { rows } = await pool.query(query, values)
+        return rows.map((row: any) => this.mapToProps(row))
+    }
+
+    async findAllPublic(tenantId?: string, viewContext?: string, limit?: number, offset?: number, categoria_code?: string, search?: string): Promise<ProdutoProps[]> {
+        let query = `
+            SELECT p.*, 
+                   cat.name as categoria_nome,
+                   pp.preco as produto_preco,
+                   pp.preco_custo as produto_preco_custo,
+                   pp.preco_promocional as produto_preco_promocional,
+                   cp.ordem as cardapio_ordem,
+                   cp.ativo as cardapio_ativo,
+                   (SELECT COALESCE(m.arquivo, m.url) 
+                    FROM app.produtos_media m 
+                    WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
+                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+            FROM app.produtos p
+            LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
+            LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
+            WHERE p.deleted_at IS NULL
+            -- Excluir produtos pai (orquestradores de variantes) na listagem pública
+            AND NOT EXISTS (
+                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_pai_id = p.uuid
+            )
+        `
+        const values: any[] = []
+        let idx = 1
+
+        if (tenantId) {
+            query += ` AND p.tenant_id = $${idx}`
+            values.push(tenantId)
+            idx++
+        }
+
+        if (viewContext) {
+            query += ` AND $${idx} = ANY(p.views)`
+            values.push(viewContext)
+            idx++
+        }
+
+        if (categoria_code) {
+            query += ` AND p.categoria_code = $${idx}`
+            values.push(categoria_code)
+            idx++
+        }
+
+        if (search) {
+            const searchTerm = `%${search}%`
+            query += ` AND p.nome ILIKE $${idx}`
+            values.push(searchTerm)
+            idx++
+        }
+
+        query += ` ORDER BY p.created_at DESC`
 
         if (limit) {
             query += ` LIMIT $${idx}`

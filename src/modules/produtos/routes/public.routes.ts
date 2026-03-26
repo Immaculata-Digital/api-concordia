@@ -61,7 +61,7 @@ publicProdutoRoutes.get('/', async (req, res) => {
 
         const { view, categoria_code, limit, offset, page } = req.query
         
-        const products = await produtoRepository.findAll(
+        const products = await produtoRepository.findAllPublic(
             tenant.uuid!,
             view as string,
             limit ? Number(limit) : undefined,

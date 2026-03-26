@@ -261,11 +261,23 @@ export class PostgresProdutoRepository {
                              SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m 
                              WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' 
                              ORDER BY m.ordem ASC LIMIT 1
+                          ),
+                          'atributos', (
+                              SELECT json_agg(json_build_object('chave', key, 'valor', value))
+                              FROM app.produtos_variacoes v_sub
+                              CROSS JOIN LATERAL jsonb_each_text(v_sub.grade)
+                              WHERE v_sub.produto_filho_id = v_p.uuid
                           )
                      ))
-                     FROM app.produtos_variacoes v
-                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
-                     WHERE v.produto_pai_id = p.uuid AND v_p.deleted_at IS NULL),
+                     FROM (
+                         SELECT p_all.* FROM app.produtos p_all
+                         WHERE p_all.uuid = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                         UNION
+                         SELECT p_all.* FROM app.produtos p_all
+                         JOIN app.produtos_variacoes v_all ON v_all.produto_filho_id = p_all.uuid
+                         WHERE v_all.produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     ) v_p
+                     WHERE v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants,
                 pr.preco,
@@ -395,17 +407,27 @@ export class PostgresProdutoRepository {
                              FROM app.produtos_media m
                              WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
                          ),
+                          'main_image_url', (
+                             SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m 
+                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' 
+                             ORDER BY m.ordem ASC LIMIT 1
+                          ),
                           'atributos', (
-                              SELECT json_agg(json_build_object('chave', key, 'valor', value))
-                              FROM jsonb_each_text(v.grade)
-                          )
+                               SELECT json_agg(json_build_object('chave', key, 'valor', value))
+                               FROM app.produtos_variacoes v_sub
+                               CROSS JOIN LATERAL jsonb_each_text(v_sub.grade)
+                               WHERE v_sub.produto_filho_id = v_p.uuid
+                           )
                      ))
-                     FROM app.produtos_variacoes v
-                     JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid
-                     WHERE v.produto_pai_id = (
-                        -- Se p for filho, pega o pai dele. Se for pai, usa o próprio p.
-                        SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
-                     ) AND v_p.deleted_at IS NULL),
+                     FROM (
+                         SELECT p_all.* FROM app.produtos p_all
+                         WHERE p_all.uuid = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                         UNION
+                         SELECT p_child.* FROM app.produtos p_child
+                         JOIN app.produtos_variacoes v_child ON v_child.produto_filho_id = p_child.uuid
+                         WHERE v_child.produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                     ) v_p
+                     WHERE v_p.deleted_at IS NULL),
                     '[]'
                 ) as variants
             FROM app.produtos p

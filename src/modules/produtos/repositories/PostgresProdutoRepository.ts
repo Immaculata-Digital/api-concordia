@@ -253,10 +253,11 @@ export class PostgresProdutoRepository {
                              FROM app.produtos_media m
                              WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem'
                          ),
-                         'main_image_url', COALESCE(
-                             (SELECT m.url FROM app.produtos_media m WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1),
-                             v_p.image_url
-                         )
+                          'main_image_url', (
+                             SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m 
+                             WHERE m.produto_id = v_p.uuid AND m.tipo_code = 'imagem' 
+                             ORDER BY m.ordem ASC LIMIT 1
+                          )
                      ))
                      FROM app.produtos_variacoes v
                      JOIN app.produtos v_p ON v.produto_filho_id = v_p.uuid

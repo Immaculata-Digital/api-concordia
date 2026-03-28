@@ -65,7 +65,7 @@ export class PostgresLandingPageRepository {
             values.push(data.slug)
         }
         if (data.content !== undefined) {
-            fields.push(`content = $${idx++}`)
+            fields.push(`content = content || $${idx++}`)
             values.push(JSON.stringify(data.content))
         }
         if (data.ativa !== undefined) {

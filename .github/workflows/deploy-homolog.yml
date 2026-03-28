@@ -79,7 +79,7 @@ jobs:
             -e JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}' \
             -e PORT='3001' \
             -e NODE_ENV='production' \
-            -e NEXT_PUBLIC_GOOGLE_MAPS_API_KEY='${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}' \
+            -e VITE_GOOGLE_MAPS_API_KEY='${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}' \
             ghcr.io/${REPO_OWNER_LOWER}/${IMAGE_NAME}:homolog
 
       - name: Limpeza de imagens antigas

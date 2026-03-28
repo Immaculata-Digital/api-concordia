@@ -34,68 +34,10 @@ export const publicIdentidadeVisualHandler = async (req: any, res: any) => {
         }
 
         const config = await identidadeVisualRepository.getConfigByTenantId(tenant.uuid!)
-        
-        let tenantInfo = null;
-        try {
-            const { pool } = require('../../../infra/database/pool');
-            const result = await pool.query(`
-                SELECT 
-                    t.uuid, t.name, t.slug, t.description, t.category,
-                    p.cpf_cnpj as document,
-                    (SELECT contact_value FROM app.people_contacts pc WHERE pc.people_id = t.pessoa_id AND UPPER(contact_type) = 'EMAIL' LIMIT 1) as email,
-                    (SELECT contact_value FROM app.people_contacts pc WHERE pc.people_id = t.pessoa_id AND UPPER(contact_type) IN ('WHATSAPP', 'PHONE', 'TELEFONE') LIMIT 1) as phone,
-                    (SELECT contact_value FROM app.people_contacts pc WHERE pc.people_id = t.pessoa_id AND UPPER(contact_type) = 'INSTAGRAM' LIMIT 1) as instagram,
-                    (SELECT contact_value FROM app.people_contacts pc WHERE pc.people_id = t.pessoa_id AND UPPER(contact_type) = 'FACEBOOK' LIMIT 1) as facebook,
-                    COALESCE(ta.street, pa.street) as street,
-                    COALESCE(ta.number, pa.number) as number,
-                    COALESCE(ta.complement, pa.complement) as complement,
-                    COALESCE(ta.neighborhood, pa.neighborhood) as neighborhood,
-                    COALESCE(ta.city, pa.city) as city,
-                    COALESCE(ta.state, pa.state) as state,
-                    COALESCE(ta.postal_code, pa.postal_code) as postal_code,
-                    t.brand_settings->'social' as brand_social
-                FROM app.tenants t
-                LEFT JOIN app.people p ON p.uuid = t.pessoa_id
-                LEFT JOIN app.tenant_addresses ta ON ta.tenant_id = t.uuid
-                LEFT JOIN app.people_addresses pa ON pa.people_id = t.pessoa_id
-                WHERE t.uuid = $1
-            `, [tenant.uuid]);
-
-            if (result.rows.length > 0) {
-                const r = result.rows[0];
-                tenantInfo = {
-                    name: r.name,
-                    document: r.document,
-                    email: r.email,
-                    phone: r.phone,
-                    social: {
-                        instagram: r.brand_social?.instagram || r.instagram,
-                        facebook: r.brand_social?.facebook || r.facebook,
-                        x: r.brand_social?.x,
-                        linkedin: r.brand_social?.linkedin,
-                        youtube: r.brand_social?.youtube,
-                        threads: r.brand_social?.threads
-                    },
-                    address: {
-                        street: r.street,
-                        number: r.number,
-                        complement: r.complement,
-                        neighborhood: r.neighborhood,
-                        city: r.city,
-                        state: r.state,
-                        postalCode: r.postal_code
-                    }
-                };
-            }
-        } catch (e) {
-            console.error('Error fetching dynamic tenant details for footer:', e);
-        }
-
         const baseConfig = config ? config.content : { logo: {}, palette: {}, typography: {} };
 
         return res.json({
-            ...baseConfig,
-            tenantInfo
+            ...baseConfig
         })
     } catch (error) {
         console.error('Error fetching public identidade visual:', error)

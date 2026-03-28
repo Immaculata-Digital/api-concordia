@@ -510,4 +510,73 @@ export class PostgresProdutoRepository {
         const { rows } = await pool.query(query, [idOrSlug, tenantId])
         return rows[0] || null
     }
+    async findAllVitrine(tenantId?: string, limit?: number, offset?: number, categoria_code?: string, search?: string): Promise<ProdutoProps[]> {
+        let query = `
+            SELECT p.*, 
+                   cat.name as categoria_nome,
+                   pp.preco as produto_preco,
+                   pp.preco_custo as produto_preco_custo,
+                   pp.preco_promocional as produto_preco_promocional,
+                   cp.ordem as cardapio_ordem,
+                   cp.ativo as cardapio_ativo,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_min)/60)::integer as tempo_preparo_min_raw,
+                   ROUND(EXTRACT(EPOCH FROM cp.tempo_preparo_max)/60)::integer as tempo_preparo_max_raw,
+                   cp.exibir_tempo_preparo as exibir_tempo_preparo,
+                   (SELECT COALESCE(m.arquivo, m.url) 
+                    FROM app.produtos_media m 
+                    WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
+                    ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
+                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+            FROM app.produtos p
+            LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
+            LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
+            LEFT JOIN app.produtos_cardapio cp ON p.uuid = cp.produto_id AND p.tenant_id = cp.tenant_id
+            WHERE p.deleted_at IS NULL
+            AND 'vitrine' = ANY(p.views)
+            -- Excluir produtos pai (orquestradores de variantes) na vitrine
+            AND NOT EXISTS (
+                SELECT 1 FROM app.produtos_variacoes pv 
+                WHERE pv.produto_pai_id = p.uuid 
+                AND pv.produto_filho_id <> p.uuid
+            )
+        `
+        const values: any[] = []
+        let idx = 1
+
+        if (tenantId) {
+            query += ` AND p.tenant_id = $${idx}`
+            values.push(tenantId)
+            idx++
+        }
+
+        if (categoria_code) {
+            query += ` AND p.categoria_code = $${idx}`
+            values.push(categoria_code)
+            idx++
+        }
+
+        if (search) {
+            const searchTerm = `%${search}%`
+            query += ` AND (p.nome ILIKE $${idx} OR p.codigo ILIKE $${idx} OR cat.name ILIKE $${idx})`
+            values.push(searchTerm)
+            idx++
+        }
+
+        query += ` ORDER BY p.created_at DESC`
+
+        if (limit) {
+            query += ` LIMIT $${idx}`
+            values.push(limit)
+            idx++
+        }
+
+        if (offset) {
+            query += ` OFFSET $${idx}`
+            values.push(offset)
+            idx++
+        }
+
+        const { rows } = await pool.query(query, values)
+        return rows.map((row: any) => this.mapToProps(row))
+    }
 }

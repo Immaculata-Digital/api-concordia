@@ -25,6 +25,23 @@ produtosRoutes.get('/', async (req, res) => {
     }
 })
 
+produtosRoutes.get('/vitrine', async (req, res) => {
+    try {
+        const tenantId = (req.query.tenantId as string) || req.user?.tenantId
+        const categoria_code = req.query.categoria_code as string
+        const search = req.query.search as string
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+        const page = req.query.page ? parseInt(req.query.page as string) : 1
+        const offset = limit ? (page - 1) * limit : undefined
+
+        const produtos = await repository.findAllVitrine(tenantId, limit, offset, categoria_code, search)
+        return res.json(produtos)
+    } catch (error) {
+        console.error('Error listing vitrine produits:', error)
+        return res.status(500).json({ message: 'Erro ao listar produtos da vitrine' })
+    }
+})
+
 produtosRoutes.get('/views', async (req, res) => {
     try {
         const tenantId = (req.query.tenantId as string) || req.user?.tenantId

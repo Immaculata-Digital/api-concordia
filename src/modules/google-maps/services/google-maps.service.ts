@@ -2,9 +2,9 @@ export class GoogleMapsService {
     private readonly apiKey: string;
 
     constructor() {
-        this.apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+        this.apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY || '';
         if (!this.apiKey) {
-            console.warn('⚠️ [GoogleMapsService] NEXT_PUBLIC_GOOGLE_MAPS_API_KEY not found in environment');
+            console.warn('⚠️ [GoogleMapsService] VITE_GOOGLE_MAPS_API_KEY not found in environment');
         }
     }
 

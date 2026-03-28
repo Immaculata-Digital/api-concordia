@@ -35,6 +35,9 @@ const envSchema = z.object({
         apiKey: z.string().optional(),
         notificationsInstance: z.string().optional().default('notificacoes'),
     }),
+    telemetry: z.object({
+        tableName: z.string().default('app.api_telemetry'),
+    }).optional(),
 })
 
 export const env = envSchema.parse({
@@ -68,5 +71,8 @@ export const env = envSchema.parse({
         apiUrl: process.env.EVOLUTION_API_URL,
         apiKey: process.env.EVOLUTION_API_KEY,
         notificationsInstance: process.env.EVOLUTION_NOTIFICATIONS_INSTANCE,
+    },
+    telemetry: {
+        tableName: process.env.TELEMETRY_TABLE,
     },
 })

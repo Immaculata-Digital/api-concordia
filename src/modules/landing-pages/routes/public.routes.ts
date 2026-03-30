@@ -66,7 +66,8 @@ export const publicLandingPageHandler = async (req: any, res: any) => {
 
         return res.json({
             ...homePage.content,
-            tenantId: tenant.uuid
+            tenantId: tenant.uuid,
+            ativa: homePage.ativa
         })
     } catch (error) {
         console.error('Error fetching public landing page:', error)

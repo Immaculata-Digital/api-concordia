@@ -321,6 +321,7 @@ export class PostgresProdutoRepository {
                          'uuid', p_variant.uuid,
                          'nome', p_variant.nome,
                          'sku', p_variant.codigo,
+                         'is_parent', (p_variant.uuid = COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)),
                          'images', (
                              SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                              FROM app.produtos_media m

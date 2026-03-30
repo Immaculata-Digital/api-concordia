@@ -49,6 +49,7 @@ publicRoutes.use('/public/:tenantSlug/landing-page', publicLandingPageRoutes)
 publicRoutes.get('/public/:tenantSlug/identidade-visual', publicIdentidadeVisualHandler)
 publicRoutes.use('/public/:tenantSlug/product-lists', publicProductListRoutes)
 publicRoutes.use('/public/:tenantSlug/brand', publicBrandRoutes)
+publicRoutes.use('/public/:tenantSlug/people', publicPeopleRoutes)
 
 // 2. Estilo Legado (Query Params / Sem Slug no Path)
 publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)

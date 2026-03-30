@@ -66,6 +66,14 @@ publicRoutes.use('/public/people', publicPeopleRoutes)
 publicRoutes.use('/public/tenants', publicTenantRoutes)
 publicRoutes.use('/public/google-maps', googleMapsRoutes)
 
+// Endpoint de configuração pública — entrega a chave do Maps ao frontend em runtime
+// A chave NUNCA vai para o bundle do build, apenas trafega no response em runtime
+publicRoutes.get('/public/config', (req, res) => {
+  res.json({
+    googleMapsApiKey: process.env.VITE_GOOGLE_MAPS_API_KEY || ''
+  })
+})
+
 publicRoutes.use('/recompensas', publicRecompensasRoutes)
 
 // Rotas protegidas

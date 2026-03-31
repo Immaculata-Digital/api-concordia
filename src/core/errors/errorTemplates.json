@@ -1,0 +1,50 @@
+{
+  "STOCK_UNAVAILABLE": {
+    "status": 400,
+    "message": "Produto sem estoque",
+    "details": {
+      "produtoId": "ID (string) do produto que não tem o saldo suficiente",
+      "requested": "Quantidade (number) que foi requisitada",
+      "available": "Quantidade (number) atualmente disponível"
+    }
+  },
+  "VALIDATION_ERROR": {
+    "status": 400,
+    "message": "Erro de validação nos dados fornecidos",
+    "details": {
+      "issues": "Array contendo os campos inválidos e seus motivos de reprecificação (Ex: { path: 'email', message: 'E-mail inválido' })"
+    }
+  },
+  "UNAUTHORIZED": {
+    "status": 401,
+    "message": "Acesso não autorizado",
+    "details": null
+  },
+  "FORBIDDEN": {
+    "status": 403,
+    "message": "Acesso negado",
+    "details": {
+      "requiredRole": "(Opcional) Papel ou permissão (string) necessária para a ação"
+    }
+  },
+  "NOT_FOUND": {
+    "status": 404,
+    "message": "Recurso não encontrado",
+    "details": {
+      "resource": "Nome (string) da entidade ou recurso que não foi encontrada, ex: 'Produto', 'Usuario'",
+      "id": "ID (string ou number) que foi procurado, se houver"
+    }
+  },
+  "BAD_REQUEST": {
+    "status": 400,
+    "message": "Requisição inválida",
+    "details": {
+      "reason": "Motivo específico ou técnico do erro em formato legível (string)"
+    }
+  },
+  "INTERNAL_SERVER_ERROR": {
+    "status": 500,
+    "message": "Ocorreu um problema em servidor. Tente novamente mais tarde.",
+    "details": "Nenhum detalhe adicional é exposto por segurança neste caso"
+  }
+}

@@ -88,8 +88,8 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
             const reqHeaders = sanitizePayload(req.headers);
             const cleanRespBody = sanitizePayload(responseBody);
             
-            // Tratados do Error Handler Global
-            const errorMessage = res.locals.errorMessage || null;
+            // Tratados do Error Handler Global (ou do corpo da resposta, caso o dev tenha feito res.status(error).json direto)
+            const errorMessage = res.locals.errorMessage || (cleanRespBody && cleanRespBody.message) || null;
             const errorStack = res.locals.errorStack || null;
 
             // Tentativa de decodificar e gravar campos JWT

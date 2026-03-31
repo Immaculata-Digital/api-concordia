@@ -17,8 +17,18 @@ const sanitizePayload = (payload: any) => {
     let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
     
     // Expressões regulares para substituir imagens em base64 e evitar payloads gigantes no banco
-    sanitized = sanitized.replace(/"data:image\/[^;]+;base64,[^"]+"/gi, '"<imagem anexada>"');
-    sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, '"$1": "<imagem anexada>"');
+    sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,[^"]+"/gi, '"$1": "<$1.$2>"');
+    
+    sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64|file)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, (match: string, key: string, b64: string) => {
+        let ext = 'bin';
+        if (b64.startsWith('/9j/')) ext = 'jpeg';
+        else if (b64.startsWith('iVBORw0KGgo')) ext = 'png';
+        else if (b64.startsWith('UklGR')) ext = 'webp';
+        else if (b64.startsWith('JVBERi0')) ext = 'pdf';
+        else if (b64.startsWith('R0lGOD')) ext = 'gif';
+        
+        return `"${key}": "<${key}.${ext}>"`;
+    });
     
     try {
         return JSON.parse(sanitized);

@@ -106,9 +106,11 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                     request_headers, request_query, request_body, 
                     response_status, response_body, response_time_ms, 
                     error_message, error_stack, 
-                    jwt_login, jwt_tenant_id, jwt_tenant_slug
+                    jwt_login, jwt_tenant_id, jwt_tenant_slug,
+                    timestamp
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+                    NOW() AT TIME ZONE 'America/Sao_Paulo'
                 )
             `;
 

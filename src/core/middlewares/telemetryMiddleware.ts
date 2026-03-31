@@ -14,7 +14,11 @@ const sanitizePayload = (payload: any) => {
     }
     
     // Expressão regular simples para limpar a palavra que pareça com password/senha
-    const sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    
+    // Expressões regulares para substituir imagens em base64 e evitar payloads gigantes no banco
+    sanitized = sanitized.replace(/"data:image\/[^;]+;base64,[^"]+"/gi, '"<imagem anexada>"');
+    sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, '"$1": "<imagem anexada>"');
     
     try {
         return JSON.parse(sanitized);

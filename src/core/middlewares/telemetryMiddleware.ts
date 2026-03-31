@@ -17,7 +17,16 @@ const sanitizePayload = (payload: any) => {
     let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
     
     // Expressões regulares para substituir imagens em base64 e evitar payloads gigantes no banco
-    sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,[^"]+"/gi, '"$1": "<$1.$2>"');
+    const getEstimateSize = (b64str: string) => {
+        const bytes = Math.max(0, Math.floor((b64str.length * 3) / 4));
+        if (bytes < 1024) return bytes + 'B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    };
+
+    sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,([^"]+)"/gi, (match: string, key: string, ext: string, b64: string) => {
+        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
+    });
     
     sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64|file)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, (match: string, key: string, b64: string) => {
         let ext = 'bin';
@@ -27,7 +36,7 @@ const sanitizePayload = (payload: any) => {
         else if (b64.startsWith('JVBERi0')) ext = 'pdf';
         else if (b64.startsWith('R0lGOD')) ext = 'gif';
         
-        return `"${key}": "<${key}.${ext}>"`;
+        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
     });
     
     try {

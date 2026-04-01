@@ -13,10 +13,12 @@ const sanitizePayload = (payload: any) => {
         return { message: '[Circular or Invalid JSON]' };
     }
     
-    // Expressão regular simples para limpar a palavra que pareça com password/senha
     let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
     
-    // Expressões regulares para substituir imagens em base64 e evitar payloads gigantes no banco
+    // Expressão regular para remover tokens Bearer caso estejam em headers, body ou queries
+    sanitized = sanitized.replace(/"([^"]*)":\s*"Bearer\s+[^"]+"/gi, '"$1": "<Ocultado Bearer Token>"');
+
+    // Expressões regulares para substituir imagens/arquivos em base64 e evitar payloads gigantes no banco
     const getEstimateSize = (b64str: string) => {
         const bytes = Math.max(0, Math.floor((b64str.length * 3) / 4));
         if (bytes < 1024) return bytes + 'B';
@@ -25,18 +27,20 @@ const sanitizePayload = (payload: any) => {
     };
 
     sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,([^"]+)"/gi, (match: string, key: string, ext: string, b64: string) => {
-        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
+        return `"${key}": "<Ocultado Arquivo ${key}.${ext} ${getEstimateSize(b64)}>"`;
     });
     
-    sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64|file)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, (match: string, key: string, b64: string) => {
+    // Pega strings em base64 com mais de 500 caracteres (provavelmente arquivos em campos gerais)
+    sanitized = sanitized.replace(/"([^"]*)":\s*"([a-zA-Z0-9+/=\\n]{500,})"/gi, (match: string, key: string, b64: string) => {
         let ext = 'bin';
         if (b64.startsWith('/9j/')) ext = 'jpeg';
         else if (b64.startsWith('iVBORw0KGgo')) ext = 'png';
         else if (b64.startsWith('UklGR')) ext = 'webp';
         else if (b64.startsWith('JVBERi0')) ext = 'pdf';
         else if (b64.startsWith('R0lGOD')) ext = 'gif';
+        else if (b64.startsWith('PHN2Zw')) ext = 'svg'; // <svg base64
         
-        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
+        return `"${key}": "<Ocultado Arquivo ${key}.${ext} ${getEstimateSize(b64)}>"`;
     });
     
     try {
@@ -84,7 +88,7 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
             const responseTimeMs = Date.now() - startTime;
             
             const reqBody = sanitizePayload(req.body);
-            const reqQuery = req.query;
+            const reqQuery = Object.keys(req.query || {}).length ? sanitizePayload(req.query) : null;
             const reqHeaders = sanitizePayload(req.headers);
             const cleanRespBody = sanitizePayload(responseBody);
             
@@ -142,7 +146,7 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                 req.originalUrl || req.url,
                 req.ip || req.socket?.remoteAddress,
                 req.headers['user-agent'],
-                reqHeaders,
+                reqHeaders ? JSON.stringify(reqHeaders) : null,
                 reqQuery ? JSON.stringify(reqQuery) : null,
                 reqBody ? JSON.stringify(reqBody) : null,
                 res.statusCode,

@@ -90,6 +90,15 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
     // Escuta o fim de fato do request para consolidar e salvar assincronamente
     res.on('finish', async () => {
         try {
+            const currentUrl = req.originalUrl || req.url || '';
+            const statusCode = res.statusCode;
+            const isSuccess = statusCode >= 200 && statusCode < 400;
+
+            // Regra para /api/notifications/unread-count: só salva se houver erro (4xx/5xx)
+            if (currentUrl.includes('/api/notifications/unread-count') && isSuccess) {
+                return;
+            }
+
             const table = env.telemetry?.tableName || 'app.api_telemetry';
             const responseTimeMs = Date.now() - startTime;
             
@@ -97,6 +106,10 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
             const reqQuery = Object.keys(req.query || {}).length ? sanitizePayload(req.query) : null;
             const reqHeaders = sanitizePayload(req.headers);
             const cleanRespBody = sanitizePayload(responseBody);
+            
+            // Se for sucesso (2xx/3xx), não salvamos os corpos (request/response) para economizar espaço
+            const finalReqBody = isSuccess ? null : reqBody;
+            const finalRespBody = isSuccess ? null : cleanRespBody;
             
             // Tratados do Error Handler Global (ou do corpo da resposta, caso o dev tenha feito res.status(error).json direto)
             const errorMessage = res.locals.errorMessage || (cleanRespBody && cleanRespBody.message) || null;
@@ -154,9 +167,9 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                 req.headers['user-agent'],
                 reqHeaders ? JSON.stringify(reqHeaders) : null,
                 reqQuery ? JSON.stringify(reqQuery) : null,
-                reqBody ? JSON.stringify(reqBody) : null,
+                finalReqBody ? JSON.stringify(finalReqBody) : null,
                 res.statusCode,
-                cleanRespBody ? JSON.stringify(cleanRespBody) : null,
+                finalRespBody ? JSON.stringify(finalRespBody) : null,
                 responseTimeMs,
                 errorMessage,
                 errorStack,

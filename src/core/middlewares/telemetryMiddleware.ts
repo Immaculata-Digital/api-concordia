@@ -55,6 +55,12 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
         return next();
     }
 
+    // Ignorar requisições de refresh-token para não encher o banco
+    const currentUrl = req.originalUrl || req.url || '';
+    if (currentUrl.includes('/api/auth/refresh-token')) {
+        return next();
+    }
+
     const startTime = Date.now();
     const originalJson = res.json;
     const originalSend = res.send;

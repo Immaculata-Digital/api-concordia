@@ -14,7 +14,30 @@ const sanitizePayload = (payload: any) => {
     }
     
     // Expressão regular simples para limpar a palavra que pareça com password/senha
-    const sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    
+    // Expressões regulares para substituir imagens em base64 e evitar payloads gigantes no banco
+    const getEstimateSize = (b64str: string) => {
+        const bytes = Math.max(0, Math.floor((b64str.length * 3) / 4));
+        if (bytes < 1024) return bytes + 'B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    };
+
+    sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,([^"]+)"/gi, (match: string, key: string, ext: string, b64: string) => {
+        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
+    });
+    
+    sanitized = sanitized.replace(/"([^"]*(?:image|logo|foto|picture|base64|file)[^"]*)":\s*"([a-zA-Z0-9+/=\\n]{200,})"/gi, (match: string, key: string, b64: string) => {
+        let ext = 'bin';
+        if (b64.startsWith('/9j/')) ext = 'jpeg';
+        else if (b64.startsWith('iVBORw0KGgo')) ext = 'png';
+        else if (b64.startsWith('UklGR')) ext = 'webp';
+        else if (b64.startsWith('JVBERi0')) ext = 'pdf';
+        else if (b64.startsWith('R0lGOD')) ext = 'gif';
+        
+        return `"${key}": "<${key}.${ext} ${getEstimateSize(b64)}>"`;
+    });
     
     try {
         return JSON.parse(sanitized);
@@ -65,8 +88,8 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
             const reqHeaders = sanitizePayload(req.headers);
             const cleanRespBody = sanitizePayload(responseBody);
             
-            // Tratados do Error Handler Global
-            const errorMessage = res.locals.errorMessage || null;
+            // Tratados do Error Handler Global (ou do corpo da resposta, caso o dev tenha feito res.status(error).json direto)
+            const errorMessage = res.locals.errorMessage || (cleanRespBody && cleanRespBody.message) || null;
             const errorStack = res.locals.errorStack || null;
 
             // Tentativa de decodificar e gravar campos JWT
@@ -106,9 +129,11 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                     request_headers, request_query, request_body, 
                     response_status, response_body, response_time_ms, 
                     error_message, error_stack, 
-                    jwt_login, jwt_tenant_id, jwt_tenant_slug
+                    jwt_login, jwt_tenant_id, jwt_tenant_slug,
+                    timestamp
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+                    NOW() AT TIME ZONE 'America/Sao_Paulo'
                 )
             `;
 

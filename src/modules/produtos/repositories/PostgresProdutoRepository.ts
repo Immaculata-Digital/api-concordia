@@ -303,25 +303,28 @@ export class PostgresProdutoRepository {
         const offset = (page - 1) * limit
         let query = `
             SELECT 
-                p.uuid, 
+                p.uuid as parent_uuid, 
                 p.nome, 
                 cat.name as categoria_nome, 
                 cat.image_url as categoria_imagem,
                 p.codigo as sku,
-                (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
-                COALESCE(
-                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
-                     FROM app.produtos_media m
-                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
-                    '[]'
+                COALESCE(first_child.child_uuid, p.uuid) as uuid,
+                COALESCE(first_child.child_seo_slug, (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1)) as seo_slug,
+                COALESCE(first_child.child_images, 
+                    COALESCE(
+                        (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                         FROM app.produtos_media m
+                         WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem'),
+                        '[]'
+                    )
                 ) as images,
-                (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
+                COALESCE(first_child.child_main_image, (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1)) as main_image_url,
                 COALESCE(
                     (SELECT json_agg(json_build_object(
                          'uuid', p_variant.uuid,
                          'nome', p_variant.nome,
                          'sku', p_variant.codigo,
-                         'is_parent', (p_variant.uuid = COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)),
+                         'is_parent', (p_variant.uuid = p.uuid),
                          'images', (
                              SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                              FROM app.produtos_media m
@@ -341,18 +344,38 @@ export class PostgresProdutoRepository {
                      ))
                      FROM app.produtos p_variant
                      WHERE p_variant.uuid IN (
-                         SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid)
+                         SELECT p.uuid
                          UNION
                          SELECT produto_filho_id FROM app.produtos_variacoes 
-                         WHERE produto_pai_id = (SELECT COALESCE((SELECT produto_pai_id FROM app.produtos_variacoes WHERE produto_filho_id = p.uuid LIMIT 1), p.uuid))
+                         WHERE produto_pai_id = p.uuid
                      ) AND p_variant.deleted_at IS NULL),
                     '[]'
                 ) as variants,
-                pr.preco,
-                pr.preco_promocional
+                COALESCE(first_child.child_preco, pr.preco) as preco,
+                COALESCE(first_child.child_preco_promocional, pr.preco_promocional) as preco_promocional
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON cat.code = p.categoria_code
             LEFT JOIN app.produtos_precos pr ON pr.produto_id = p.uuid
+            -- Busca o "Modelo 1" (Primeiro Filho)
+            LEFT JOIN LATERAL (
+                SELECT 
+                    pc.uuid as child_uuid,
+                    pc.codigo as child_sku,
+                    (SELECT slug FROM app.produtos_seo s WHERE s.produto_id = pc.uuid AND s.tenant_id = pc.tenant_id LIMIT 1) as child_seo_slug,
+                    (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
+                     FROM app.produtos_media m
+                     WHERE m.produto_id = pc.uuid AND m.tipo_code = 'imagem') as child_images,
+                    (SELECT COALESCE(m.arquivo, m.url) FROM app.produtos_media m WHERE m.produto_id = pc.uuid AND m.tipo_code = 'imagem' ORDER BY m.ordem ASC LIMIT 1) as child_main_image,
+                    prc.preco as child_preco,
+                    prc.preco_promocional as child_preco_promocional
+                FROM app.produtos_variacoes pv
+                JOIN app.produtos pc ON pc.uuid = pv.produto_filho_id
+                LEFT JOIN app.produtos_precos prc ON prc.produto_id = pc.uuid
+                WHERE pv.produto_pai_id = p.uuid
+                AND pc.deleted_at IS NULL
+                ORDER BY pc.codigo ASC, pc.created_at ASC
+                LIMIT 1
+            ) first_child ON true
         `
 
         let whereClause = `
@@ -360,9 +383,9 @@ export class PostgresProdutoRepository {
             AND p.tenant_id = $2 
             AND p.deleted_at IS NULL
             AND 'vitrine' = ANY(p.views)
-            -- Excluir produtos pai (orquestradores de variantes)
+            -- Retorna apenas Pais ou produtos independentes (que não são filhos de ninguém)
             AND NOT EXISTS (
-                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_pai_id = p.uuid
+                SELECT 1 FROM app.produtos_variacoes pv WHERE pv.produto_filho_id = p.uuid
             )
         `;
 
@@ -372,11 +395,23 @@ export class PostgresProdutoRepository {
         if (filters && Object.keys(filters).length > 0) {
             Object.entries(filters).forEach(([key, value]) => {
                 whereClause += `
-                    AND EXISTS (
-                        SELECT 1 FROM app.produtos_ficha_tecnica ft 
-                        WHERE ft.produto_id = p.uuid 
-                        AND ft.chave = $${paramIndex} 
-                        AND ft.valor = $${paramIndex + 1}
+                    AND (
+                        -- Filtra no Pai
+                        EXISTS (
+                            SELECT 1 FROM app.produtos_ficha_tecnica ft 
+                            WHERE ft.produto_id = p.uuid 
+                            AND ft.chave = $${paramIndex} 
+                            AND ft.valor = $${paramIndex + 1}
+                        )
+                        OR
+                        -- Ou em qualquer um dos filhos
+                        EXISTS (
+                            SELECT 1 FROM app.produtos_variacoes pv
+                            JOIN app.produtos_ficha_tecnica ft ON ft.produto_id = pv.produto_filho_id
+                            WHERE pv.produto_pai_id = p.uuid
+                            AND ft.chave = $${paramIndex} 
+                            AND ft.valor = $${paramIndex + 1}
+                        )
                     )
                 `;
                 params.push(key, value);

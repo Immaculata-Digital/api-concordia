@@ -28,7 +28,7 @@ import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
 import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/produtos/routes/public.routes'
 import { publicTenantRoutes } from '../modules/tenants/routes/public.routes'
-import { publicLandingPageRoutes, publicIdentidadeVisualHandler } from '../modules/landing-pages/routes/public.routes'
+import { publicLandingPageRoutes, publicIdentidadeVisualHandler, publicVersionHandler } from '../modules/landing-pages/routes/public.routes'
 import { publicMesaRoutes } from '../modules/mesas/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
 import { publicProductListRoutes } from '../modules/product-lists/routes/public.routes'
@@ -41,6 +41,7 @@ export const routes = Router()
 publicRoutes.use('/auth', authRoutes)
  
 // --- Rotas Públicas (Suporte Híbrido) ---
+publicRoutes.get('/public/:tenantSlug/version', publicVersionHandler)
 
 // 1. Estilo Amigável (Slug no Path)
 publicRoutes.use('/public/:tenantSlug/categorias', publicProdutoCategoriaRoutes)

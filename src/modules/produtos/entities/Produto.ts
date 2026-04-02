@@ -57,6 +57,9 @@ export interface ProdutoProps {
     tempoPreparo_max?: string
     seo?: {
         slug: string
+        title?: string
+        description?: string
+        keywords?: string
     }
     variants?: any[]
 }

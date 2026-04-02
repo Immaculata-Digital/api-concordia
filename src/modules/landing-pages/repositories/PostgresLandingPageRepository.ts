@@ -101,4 +101,12 @@ export class PostgresLandingPageRepository {
         )
         return (result.rowCount ?? 0) > 0
     }
+
+    async getLastUpdatedAt(tenantId: string): Promise<Date | null> {
+        const result = await pool.query(
+            'SELECT MAX(updated_at) as last_updated FROM app.landing_pages WHERE tenant_id = $1',
+            [tenantId]
+        )
+        return result.rows[0]?.last_updated || null
+    }
 }

@@ -47,4 +47,12 @@ export class PostgresIdentidadeVisualRepository {
         )
         return this.mapRowToDomain(result.rows[0])
     }
+
+    async getLastUpdatedAt(tenantId: string): Promise<Date | null> {
+        const result = await pool.query(
+            'SELECT updated_at FROM app.site_identidade_visual WHERE tenant_id = $1',
+            [tenantId]
+        )
+        return result.rows[0]?.updated_at || null
+    }
 }

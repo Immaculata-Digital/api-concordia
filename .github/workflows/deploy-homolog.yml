@@ -78,6 +78,7 @@ jobs:
       - name: Pull and Update Service
         run: |
           docker compose pull api-concordia-homolog
+          docker rm -f api-concordia-homolog || true
           docker compose up -d api-concordia-homolog
 
       - name: Healthcheck

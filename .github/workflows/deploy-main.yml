@@ -78,6 +78,7 @@ jobs:
       - name: Pull and Update Service
         run: |
           docker compose pull api-concordia-main
+          docker rm -f api-concordia-main || true
           docker compose up -d api-concordia-main
 
       - name: Healthcheck

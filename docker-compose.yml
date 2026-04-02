@@ -1,9 +1,6 @@
 services:
   api-concordia-homolog:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: homolog-api-concordia:latest
+    image: ghcr.io/${REPO_OWNER_LOWER}/api-concordia:${IMAGE_TAG:-homolog}
     container_name: api-concordia-homolog
     restart: unless-stopped
     ports:
@@ -28,10 +25,7 @@ services:
       - marshall-network
 
   api-concordia-main:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: api-concordia:latest
+    image: ghcr.io/${REPO_OWNER_LOWER}/api-concordia:${IMAGE_TAG:-latest}
     container_name: api-concordia-main
     restart: unless-stopped
     ports:

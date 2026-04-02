@@ -2,8 +2,11 @@ import { Router } from 'express'
 import { pool } from '../../../infra/database/pool'
 import { generateUUID } from '../../../utils/uuid'
 import bcrypt from 'bcrypt'
+import { GoogleMapsService } from '../../google-maps/services/google-maps.service'
 
-export const publicPeopleRoutes = Router()
+const googleMapsService = new GoogleMapsService()
+
+export const publicPeopleRoutes = Router({ mergeParams: true })
 
 publicPeopleRoutes.post('/cadastro-parceiro', async (req, res) => {
     const client = await pool.connect()
@@ -120,5 +123,67 @@ publicPeopleRoutes.post('/cadastro-parceiro', async (req, res) => {
         return res.status(500).json({ message: 'Erro ao realizar cadastro.' })
     } finally {
         client.release()
+    }
+})
+
+publicPeopleRoutes.get('/lojas', async (req: any, res) => {
+    try {
+        const { tenantSlug } = req.params
+        if (!tenantSlug) return res.status(400).json({ message: 'Tenant slug é obrigatório.' })
+
+        const tenantRes = await pool.query('SELECT uuid FROM app.tenants WHERE slug = $1', [tenantSlug])
+        if (tenantRes.rows.length === 0) return res.status(404).json({ message: 'Tenant não encontrado.' })
+        const tenantId = tenantRes.rows[0].uuid
+
+        const result = await pool.query(`
+            SELECT 
+                p.uuid as id, 
+                p.name, 
+                pa.street, 
+                pa.number, 
+                pa.complement, 
+                pa.neighborhood, 
+                pa.city, 
+                pa.state, 
+                pa.postal_code,
+                pa.latitude,
+                pa.longitude
+            FROM app.people p
+            JOIN app.people_addresses pa ON pa.people_id = p.uuid
+            WHERE p.tenant_id = $1 AND 'vitrine' = ANY(p.views)
+        `, [tenantId])
+
+        const stores = result.rows;
+
+        for (const store of stores) {
+            if (!store.latitude || !store.longitude) {
+                const addressStr = `${store.street}, ${store.number}, ${store.neighborhood}, ${store.city} - ${store.state}, CEP: ${store.postal_code}`;
+                try {
+                    const geoData = await googleMapsService.geocode(addressStr);
+                    if (geoData.status === 'OK' && geoData.results && geoData.results.length > 0) {
+                        const { lat, lng } = geoData.results[0].geometry.location;
+                        store.latitude = lat;
+                        store.longitude = lng;
+
+                        // Persiste no banco para evitar re-chamadas
+                        await pool.query(
+                            'UPDATE app.people_addresses SET latitude = $1, longitude = $2 WHERE people_id = $3',
+                            [lat, lng, store.id]
+                        );
+                    }
+                } catch (error) {
+                    console.error(`Erro ao geocodificar loja ${store.id}:`, error);
+                }
+            }
+            
+            // Garantir que são números
+            if (store.latitude) store.latitude = parseFloat(store.latitude);
+            if (store.longitude) store.longitude = parseFloat(store.longitude);
+        }
+
+        return res.json(stores)
+    } catch (error) {
+        console.error('Error fetching vitrine people:', error)
+        return res.status(500).json({ message: 'Erro ao buscar lojas.' })
     }
 })

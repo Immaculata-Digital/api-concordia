@@ -28,7 +28,7 @@ import { publicComandaRoutes } from '../modules/comandas/routes/public.routes'
 import { publicPeopleRoutes } from '../modules/people/routes/public.routes'
 import { publicProdutoCategoriaRoutes, publicProdutoRoutes } from '../modules/produtos/routes/public.routes'
 import { publicTenantRoutes } from '../modules/tenants/routes/public.routes'
-import { publicLandingPageRoutes, publicIdentidadeVisualHandler } from '../modules/landing-pages/routes/public.routes'
+import { publicLandingPageRoutes, publicIdentidadeVisualHandler, publicVersionHandler } from '../modules/landing-pages/routes/public.routes'
 import { publicMesaRoutes } from '../modules/mesas/routes/public.routes'
 import { publicBrandRoutes } from '../modules/brand/routes/public.routes'
 import { publicProductListRoutes } from '../modules/product-lists/routes/public.routes'
@@ -41,6 +41,7 @@ export const routes = Router()
 publicRoutes.use('/auth', authRoutes)
  
 // --- Rotas Públicas (Suporte Híbrido) ---
+publicRoutes.get('/public/:tenantSlug/version', publicVersionHandler)
 
 // 1. Estilo Amigável (Slug no Path)
 publicRoutes.use('/public/:tenantSlug/categorias', publicProdutoCategoriaRoutes)
@@ -49,6 +50,7 @@ publicRoutes.use('/public/:tenantSlug/landing-page', publicLandingPageRoutes)
 publicRoutes.get('/public/:tenantSlug/identidade-visual', publicIdentidadeVisualHandler)
 publicRoutes.use('/public/:tenantSlug/product-lists', publicProductListRoutes)
 publicRoutes.use('/public/:tenantSlug/brand', publicBrandRoutes)
+publicRoutes.use('/public/:tenantSlug/people', publicPeopleRoutes)
 
 // 2. Estilo Legado (Query Params / Sem Slug no Path)
 publicRoutes.use('/public/categorias', publicProdutoCategoriaRoutes)
@@ -64,6 +66,19 @@ publicRoutes.use('/public/mesas', publicMesaRoutes)
 publicRoutes.use('/public/people', publicPeopleRoutes)
 publicRoutes.use('/public/tenants', publicTenantRoutes)
 publicRoutes.use('/public/google-maps', googleMapsRoutes)
+
+// Endpoint de configuração pública — entrega a chave do Maps ao frontend em runtime
+// A chave NUNCA vai para o bundle do build, apenas trafega no response em runtime
+publicRoutes.get('/public/config', (req, res) => {
+  res.json({
+    googleMapsApiKey: process.env.VITE_GOOGLE_MAPS_API_KEY || ''
+  })
+})
+
+// Endpoint de healthcheck — usado pelo pipeline de CI/CD para validar se o container subiu
+publicRoutes.get('/public/health', (req, res) => {
+  res.status(200).send('ok')
+})
 
 publicRoutes.use('/recompensas', publicRecompensasRoutes)
 

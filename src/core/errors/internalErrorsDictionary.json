@@ -1,0 +1,42 @@
+{
+  "ECONNREFUSED": {
+    "status": 500,
+    "code": "DATABASE_UNAVAILABLE",
+    "message": "Serviço indisponível no momento. Nossa equipe técnica já foi notificada."
+  },
+  "23505": {
+    "status": 409,
+    "code": "DUPLICATE_ENTRY",
+    "message": "Já existe um registro cadastrado com essa mesma informação."
+  },
+  "23503": {
+    "status": 409,
+    "code": "FOREIGN_KEY_VIOLATION",
+    "message": "Este registro não pode ser removido ou alterado pois está em uso por outras partes do sistema."
+  },
+  "23502": {
+    "status": 400,
+    "code": "NOT_NULL_VIOLATION",
+    "message": "Faltam informações obrigatórias para concluir a operação."
+  },
+  "22P02": {
+    "status": 400,
+    "code": "INVALID_TEXT_REPRESENTATION",
+    "message": "Informações inválidas ou em formato incompatível foram enviadas."
+  },
+  "42P01": {
+    "status": 500,
+    "code": "DATABASE_ERROR",
+    "message": "Erro de persistência. Uma parte do armazenamento não foi encontrada."
+  },
+  "42703": {
+    "status": 500,
+    "code": "DATABASE_ERROR",
+    "message": "Erro de persistência. A estrutura da solicitação está divergente no banco."
+  },
+  "ETIMEDOUT": {
+    "status": 504,
+    "code": "TIMEOUT",
+    "message": "A comunicação com o banco de dados falhou por tempo de resposta."
+  }
+}

@@ -13,8 +13,35 @@ const sanitizePayload = (payload: any) => {
         return { message: '[Circular or Invalid JSON]' };
     }
     
-    // Expressão regular simples para limpar a palavra que pareça com password/senha
-    const sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    let sanitized = stringified.replace(/"(password|senha)":\s*".*?"/gi, '"$1": "***"');
+    
+    // Expressão regular para remover tokens Bearer caso estejam em headers, body ou queries
+    sanitized = sanitized.replace(/"([^"]*)":\s*"Bearer\s+[^"]+"/gi, '"$1": "<Ocultado Bearer Token>"');
+
+    // Expressões regulares para substituir imagens/arquivos em base64 e evitar payloads gigantes no banco
+    const getEstimateSize = (b64str: string) => {
+        const bytes = Math.max(0, Math.floor((b64str.length * 3) / 4));
+        if (bytes < 1024) return bytes + 'B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    };
+
+    sanitized = sanitized.replace(/"([^"]*)":\s*"data:[a-zA-Z0-9+-]+\/([a-zA-Z0-9+.-]+);base64,([^"]+)"/gi, (match: string, key: string, ext: string, b64: string) => {
+        return `"${key}": "<Ocultado Arquivo ${key}.${ext} ${getEstimateSize(b64)}>"`;
+    });
+    
+    // Pega strings em base64 com mais de 500 caracteres (provavelmente arquivos em campos gerais)
+    sanitized = sanitized.replace(/"([^"]*)":\s*"([a-zA-Z0-9+/=\\n]{500,})"/gi, (match: string, key: string, b64: string) => {
+        let ext = 'bin';
+        if (b64.startsWith('/9j/')) ext = 'jpeg';
+        else if (b64.startsWith('iVBORw0KGgo')) ext = 'png';
+        else if (b64.startsWith('UklGR')) ext = 'webp';
+        else if (b64.startsWith('JVBERi0')) ext = 'pdf';
+        else if (b64.startsWith('R0lGOD')) ext = 'gif';
+        else if (b64.startsWith('PHN2Zw')) ext = 'svg'; // <svg base64
+        
+        return `"${key}": "<Ocultado Arquivo ${key}.${ext} ${getEstimateSize(b64)}>"`;
+    });
     
     try {
         return JSON.parse(sanitized);
@@ -25,6 +52,12 @@ const sanitizePayload = (payload: any) => {
 
 export const telemetryMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (req.method === 'OPTIONS') {
+        return next();
+    }
+
+    // Ignorar requisições de refresh-token para não encher o banco
+    const currentUrl = req.originalUrl || req.url || '';
+    if (currentUrl.includes('/api/auth/refresh-token')) {
         return next();
     }
 
@@ -57,16 +90,29 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
     // Escuta o fim de fato do request para consolidar e salvar assincronamente
     res.on('finish', async () => {
         try {
+            const currentUrl = req.originalUrl || req.url || '';
+            const statusCode = res.statusCode;
+            const isSuccess = statusCode >= 200 && statusCode < 400;
+
+            // Regra para /api/notifications/unread-count: só salva se houver erro (4xx/5xx)
+            if (currentUrl.includes('/api/notifications/unread-count') && isSuccess) {
+                return;
+            }
+
             const table = env.telemetry?.tableName || 'app.api_telemetry';
             const responseTimeMs = Date.now() - startTime;
             
             const reqBody = sanitizePayload(req.body);
-            const reqQuery = req.query;
+            const reqQuery = Object.keys(req.query || {}).length ? sanitizePayload(req.query) : null;
             const reqHeaders = sanitizePayload(req.headers);
             const cleanRespBody = sanitizePayload(responseBody);
             
-            // Tratados do Error Handler Global
-            const errorMessage = res.locals.errorMessage || null;
+            // Se for sucesso (2xx/3xx), não salvamos os corpos (request/response) para economizar espaço
+            const finalReqBody = isSuccess ? null : reqBody;
+            const finalRespBody = isSuccess ? null : cleanRespBody;
+            
+            // Tratados do Error Handler Global (ou do corpo da resposta, caso o dev tenha feito res.status(error).json direto)
+            const errorMessage = res.locals.errorMessage || (cleanRespBody && cleanRespBody.message) || null;
             const errorStack = res.locals.errorStack || null;
 
             // Tentativa de decodificar e gravar campos JWT
@@ -106,9 +152,11 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                     request_headers, request_query, request_body, 
                     response_status, response_body, response_time_ms, 
                     error_message, error_stack, 
-                    jwt_login, jwt_tenant_id, jwt_tenant_slug
+                    jwt_login, jwt_tenant_id, jwt_tenant_slug,
+                    timestamp
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+                    NOW() AT TIME ZONE 'America/Sao_Paulo'
                 )
             `;
 
@@ -117,11 +165,11 @@ export const telemetryMiddleware = (req: Request, res: Response, next: NextFunct
                 req.originalUrl || req.url,
                 req.ip || req.socket?.remoteAddress,
                 req.headers['user-agent'],
-                reqHeaders,
+                reqHeaders ? JSON.stringify(reqHeaders) : null,
                 reqQuery ? JSON.stringify(reqQuery) : null,
-                reqBody ? JSON.stringify(reqBody) : null,
+                finalReqBody ? JSON.stringify(finalReqBody) : null,
                 res.statusCode,
-                cleanRespBody ? JSON.stringify(cleanRespBody) : null,
+                finalRespBody ? JSON.stringify(finalRespBody) : null,
                 responseTimeMs,
                 errorMessage,
                 errorStack,

@@ -66,7 +66,8 @@ export const publicLandingPageHandler = async (req: any, res: any) => {
 
         return res.json({
             ...homePage.content,
-            tenantId: tenant.uuid
+            tenantId: tenant.uuid,
+            ativa: homePage.ativa
         })
     } catch (error) {
         console.error('Error fetching public landing page:', error)
@@ -144,6 +145,36 @@ export const publicLandingPageContactHandler = async (req: any, res: any) => {
         return res.status(500).json({ message: 'Erro interno ao enviar mensagem' })
     }
 }
+
+export const publicVersionHandler = async (req: any, res: any) => {
+    try {
+        const tenant = await findTenant(req)
+        
+        if (!tenant) {
+            return res.status(404).json({ message: 'Tenant não encontrado' })
+        }
+
+        const [lpLastUpdate, ivLastUpdate] = await Promise.all([
+            repository.getLastUpdatedAt(tenant.uuid!),
+            identidadeVisualRepository.getLastUpdatedAt(tenant.uuid!)
+        ])
+
+        const lastUpdated = [lpLastUpdate, ivLastUpdate]
+            .filter(d => d !== null)
+            .map(d => new Date(d).getTime())
+            .reduce((a, b) => Math.max(a, b), 0)
+
+        return res.json({ 
+            version: lastUpdated,
+            lastUpdated: lastUpdated > 0 ? new Date(lastUpdated).toISOString() : null
+        })
+    } catch (error) {
+        console.error('Error fetching public version:', error)
+        return res.status(500).json({ message: 'Erro interno ao buscar versão' })
+    }
+}
+
+publicLandingPageRoutes.get('/version', publicVersionHandler)
 
 publicLandingPageRoutes.get('/identidade-visual', publicIdentidadeVisualHandler)
 

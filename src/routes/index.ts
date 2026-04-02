@@ -74,6 +74,11 @@ publicRoutes.get('/public/config', (req, res) => {
   })
 })
 
+// Endpoint de healthcheck — usado pelo pipeline de CI/CD para validar se o container subiu
+publicRoutes.get('/public/health', (req, res) => {
+  res.status(200).send('ok')
+})
+
 publicRoutes.use('/recompensas', publicRecompensasRoutes)
 
 // Rotas protegidas

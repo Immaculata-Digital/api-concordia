@@ -18,7 +18,12 @@ export class PostgresProdutoRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
-                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+                   (SELECT json_build_object(
+                       'slug', s.slug,
+                       'title', s.seo_title,
+                       'description', s.seo_description,
+                       'keywords', s.seo_keywords
+                   ) FROM app.produtos_seo s WHERE s.produto_id = p.uuid AND s.tenant_id = p.tenant_id LIMIT 1) as seo_obj
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
@@ -93,7 +98,12 @@ export class PostgresProdutoRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
-                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+                   (SELECT json_build_object(
+                       'slug', s.slug,
+                       'title', s.seo_title,
+                       'description', s.seo_description,
+                       'keywords', s.seo_keywords
+                   ) FROM app.produtos_seo s WHERE s.produto_id = p.uuid AND s.tenant_id = p.tenant_id LIMIT 1) as seo_obj
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
@@ -166,7 +176,12 @@ export class PostgresProdutoRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
-                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+                   (SELECT json_build_object(
+                       'slug', s.slug,
+                       'title', s.seo_title,
+                       'description', s.seo_description,
+                       'keywords', s.seo_keywords
+                   ) FROM app.produtos_seo s WHERE s.produto_id = p.uuid AND s.tenant_id = p.tenant_id LIMIT 1) as seo_obj
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id
@@ -274,9 +289,12 @@ export class PostgresProdutoRepository {
             deletedAt: row.deleted_at,
             image_url: row.categoria_imagem || row.image_url,
             main_image_url: row.main_image_url,
-            seo: row.seo_slug ? {
-                slug: row.seo_slug
-            } : undefined,
+            seo: {
+                slug: row.seo_obj?.slug,
+                title: row.seo_obj?.title || row.nome,
+                description: row.seo_obj?.description || row.descricao,
+                keywords: row.seo_obj?.keywords
+            },
             variants: row.variants || [],
             precos: {
                 preco: row.produto_preco || 0,
@@ -309,7 +327,19 @@ export class PostgresProdutoRepository {
                 cat.image_url as categoria_imagem,
                 p.codigo as sku,
                 COALESCE(first_child.child_uuid, p.uuid) as uuid,
-                COALESCE(first_child.child_seo_slug, (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1)) as seo_slug,
+                COALESCE(
+                    (SELECT json_build_object(
+                        'slug', s.slug,
+                        'title', s.seo_title,
+                        'description', s.seo_description,
+                        'keywords', s.seo_keywords
+                    ) FROM app.produtos_seo s WHERE s.produto_id = COALESCE(first_child.child_uuid, p.uuid) AND s.tenant_id = p.tenant_id LIMIT 1),
+                    json_build_object(
+                        'slug', p.codigo,
+                        'title', p.nome,
+                        'description', p.descricao
+                    )
+                ) as seo,
                 COALESCE(first_child.child_images, 
                     COALESCE(
                         (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
@@ -484,8 +514,13 @@ export class PostgresProdutoRepository {
                 p.categoria_code,
                 cat.name as categoria_nome,
                 cat.image_url as categoria_imagem,
-                -- SEO Slug
-                (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug,
+                -- SEO Object
+                (SELECT json_build_object(
+                    'slug', s.slug,
+                    'title', s.seo_title,
+                    'description', s.seo_description,
+                    'keywords', s.seo_keywords
+                ) FROM app.produtos_seo s WHERE s.produto_id = p.uuid AND s.tenant_id = p.tenant_id LIMIT 1) as seo_obj,
                 COALESCE(
                     (SELECT json_agg(json_build_object('url', m.url, 'arquivo', m.arquivo, 'ordem', m.ordem) ORDER BY m.ordem ASC)
                      FROM app.produtos_media m
@@ -539,12 +574,17 @@ export class PostgresProdutoRepository {
             AND p.deleted_at IS NULL
             AND (
                 p.uuid::text = $1 
-                OR p.uuid IN (SELECT produto_id FROM app.produtos_seo WHERE slug = $1 AND tenant_id = $2)
+                OR LOWER(p.codigo) = LOWER($1) -- Fallback para SKU/Código (rotas antigas indexadas)
+                OR p.uuid IN (
+                    SELECT produto_id 
+                    FROM app.produtos_seo 
+                    WHERE LOWER(slug) = LOWER($1) AND tenant_id = $2
+                )
             )
             LIMIT 1
         `
         const { rows } = await pool.query(query, [idOrSlug, tenantId])
-        return rows[0] || null
+        return rows[0] ? this.mapToProps(rows[0]) : null
     }
     async findAllVitrine(tenantId?: string, limit?: number, offset?: number, categoria_code?: string, search?: string): Promise<ProdutoProps[]> {
         let query = `
@@ -562,7 +602,12 @@ export class PostgresProdutoRepository {
                     FROM app.produtos_media m 
                     WHERE m.produto_id = p.uuid AND m.tipo_code = 'imagem' 
                     ORDER BY m.ordem ASC LIMIT 1) as main_image_url,
-                   (SELECT slug FROM app.produtos_seo WHERE produto_id = p.uuid AND tenant_id = p.tenant_id LIMIT 1) as seo_slug
+                   (SELECT json_build_object(
+                       'slug', s.slug,
+                       'title', s.seo_title,
+                       'description', s.seo_description,
+                       'keywords', s.seo_keywords
+                   ) FROM app.produtos_seo s WHERE s.produto_id = p.uuid AND s.tenant_id = p.tenant_id LIMIT 1) as seo_obj
             FROM app.produtos p
             LEFT JOIN app.produtos_categoria_category_enum cat ON p.categoria_code = cat.code AND (p.tenant_id = cat.tenant_id OR cat.tenant_id IS NULL)
             LEFT JOIN app.produtos_precos pp ON p.uuid = pp.produto_id AND p.tenant_id = pp.tenant_id

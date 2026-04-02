@@ -65,15 +65,18 @@ jobs:
           REPO_OWNER_LOWER=$(echo "${{ env.REPO_OWNER }}" | tr '[:upper:]' '[:lower:]')
           echo "REPO_OWNER_LOWER=${REPO_OWNER_LOWER}" > .env
           echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> .env
-          echo "CRYPTO_SECRET='${{ secrets.CRYPTO_SECRET }}'" >> .env
-          echo "DB_HOST_MAIN='${{ secrets.DB_HOST_MAIN }}'" >> .env
-          echo "DB_PORT_MAIN='${{ secrets.DB_PORT_MAIN }}'" >> .env
-          echo "DB_NAME_MAIN='${{ secrets.DB_NAME_MAIN }}'" >> .env
-          echo "DB_USER_MAIN='${{ secrets.DB_USER_MAIN }}'" >> .env
-          echo "DB_PASS_MAIN='${{ secrets.DB_PASS_MAIN }}'" >> .env
-          echo "JWT_SECRET_MAIN='${{ secrets.JWT_SECRET_MAIN }}'" >> .env
-          echo "JWT_EXPIRES_IN='${{ secrets.JWT_EXPIRES_IN }}'" >> .env
-          echo "VITE_GOOGLE_MAPS_API_KEY='${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}'" >> .env
+          echo "CRYPTO_SECRET=${{ secrets.CRYPTO_SECRET }}" >> .env
+          echo "DB_HOST_MAIN=${{ secrets.DB_HOST_MAIN }}" >> .env
+          echo "DB_PORT_MAIN=${{ secrets.DB_PORT_MAIN }}" >> .env
+          echo "DB_NAME_MAIN=${{ secrets.DB_NAME_MAIN }}" >> .env
+          echo "DB_USER_MAIN=${{ secrets.DB_USER_MAIN }}" >> .env
+          echo "DB_PASS_MAIN=${{ secrets.DB_PASS_MAIN }}" >> .env
+          echo "JWT_SECRET_MAIN=${{ secrets.JWT_SECRET_MAIN }}" >> .env
+          echo "JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}" >> .env
+          echo "VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" >> .env
+          echo "EVOLUTION_API_URL=${{ secrets.EVOLUTION_API_URL }}" >> .env
+          echo "EVOLUTION_API_KEY=${{ secrets.EVOLUTION_API_KEY }}" >> .env
+          echo "EVOLUTION_NOTIFICATIONS_INSTANCE=${{ secrets.EVOLUTION_NOTIFICATIONS_INSTANCE }}" >> .env
 
       - name: Pull and Update Service
         run: |

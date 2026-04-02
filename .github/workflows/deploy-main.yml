@@ -52,6 +52,9 @@ jobs:
       REPO_OWNER: ${{ github.repository_owner }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Login to GHCR
         run: |
           REPO_OWNER_LOWER=$(echo "${{ env.REPO_OWNER }}" | tr '[:upper:]' '[:lower:]')

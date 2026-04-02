@@ -88,7 +88,7 @@ jobs:
         run: |
           echo "Aguardando inicialização da API..."
           for i in {1..10}; do
-            if curl -s http://localhost:3337/public/health | grep -q "ok"; then
+            if curl -s http://localhost:3337/api/public/health | grep -q "ok"; then
               echo "API saudável!"
               exit 0
             fi

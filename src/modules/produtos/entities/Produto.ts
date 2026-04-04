@@ -52,7 +52,7 @@ export interface ProdutoProps {
     produtoNome?: string
     produtoPreco?: number
     produtoImagem?: string
-    fichaTecnica?: any[]
+    ficha_tecnica?: any[]
     tempoPreparo_min?: string
     tempoPreparo_max?: string
     seo?: {

@@ -289,13 +289,15 @@ export class PostgresProdutoRepository {
             deletedAt: row.deleted_at,
             image_url: row.categoria_imagem || row.image_url,
             main_image_url: row.main_image_url,
+            images: typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []),
+            ficha_tecnica: typeof row.ficha_tecnica === 'string' ? JSON.parse(row.ficha_tecnica) : (row.ficha_tecnica || []),
             seo: {
                 slug: row.seo_obj?.slug,
                 title: row.seo_obj?.title || row.nome,
                 description: row.seo_obj?.description || row.descricao,
                 keywords: row.seo_obj?.keywords
             },
-            variants: row.variants || [],
+            variants: typeof row.variants === 'string' ? JSON.parse(row.variants) : (row.variants || []),
             precos: {
                 preco: row.produto_preco || 0,
                 preco_custo: row.produto_preco_custo || 0,

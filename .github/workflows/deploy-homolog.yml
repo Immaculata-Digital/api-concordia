@@ -71,7 +71,7 @@ jobs:
 
   deploy:
     name: Deploy to Server
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64, api-concordia]
     needs: build_and_push
     env:
       IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
